@@ -353,10 +353,10 @@
   right: 0;
   display: flex;
   justify-content: space-around;
-  padding: 10px 0 20px;
-  background: rgba(13, 13, 26, 0.92);
+  padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 8px));
+  background: rgba(13, 13, 26, 0.95);
   backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 100;
 }
 

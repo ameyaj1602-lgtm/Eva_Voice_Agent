@@ -1,10 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
-* {
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Form element reset */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; }
 
 html, body, #root {
   height: 100%;
@@ -17,21 +27,24 @@ body {
   background: #0d0d1a;
   color: #fff;
   overflow-x: hidden;
+  /* Safe area for notched phones */
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+
+::selection { background: rgba(108, 92, 231, 0.3); }
+
+/* Focus ring for accessibility */
+:focus-visible {
+  outline: 2px solid #6c5ce7;
+  outline-offset: 2px;
 }
 
-::selection {
-  background: rgba(200, 160, 130, 0.3);
-}
+button:focus:not(:focus-visible) { outline: none; }

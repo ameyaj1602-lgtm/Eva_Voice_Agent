@@ -1,15 +1,34 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { getConversationStarters } from '../utils/conversationStarters';
+import { useTypingAnimation } from '../hooks/useTypingAnimation';
 
 const REACTIONS = ['\u2764\uFE0F', '\u{1F602}', '\u{1F622}', '\u{1F525}', '\u{1F44F}', '\u{1F917}'];
+
+function TypingMessage({ content, mode }) {
+  const { displayText } = useTypingAnimation(content, 20, true);
+  return <p>{displayText}<span className="typing-cursor" style={{ backgroundColor: mode.accentColor }}>|</span></p>;
+}
 
 export default function ChatInterface({ messages, mode, isTyping, onReact, onSendStarter }) {
   const bottomRef = useRef(null);
   const [activeReaction, setActiveReaction] = useState(null);
+  const [animatingId, setAnimatingId] = useState(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  // Track the latest assistant message for typing animation
+  useEffect(() => {
+    if (messages.length > 0) {
+      const last = messages[messages.length - 1];
+      if (last.role === 'assistant') {
+        setAnimatingId(last.id);
+        const timer = setTimeout(() => setAnimatingId(null), last.content.length * 20 + 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [messages]);
 
   const handleReaction = (msgId, emoji) => {
     onReact?.(msgId, emoji);
@@ -49,38 +68,26 @@ export default function ChatInterface({ messages, mode, isTyping, onReact, onSen
           <div className="chat-bubble-wrapper">
             <div
               className={`chat-bubble ${msg.role}`}
-              style={
-                msg.role === 'assistant'
-                  ? { borderColor: `${mode.accentColor}33` }
-                  : {}
-              }
-              onDoubleClick={() =>
-                setActiveReaction(activeReaction === msg.id ? null : msg.id)
-              }
+              style={msg.role === 'assistant' ? { borderColor: `${mode.accentColor}33` } : {}}
+              onDoubleClick={() => setActiveReaction(activeReaction === msg.id ? null : msg.id)}
             >
-              <p>{msg.content}</p>
+              {msg.role === 'assistant' && msg.id === animatingId ? (
+                <TypingMessage content={msg.content} mode={mode} />
+              ) : (
+                <p>{msg.content}</p>
+              )}
               <span className="chat-time">
-                {new Date(msg.timestamp).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
 
-            {/* Reaction display */}
-            {msg.reaction && (
-              <div className="chat-reaction-badge">{msg.reaction}</div>
-            )}
+            {msg.reaction && <div className="chat-reaction-badge">{msg.reaction}</div>}
 
-            {/* Reaction picker */}
             {activeReaction === msg.id && (
               <div className="reaction-picker">
                 {REACTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    className="reaction-btn"
-                    onClick={() => handleReaction(msg.id, emoji)}
-                  >
+                  <button key={emoji} className="reaction-btn"
+                    onClick={() => handleReaction(msg.id, emoji)}>
                     {emoji}
                   </button>
                 ))}

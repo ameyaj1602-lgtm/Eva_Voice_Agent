@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { MODES } from '../utils/modes';
 
-export default function ModeSelector({ currentMode, onModeChange }) {
+export default function ModeSelector({ currentMode, onModeChange, allModes }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const modes = Object.values(MODES);
+  const modes = Object.values(allModes || MODES);
 
   return (
     <div className={`mode-selector ${isExpanded ? 'expanded' : ''}`}>

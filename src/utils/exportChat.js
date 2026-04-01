@@ -5,10 +5,7 @@ export function exportChatAsText(messages, modeName, userName) {
   text += `${'='.repeat(50)}\n\n`;
 
   messages.forEach((msg) => {
-    const time = new Date(msg.timestamp).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const sender = msg.role === 'user' ? (userName || 'You') : 'Eva';
     text += `[${time}] ${sender}: ${msg.content}\n`;
     if (msg.reaction) text += `  ${msg.reaction}\n`;
@@ -23,6 +20,8 @@ export function exportChatAsText(messages, modeName, userName) {
   const a = document.createElement('a');
   a.href = url;
   a.download = `eva-chat-${modeName.toLowerCase()}-${Date.now()}.txt`;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
