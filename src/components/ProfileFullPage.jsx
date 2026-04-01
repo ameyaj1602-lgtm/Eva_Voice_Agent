@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getMemory, clearMemory } from '../services/storage';
 import { cloneVoice } from '../services/elevenlabs';
+import { cloneVoiceFree } from '../services/voiceClone';
 
 function getMoodLog() {
   try { return JSON.parse(localStorage.getItem('eva-mood-log')) || []; } catch { return []; }
@@ -72,8 +73,6 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
 
   const handleCloneVoice = async () => {
     if (!cloneName.trim()) return;
-    const apiKey = settings?.elevenLabsApiKey;
-    if (!apiKey) { setCloneResult({ type: 'error', msg: 'Add ElevenLabs API key in Settings first' }); return; }
 
     const allFiles = [...cloneFiles, ...recordedBlobs.map((b, i) => new File([b], `recording-${i}.webm`, { type: 'audio/webm' }))];
     if (allFiles.length === 0) { setCloneResult({ type: 'error', msg: 'Upload or record at least one audio sample' }); return; }
@@ -81,16 +80,42 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
     setIsCloning(true);
     setCloneResult(null);
 
+    // Try FREE Hugging Face Space first
+    try {
+      const testAudioBlob = allFiles[0] instanceof File ? allFiles[0] : new Blob([allFiles[0]], { type: 'audio/webm' });
+      const freeResult = await cloneVoiceFree('Hello, this is a test of voice cloning.', testAudioBlob);
+
+      if (freeResult) {
+        // Save the voice sample as a blob URL for future use
+        const sampleUrl = URL.createObjectURL(testAudioBlob);
+        onSaveSettings?.({
+          clonedVoices: { ...clonedVoices, [cloneName]: { type: 'hf', sampleUrl, name: cloneName } },
+        });
+        setCloneResult({ type: 'success', msg: `Voice "${cloneName}" created using free cloning! Eva can now speak in this voice.` });
+        setCloneName(''); setCloneFiles([]); setRecordedBlobs([]);
+        setIsCloning(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('Free cloning failed, trying ElevenLabs:', err.message);
+    }
+
+    // Fall back to ElevenLabs
+    const apiKey = settings?.elevenLabsApiKey;
+    if (!apiKey) {
+      setCloneResult({ type: 'error', msg: 'Free voice cloner is setting up. Try again in a few minutes, or add ElevenLabs key in Settings for instant cloning.' });
+      setIsCloning(false);
+      return;
+    }
+
     const res = await cloneVoice(apiKey, cloneName.trim(), `Cloned by ${profile.name}`, allFiles);
 
     if (res.success) {
-      setCloneResult({ type: 'success', msg: `Voice "${cloneName}" created! Eva can now speak in this voice.` });
-      onSaveSettings?.({ clonedVoices: { ...clonedVoices, [cloneName]: res.voiceId } });
-      setCloneName('');
-      setCloneFiles([]);
-      setRecordedBlobs([]);
+      setCloneResult({ type: 'success', msg: `Voice "${cloneName}" created via ElevenLabs! Eva can now speak in this voice.` });
+      onSaveSettings?.({ clonedVoices: { ...clonedVoices, [cloneName]: { type: 'elevenlabs', voiceId: res.voiceId, name: cloneName } } });
+      setCloneName(''); setCloneFiles([]); setRecordedBlobs([]);
     } else {
-      setCloneResult({ type: 'error', msg: res.error || 'Cloning failed. Needs ElevenLabs paid plan ($5/mo).' });
+      setCloneResult({ type: 'error', msg: res.error || 'Cloning failed. The free server may be starting up - try again in 2 minutes.' });
     }
     setIsCloning(false);
   };
@@ -266,8 +291,8 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
           <>
             <div className="pf-voice-intro">
               <h3>Clone Any Voice</h3>
-              <p>Upload audio recordings or record directly here. Eva will speak in that voice. Use it to capture a loved one's voice, your own voice, or anyone you want Eva to sound like.</p>
-              <p className="pf-voice-note">Requires ElevenLabs paid plan ($5/mo). Free plan does not support cloning.</p>
+              <p>Upload audio recordings or record directly here. Eva will speak in that voice. Capture a loved one's voice, your own voice, or anyone you want Eva to sound like.</p>
+              <p className="pf-voice-note">Uses free open-source AI (XTTS-v2). First use may take 2-3 minutes while the server starts up.</p>
             </div>
 
             {/* Voice name */}
