@@ -76,17 +76,17 @@ export async function deleteVoiceSample(name) {
   }
 }
 
-// --- HF Space API ---
+// --- HF Space API (Gradio 5.x async protocol) ---
 
 // Clone voice: send text + audio sample to HF Space, get back audio
 export async function cloneVoiceFree(text, audioBlob, language = 'en') {
   try {
-    // Step 1: Upload the audio file
+    // Step 1: Upload the audio file via Gradio 5.x upload endpoint
     const audioFile = new File([audioBlob], 'voice-sample.wav', { type: audioBlob.type || 'audio/wav' });
     const fd = new FormData();
     fd.append('files', audioFile);
 
-    const uploadRes = await fetch(`${HF_SPACE_URL}/upload`, {
+    const uploadRes = await fetch(`${HF_SPACE_URL}/gradio_api/upload`, {
       method: 'POST',
       body: fd,
     });
@@ -95,8 +95,8 @@ export async function cloneVoiceFree(text, audioBlob, language = 'en') {
     const uploadedFiles = await uploadRes.json();
     const audioPath = uploadedFiles[0];
 
-    // Step 2: Call the predict endpoint
-    const predictRes = await fetch(`${HF_SPACE_URL}/api/predict`, {
+    // Step 2: Submit prediction job (Gradio 5.x async API)
+    const submitRes = await fetch(`${HF_SPACE_URL}/gradio_api/call/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -104,18 +104,44 @@ export async function cloneVoiceFree(text, audioBlob, language = 'en') {
       }),
     });
 
-    if (!predictRes.ok) throw new Error(`Prediction failed: ${predictRes.status}`);
-    const result = await predictRes.json();
+    if (!submitRes.ok) throw new Error(`Submit failed: ${submitRes.status}`);
+    const { event_id } = await submitRes.json();
+    if (!event_id) throw new Error('No event_id returned');
+
+    // Step 3: Poll for result via SSE stream
+    const resultUrl = `${HF_SPACE_URL}/gradio_api/call/predict/${event_id}`;
+    const resultRes = await fetch(resultUrl);
+    if (!resultRes.ok) throw new Error(`Result fetch failed: ${resultRes.status}`);
+
+    const resultText = await resultRes.text();
+
+    // Parse SSE response - look for "event: complete" followed by data
+    const lines = resultText.split('\n');
+    let resultData = null;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('event: complete') && i + 1 < lines.length) {
+        const dataLine = lines[i + 1];
+        if (dataLine.startsWith('data: ')) {
+          resultData = JSON.parse(dataLine.slice(6));
+        }
+      }
+      if (lines[i].startsWith('event: error')) {
+        throw new Error('Server returned error during processing');
+      }
+    }
+
+    if (!resultData || !resultData[0]) throw new Error('No audio in response');
 
     // Get the output audio URL
-    if (result?.data?.[0]?.path) {
-      return `${HF_SPACE_URL}/file=${result.data[0].path}`;
+    const output = resultData[0];
+    if (output?.path) {
+      return `${HF_SPACE_URL}/gradio_api/file=${output.path}`;
     }
-    if (result?.data?.[0]?.url) {
-      return result.data[0].url;
+    if (output?.url) {
+      return output.url;
     }
 
-    throw new Error('No audio in response');
+    throw new Error('Unexpected response format');
   } catch (err) {
     console.warn('HF Space voice clone failed:', err.message);
     return null;
@@ -141,7 +167,7 @@ export async function isHFSpaceAvailable() {
   try {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${HF_SPACE_URL}/api/predict`, {
+    const res = await fetch(`${HF_SPACE_URL}/gradio_api/call/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: ['test', null, 'en'] }),
