@@ -10,13 +10,18 @@ import spaces
 from TTS.api import TTS
 import tempfile
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
+# Load model on CPU at startup (downloads the 1.8GB model)
+tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
 
 @spaces.GPU
 def clone_and_speak(text, audio_file, language="en"):
     if not text or not audio_file:
         return None
+
+    # Move model to GPU when ZeroGPU provides it
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    tts.to(device)
+
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         output_path = f.name
     tts.tts_to_file(text=text, speaker_wav=audio_file, language=language, file_path=output_path)
