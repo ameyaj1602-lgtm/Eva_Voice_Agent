@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getRandomQuote, getRandomAdvice, getRandomJoke, getRandomFact, getRandomAffirmation, getHoroscope, HOROSCOPE_SIGNS } from '../services/freeApis';
+import { getRandomQuote, getRandomAdvice, getRandomJoke, getRandomFact, getRandomAffirmation, getHoroscope } from '../services/freeApis';
+import { ZODIAC_DATA, getSignFromDate, getLuckyNumbers, getLuckyColor } from '../utils/horoscope';
 
 // Web Audio ambient sounds
 function createAmbientSound(type) {
@@ -68,6 +69,17 @@ const SIGN_EMOJIS = {
   sagittarius: '\u2650', capricorn: '\u2651', aquarius: '\u2652', pisces: '\u2653',
 };
 
+const JOURNAL_PROMPTS = [
+  "What made you smile today?",
+  "What's one thing you're grateful for right now?",
+  "How are you really feeling? Be honest.",
+  "What's been on your mind lately?",
+  "Write a letter to your future self.",
+  "What would make tomorrow better than today?",
+  "Describe a moment of peace you experienced recently.",
+  "What's something you need to let go of?",
+];
+
 export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) {
   const [activePanel, setActivePanel] = useState(null);
   const [quote, setQuote] = useState(null);
@@ -76,11 +88,21 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
   const [fact, setFact] = useState(null);
   const [affirmation, setAffirmation] = useState(null);
   const [horoscope, setHoroscope] = useState(null);
-  const [selectedSign, setSelectedSign] = useState('aries');
+  const [selectedSign, setSelectedSign] = useState(() => {
+    const saved = localStorage.getItem('eva-zodiac-sign');
+    return saved || '';
+  });
   const [horoscopeLoading, setHoroscopeLoading] = useState(false);
+  const [showBirthForm, setShowBirthForm] = useState(false);
+  const [birthDate, setBirthDate] = useState('');
+  const [birthTime, setBirthTime] = useState('');
+  const [birthPlace, setBirthPlace] = useState('');
   const [playingSound, setPlayingSound] = useState(null);
   const [audioEl, setAudioEl] = useState(null);
   const [journalEntry, setJournalEntry] = useState('');
+  const [journalPrompt, setJournalPrompt] = useState(() =>
+    JOURNAL_PROMPTS[Math.floor(Math.random() * JOURNAL_PROMPTS.length)]
+  );
 
   const fetchQuote = async () => { setQuote(await getRandomQuote()); };
   const fetchAdvice = async () => { setAdvice(await getRandomAdvice()); };
@@ -155,22 +177,36 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
             </div>
           </div>
 
-          {/* JOURNAL */}
+          {/* JOURNAL - Enhanced */}
           <div className="sb-category">
             <span className="sb-cat-label">Journal</span>
+            <div className="sb-journal-prompt-card" style={{ borderColor: `${mode.accentColor}22` }}>
+              <span className="sb-journal-prompt-label">Today's prompt</span>
+              <p className="sb-journal-prompt-text">{journalPrompt}</p>
+              <button className="sb-journal-prompt-new" onClick={() =>
+                setJournalPrompt(JOURNAL_PROMPTS[Math.floor(Math.random() * JOURNAL_PROMPTS.length)])
+              } style={{ color: mode.accentColor }}>New prompt</button>
+            </div>
             <div className="sb-journal">
-              <textarea className="sb-journal-input" placeholder="Write your thoughts..."
-                value={journalEntry} onChange={(e) => setJournalEntry(e.target.value)} rows={3} />
-              <button className="sb-journal-save" onClick={saveJournalEntry}
-                disabled={!journalEntry.trim()} style={{ backgroundColor: mode.accentColor }}>
-                Save Entry
-              </button>
+              <textarea className="sb-journal-input" placeholder="Start writing..."
+                value={journalEntry} onChange={(e) => setJournalEntry(e.target.value)} rows={4} />
+              <div className="sb-journal-footer">
+                <span className="sb-journal-count">{journalEntry.length} chars</span>
+                <button className="sb-journal-save" onClick={saveJournalEntry}
+                  disabled={!journalEntry.trim()} style={{ backgroundColor: mode.accentColor }}>
+                  Save
+                </button>
+              </div>
             </div>
             {journalEntries.length > 0 && (
               <div className="sb-journal-history">
+                <span className="sb-journal-history-label">Recent entries</span>
                 {journalEntries.map((e, i) => (
                   <div key={i} className="sb-journal-entry">
-                    <span className="sb-journal-date">{new Date(e.date).toLocaleDateString()}</span>
+                    <div className="sb-journal-entry-header">
+                      <span className="sb-journal-date">{new Date(e.date).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                      <span className="sb-journal-time">{new Date(e.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
                     <p>{e.text}</p>
                   </div>
                 ))}
@@ -229,22 +265,99 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
             )}
           </div>
 
-          {/* HOROSCOPE */}
+          {/* HOROSCOPE - Full Birth Chart */}
           <div className="sb-category">
             <span className="sb-cat-label">Horoscope</span>
-            <div className="sb-horoscope-grid">
-              {HOROSCOPE_SIGNS.map((s) => (
-                <button key={s} className={`sb-sign-btn ${selectedSign === s ? 'active' : ''}`}
-                  onClick={() => fetchHoroscope(s)}
-                  style={selectedSign === s ? { borderColor: mode.accentColor, background: `${mode.accentColor}15` } : {}}>
-                  <span className="sb-sign-emoji">{SIGN_EMOJIS[s]}</span>
-                  <span className="sb-sign-name">{s.charAt(0).toUpperCase() + s.slice(1)}</span>
+
+            {/* If no sign saved, show birth date form */}
+            {!selectedSign && !showBirthForm && (
+              <button className="sb-birth-prompt" onClick={() => setShowBirthForm(true)}
+                style={{ borderColor: `${mode.accentColor}33` }}>
+                <span style={{ fontSize: 24 }}>{'🌟'}</span>
+                <div>
+                  <strong>Discover your sign</strong>
+                  <span>Enter your birth details for personalized readings</span>
+                </div>
+              </button>
+            )}
+
+            {showBirthForm && (
+              <div className="sb-birth-form">
+                <label>Date of Birth</label>
+                <input type="date" className="sb-birth-input" value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)} />
+                <label>Time of Birth (optional)</label>
+                <input type="time" className="sb-birth-input" value={birthTime}
+                  onChange={(e) => setBirthTime(e.target.value)} />
+                <label>Place of Birth (optional)</label>
+                <input type="text" className="sb-birth-input" placeholder="e.g., Mumbai, India"
+                  value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
+                <button className="sb-birth-submit" onClick={() => {
+                  if (birthDate) {
+                    const [y, m, d] = birthDate.split('-').map(Number);
+                    const sign = getSignFromDate(m, d);
+                    setSelectedSign(sign);
+                    localStorage.setItem('eva-zodiac-sign', sign);
+                    localStorage.setItem('eva-birth-date', birthDate);
+                    if (birthTime) localStorage.setItem('eva-birth-time', birthTime);
+                    if (birthPlace) localStorage.setItem('eva-birth-place', birthPlace);
+                    setShowBirthForm(false);
+                    fetchHoroscope(sign);
+                  }
+                }} style={{ backgroundColor: mode.accentColor }}>
+                  Reveal My Sign
                 </button>
-              ))}
-            </div>
-            {horoscopeLoading && <p className="sb-horoscope-loading">Reading the stars...</p>}
+              </div>
+            )}
+
+            {/* Sign selector grid */}
+            {(selectedSign || showBirthForm) && (
+              <div className="sb-zodiac-grid">
+                {Object.entries(ZODIAC_DATA).map(([key, z]) => (
+                  <button key={key} className={`sb-zodiac-card ${selectedSign === key ? 'active' : ''}`}
+                    onClick={() => { setSelectedSign(key); localStorage.setItem('eva-zodiac-sign', key); fetchHoroscope(key); }}
+                    style={selectedSign === key ? { borderColor: z.color, boxShadow: `0 0 12px ${z.color}33` } : {}}>
+                    <div className="sb-zodiac-img" style={{ backgroundImage: `url(${z.image})` }}>
+                      <div className="sb-zodiac-img-overlay" style={{ background: `linear-gradient(to top, ${z.color}cc, ${z.color}44)` }} />
+                      <span className="sb-zodiac-symbol">{z.symbol}</span>
+                    </div>
+                    <span className="sb-zodiac-name">{z.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Selected sign detail card */}
+            {selectedSign && ZODIAC_DATA[selectedSign] && (
+              <div className="sb-zodiac-detail">
+                <div className="sb-zodiac-detail-header" style={{ borderLeftColor: ZODIAC_DATA[selectedSign].color }}>
+                  <span style={{ fontSize: 28 }}>{ZODIAC_DATA[selectedSign].symbol}</span>
+                  <div>
+                    <h4>{ZODIAC_DATA[selectedSign].name}</h4>
+                    <span className="sb-zodiac-dates">{ZODIAC_DATA[selectedSign].dates}</span>
+                  </div>
+                </div>
+                <div className="sb-zodiac-meta">
+                  <div><strong>Element:</strong> {ZODIAC_DATA[selectedSign].element}</div>
+                  <div><strong>Ruler:</strong> {ZODIAC_DATA[selectedSign].ruler}</div>
+                  <div><strong>Lucky Color:</strong> {getLuckyColor(selectedSign)}</div>
+                  <div><strong>Lucky Numbers:</strong> {getLuckyNumbers().join(', ')}</div>
+                </div>
+                <div className="sb-zodiac-traits">
+                  {ZODIAC_DATA[selectedSign].traits.map((t) => (
+                    <span key={t} className="sb-trait-chip" style={{ borderColor: `${ZODIAC_DATA[selectedSign].color}44` }}>{t}</span>
+                  ))}
+                </div>
+                <div className="sb-zodiac-compat">
+                  <strong>Compatible with:</strong> {ZODIAC_DATA[selectedSign].compatible.join(', ')}
+                </div>
+              </div>
+            )}
+
+            {horoscopeLoading && <p className="sb-horoscope-loading">{'🔮'} Reading the stars...</p>}
             {horoscope && !horoscopeLoading && (
               <div className="sb-horoscope-result">
+                <span className="sb-horoscope-label">Today's Reading</span>
                 <p>{horoscope}</p>
               </div>
             )}

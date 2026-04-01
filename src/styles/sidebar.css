@@ -101,49 +101,115 @@
 }
 @keyframes sbPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-/* Journal */
+/* Journal - Enhanced */
+.sb-journal-prompt-card {
+  padding: 14px 16px; background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; margin-bottom: 12px;
+}
+.sb-journal-prompt-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.3); font-weight: 600; }
+.sb-journal-prompt-text { font-size: 15px; color: rgba(255,255,255,0.7); margin: 8px 0; font-style: italic; line-height: 1.5; font-family: 'Lora', serif; }
+.sb-journal-prompt-new { background: none; border: none; font-size: 11px; cursor: pointer; font-weight: 600; }
+
 .sb-journal { margin-bottom: 12px; }
 .sb-journal-input {
-  width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;
-  color: #fff; font-size: 14px; font-family: inherit; resize: vertical;
-  outline: none; line-height: 1.5; min-height: 60px;
+  width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+  color: #fff; font-size: 14px; font-family: 'Lora', serif; resize: vertical;
+  outline: none; line-height: 1.6; min-height: 80px;
 }
-.sb-journal-input::placeholder { color: rgba(255,255,255,0.25); }
+.sb-journal-input::placeholder { color: rgba(255,255,255,0.2); }
 .sb-journal-input:focus { border-color: rgba(255,255,255,0.15); }
+.sb-journal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.sb-journal-count { font-size: 11px; color: rgba(255,255,255,0.2); }
 .sb-journal-save {
-  margin-top: 8px; padding: 8px 18px; border: none; border-radius: 10px;
+  padding: 8px 20px; border: none; border-radius: 10px;
   color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
-  transition: opacity 0.2s;
 }
 .sb-journal-save:disabled { opacity: 0.3; cursor: not-allowed; }
-.sb-journal-save:hover:not(:disabled) { opacity: 0.85; }
-.sb-journal-history { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-.sb-journal-entry {
-  padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: 10px;
-}
-.sb-journal-date { font-size: 10px; color: rgba(255,255,255,0.25); }
-.sb-journal-entry p { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; line-height: 1.5; }
 
-/* Horoscope Grid */
-.sb-horoscope-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+.sb-journal-history { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.sb-journal-history-label { font-size: 11px; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.sb-journal-entry {
+  padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: 12px;
+  border-left: 3px solid rgba(255,255,255,0.06);
 }
-.sb-sign-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 8px 4px; background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06); border-radius: 12px;
-  cursor: pointer; transition: all 0.2s; color: #fff;
+.sb-journal-entry-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.sb-journal-date { font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 500; }
+.sb-journal-time { font-size: 10px; color: rgba(255,255,255,0.2); }
+.sb-journal-entry p { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; font-family: 'Lora', serif; }
+
+/* Birth Date Prompt */
+.sb-birth-prompt {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  padding: 16px; background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.1); border-radius: 14px;
+  cursor: pointer; transition: all 0.2s; text-align: left; color: #fff;
 }
-.sb-sign-btn:hover { background: rgba(255,255,255,0.06); }
-.sb-sign-btn.active { transform: scale(1.05); }
-.sb-sign-emoji { font-size: 20px; }
-.sb-sign-name { font-size: 9px; color: rgba(255,255,255,0.35); text-transform: capitalize; }
+.sb-birth-prompt:hover { background: rgba(255,255,255,0.06); }
+.sb-birth-prompt strong { display: block; font-size: 14px; margin-bottom: 2px; }
+.sb-birth-prompt span { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+/* Birth Form */
+.sb-birth-form { padding: 4px 0 12px; }
+.sb-birth-form label { display: block; font-size: 12px; color: rgba(255,255,255,0.4); margin: 10px 0 4px; }
+.sb-birth-input {
+  width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+  color: #fff; font-size: 14px; outline: none; font-family: inherit;
+}
+.sb-birth-input:focus { border-color: rgba(255,255,255,0.15); }
+.sb-birth-submit {
+  width: 100%; margin-top: 14px; padding: 12px; border: none; border-radius: 12px;
+  color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+
+/* Zodiac Grid with Images */
+.sb-zodiac-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0;
+}
+.sb-zodiac-card {
+  border-radius: 14px; overflow: hidden; border: 2px solid transparent;
+  cursor: pointer; transition: all 0.25s; background: none; padding: 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.sb-zodiac-card:hover { transform: translateY(-2px); }
+.sb-zodiac-card.active { transform: scale(1.05); }
+.sb-zodiac-img {
+  width: 100%; height: 52px; background-size: cover; background-position: center;
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.sb-zodiac-img-overlay { position: absolute; inset: 0; }
+.sb-zodiac-symbol { position: relative; z-index: 2; font-size: 20px; color: #fff; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+.sb-zodiac-name { font-size: 10px; padding: 4px 0; color: rgba(255,255,255,0.5); }
+
+/* Zodiac Detail Card */
+.sb-zodiac-detail {
+  margin: 12px 0; padding: 16px; background: rgba(255,255,255,0.03);
+  border-radius: 14px; border-left: 3px solid;
+}
+.sb-zodiac-detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.sb-zodiac-detail-header h4 { font-size: 18px; margin: 0; }
+.sb-zodiac-dates { font-size: 12px; color: rgba(255,255,255,0.4); }
+.sb-zodiac-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px;
+  color: rgba(255,255,255,0.5); margin-bottom: 12px;
+}
+.sb-zodiac-meta strong { color: rgba(255,255,255,0.7); }
+.sb-zodiac-traits { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.sb-trait-chip {
+  padding: 4px 10px; border: 1px solid; border-radius: 12px;
+  font-size: 11px; color: rgba(255,255,255,0.6);
+}
+.sb-zodiac-compat { font-size: 12px; color: rgba(255,255,255,0.45); }
+.sb-zodiac-compat strong { color: rgba(255,255,255,0.6); }
+
 .sb-horoscope-loading { font-size: 13px; color: rgba(255,255,255,0.3); text-align: center; padding: 16px; font-style: italic; }
 .sb-horoscope-result {
-  margin-top: 12px; padding: 14px 16px; background: rgba(255,255,255,0.03);
-  border-radius: 14px; font-size: 13px; line-height: 1.7;
-  color: rgba(255,255,255,0.65); font-style: italic;
+  margin-top: 12px; padding: 16px; background: rgba(255,255,255,0.03);
+  border-radius: 14px; font-size: 13px; line-height: 1.8;
+  color: rgba(255,255,255,0.65);
 }
+.sb-horoscope-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.3); margin-bottom: 8px; font-weight: 600; }
+.sb-horoscope-result p { font-style: italic; }
 
 @media (max-width: 480px) { .sb { width: 100%; } }
