@@ -7,6 +7,10 @@ import SettingsModal from './components/SettingsModal';
 import ProfileSelector from './components/ProfileSelector';
 import VoiceCloneModal from './components/VoiceCloneModal';
 import WelcomeScreen from './components/WelcomeScreen';
+import BreathingExercise from './components/BreathingExercise';
+import MoodTracker from './components/MoodTracker';
+import CustomModeCreator from './components/CustomModeCreator';
+import { exportChatAsText } from './utils/exportChat';
 import { useVoiceRecorder } from './hooks/useVoiceRecorder';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { getAIResponse } from './services/ai';
@@ -20,6 +24,7 @@ import {
 } from './services/storage';
 import { MODES, DEFAULT_MODE } from './utils/modes';
 import './styles/welcome.css';
+import './styles/features.css';
 import './App.css';
 
 // API keys from .env (fallback to settings/localStorage)
@@ -37,6 +42,13 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showBreathing, setShowBreathing] = useState(false);
+  const [showMoodTracker, setShowMoodTracker] = useState(false);
+  const [showCustomMode, setShowCustomMode] = useState(false);
+  const [customModes, setCustomModes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('eva-custom-modes')) || {}; }
+    catch { return {}; }
+  });
   const [profiles, setProfiles] = useState([]);
   const [activeProfile, setActiveProfile] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -302,6 +314,37 @@ function App() {
     }
   }, [activeProfile, currentMode]);
 
+  const handleExportChat = useCallback(() => {
+    if (messages.length > 0) {
+      exportChatAsText(messages, currentMode.name, activeProfile?.name);
+    }
+  }, [messages, currentMode, activeProfile]);
+
+  const handleCreateCustomMode = useCallback((modeData) => {
+    const allModes = { ...customModes, [modeData.id]: modeData };
+    setCustomModes(allModes);
+    localStorage.setItem('eva-custom-modes', JSON.stringify(allModes));
+  }, [customModes]);
+
+  // Merge built-in + custom modes for the mode selector
+  const allModes = { ...MODES, ...customModes };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (showWelcome || showOnboarding) return;
+
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        if (isRecording) handleStopRecording();
+        else handleStartRecording();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isRecording, handleStartRecording, handleStopRecording, showWelcome, showOnboarding]);
+
   // --- Onboarding ---
   if (showOnboarding) {
     return (
@@ -386,6 +429,18 @@ function App() {
             onDeleteProfile={handleDeleteProfile} mode={currentMode} />
         </div>
         <div className="header-right">
+          <button className="toolbar-btn" onClick={() => setShowBreathing(true)} title="Breathing exercise">
+            {'🫁'}
+          </button>
+          <button className="toolbar-btn" onClick={() => setShowMoodTracker(true)} title="Mood tracker">
+            {'📊'}
+          </button>
+          <button className="toolbar-btn" onClick={handleExportChat} title="Export chat">
+            {'📥'}
+          </button>
+          <button className="toolbar-btn" onClick={() => setShowCustomMode(true)} title="Create custom mode">
+            {'✏️'}
+          </button>
           <button className="clear-chat-btn" onClick={handleClearChat} title="Clear chat"
             style={{ color: currentMode.accentColor }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -440,6 +495,15 @@ function App() {
       <VoiceCloneModal isOpen={showCloneModal} onClose={() => setShowCloneModal(false)}
         mode={currentMode} apiKey={settings.elevenLabsApiKey}
         onVoiceCloned={(voiceId, name) => console.log('Cloned:', name, voiceId)} />
+
+      <BreathingExercise isOpen={showBreathing} onClose={() => setShowBreathing(false)}
+        mode={currentMode} />
+
+      <MoodTracker isOpen={showMoodTracker} onClose={() => setShowMoodTracker(false)}
+        mode={currentMode} />
+
+      <CustomModeCreator isOpen={showCustomMode} onClose={() => setShowCustomMode(false)}
+        onCreateMode={handleCreateCustomMode} />
     </div>
   );
 }

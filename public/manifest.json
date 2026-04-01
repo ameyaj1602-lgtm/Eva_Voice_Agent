@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Eva",
+  "name": "Eva - Personal Voice Companion",
+  "description": "Your personal AI voice therapy companion with multiple mood modes",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +21,7 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#4ecdc4",
+  "background_color": "#faf8f5",
+  "orientation": "portrait"
 }

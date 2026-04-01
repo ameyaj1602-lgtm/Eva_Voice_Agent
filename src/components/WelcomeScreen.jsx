@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MODES } from '../utils/modes';
+import { getDailyAffirmation } from '../utils/affirmations';
 
 const FEELINGS = [
   { emoji: '\u{1F614}', label: 'Stressed', suggestedMode: 'calm', color: '#4ecdc4' },
@@ -70,6 +71,12 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling 
             Tell me how you feel, and I'll be exactly what you need right now.
           </p>
         </div>
+      </div>
+
+      {/* Daily affirmation */}
+      <div className="welcome-affirmation">
+        <p className="affirmation-text">"{getDailyAffirmation()}"</p>
+        <span className="affirmation-label">Today's Affirmation</span>
       </div>
 
       {/* Feeling selector */}
