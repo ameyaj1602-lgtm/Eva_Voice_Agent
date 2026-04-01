@@ -1,42 +1,29 @@
+import os
+# Auto-accept Coqui TTS license (non-commercial use)
+os.environ["COQUI_TOS_AGREED"] = "1"
+
 import gradio as gr
 import torch
 from TTS.api import TTS
 import tempfile
-import os
 
-# Load XTTS-v2 model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
 
 def clone_and_speak(text, audio_file, language="en"):
-    """Clone voice from audio file and generate speech"""
     if not text or not audio_file:
         return None
-
-    # Generate speech with cloned voice
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         output_path = f.name
-
-    tts.tts_to_file(
-        text=text,
-        speaker_wav=audio_file,
-        language=language,
-        file_path=output_path
-    )
-
+    tts.tts_to_file(text=text, speaker_wav=audio_file, language=language, file_path=output_path)
     return output_path
 
-# Create Gradio interface
 demo = gr.Interface(
     fn=clone_and_speak,
     inputs=[
         gr.Textbox(label="Text to speak", placeholder="Enter text for Eva to say..."),
         gr.Audio(label="Voice sample (upload or record)", type="filepath"),
-        gr.Dropdown(
-            choices=["en", "hi", "es", "fr", "de", "it", "pt", "pl", "tr", "ru", "nl", "cs", "ar", "zh-cn", "ja", "ko"],
-            value="en",
-            label="Language"
-        ),
+        gr.Dropdown(choices=["en", "hi", "es", "fr", "de", "it", "pt", "pl", "tr", "ru", "nl", "cs", "ar", "zh-cn", "ja", "ko"], value="en", label="Language"),
     ],
     outputs=gr.Audio(label="Cloned voice output"),
     title="Eva Voice Cloner",

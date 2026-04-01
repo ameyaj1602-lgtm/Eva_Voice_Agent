@@ -481,6 +481,28 @@ function App() {
         ))}
       </div>
 
+      {/* Themed background image */}
+      {currentMode.bgImage && (
+        <div className="mode-bg-image" style={{
+          backgroundImage: `url(${currentMode.bgImage})`,
+          opacity: currentMode.bgOpacity || 0.06,
+        }} />
+      )}
+
+      {/* Mode banner */}
+      {currentMode.bannerImage && (
+        <div className="mode-banner" style={{ backgroundImage: `url(${currentMode.bannerImage})` }}>
+          <div className="mode-banner-overlay" style={{ background: currentMode.gradient }} />
+          <div className="mode-banner-content">
+            <span className="mode-banner-emoji">{currentMode.emoji}</span>
+            <div>
+              <h2 className="mode-banner-name">{currentMode.name} Mode</h2>
+              <p className="mode-banner-desc">{currentMode.description}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="eva-header">
         <div className="header-left">
           <button className="home-btn" onClick={() => setShowWelcome(true)} title="Home" style={{ color: currentMode.accentColor }}>

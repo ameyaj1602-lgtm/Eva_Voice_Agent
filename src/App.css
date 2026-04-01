@@ -48,6 +48,61 @@
   66% { transform: translate(-20px, 20px) scale(0.9); }
 }
 
+/* ---- Mode Background Image ---- */
+.mode-bg-image {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ---- Mode Banner ---- */
+.mode-banner {
+  position: relative;
+  z-index: 2;
+  height: 100px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+}
+
+.mode-banner-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.7;
+}
+
+.mode-banner-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 24px;
+  width: 100%;
+}
+
+.mode-banner-emoji {
+  font-size: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.mode-banner-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.mode-banner-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
 /* ---- Header ---- */
 .eva-header {
   display: flex;
