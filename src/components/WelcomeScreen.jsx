@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MODES } from '../utils/modes';
 import { getDailyAffirmation } from '../utils/affirmations';
+import { getWeather } from '../services/freeApis';
 
 const MODE_IMAGES = {
   calm: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop&q=80',
@@ -49,6 +50,19 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
   const [selectedFeeling, setSelectedFeeling] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
   const [lightMode, setLightMode] = useState(() => localStorage.getItem('eva-theme') === 'light');
+  const [weather, setWeather] = useState(null);
+
+  // Fetch weather on mount
+  useEffect(() => {
+    const key = process.env.REACT_APP_OPENWEATHER_API_KEY;
+    if (!key) return;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => getWeather(key, pos.coords.latitude, pos.coords.longitude).then(setWeather),
+        () => getWeather(key, 19.076, 72.8777).then(setWeather) // default Mumbai
+      );
+    }
+  }, []);
   const modes = Object.values(MODES);
   const topModes = modes.slice(0, 3);
   const restModes = modes.slice(3);
@@ -98,6 +112,18 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
           <span className="ws-profile-streak-label">{'\uD83D\uDD25'} day streak</span>
         </div>
       </button>
+
+      {/* Weather */}
+      {weather && (
+        <div className="ws-weather">
+          <span className="ws-weather-icon">{weather.mood?.emoji}</span>
+          <div className="ws-weather-info">
+            <span className="ws-weather-temp">{weather.temp}°C</span>
+            <span className="ws-weather-desc">{weather.city} &middot; {weather.description}</span>
+          </div>
+          <span className="ws-weather-suggestion">{weather.mood?.text}</span>
+        </div>
+      )}
 
       {/* Hero Card with background image */}
       <div className="ws-hero-card">

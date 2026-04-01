@@ -460,7 +460,7 @@ function App() {
           onSelectFeeling={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }}
           onOpenSidebar={() => setShowSidebar(true)}
           onOpenProfile={() => setShowProfile(true)} />
-        <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings} />
+        <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings} lightMode={localStorage.getItem('eva-theme') === 'light'} />
       </>
     );
   }
