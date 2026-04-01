@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getUsers, getConversationLogs, getErrors, getAnalyticsSummary, verifyAdminPassword } from '../services/analytics';
+import { isSupabaseConfigured, SETUP_SQL } from '../services/supabase';
 
 export default function AdminDashboard({ isOpen, onClose }) {
   const [authed, setAuthed] = useState(false);
@@ -10,13 +11,24 @@ export default function AdminDashboard({ isOpen, onClose }) {
   const [convos, setConvos] = useState([]);
   const [errors, setErrors] = useState([]);
   const [convoFilter, setConvoFilter] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showSQL, setShowSQL] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !authed) return;
-    setSummary(getAnalyticsSummary());
-    setUsers(getUsers());
-    setConvos(getConversationLogs().reverse());
-    setErrors(getErrors().reverse());
+    setLoading(true);
+    Promise.all([
+      getAnalyticsSummary(),
+      getUsers(),
+      getConversationLogs(),
+      getErrors(),
+    ]).then(([s, u, c, e]) => {
+      setSummary(s);
+      setUsers(u);
+      setConvos(c);
+      setErrors(e);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [isOpen, authed, tab]);
 
   if (!isOpen) return null;
@@ -66,6 +78,29 @@ export default function AdminDashboard({ isOpen, onClose }) {
 
         <div className="admin-body">
           {/* OVERVIEW */}
+          {/* Data source indicator */}
+          {tab === 'overview' && (
+            <div style={{ marginBottom: 16, padding: 10, background: isSupabaseConfigured() ? 'rgba(56,239,125,0.1)' : 'rgba(245,175,25,0.1)',
+              borderRadius: 10, fontSize: 12, color: isSupabaseConfigured() ? '#38ef7d' : '#f5af19' }}>
+              {isSupabaseConfigured()
+                ? '\u2713 Connected to Supabase (cloud) - seeing ALL users across devices'
+                : '\u26A0 Using localStorage (local only) - add Supabase for multi-device data'}
+              {!isSupabaseConfigured() && (
+                <button onClick={() => setShowSQL(!showSQL)}
+                  style={{ display: 'block', marginTop: 6, background: 'none', border: 'none', color: '#f5af19', textDecoration: 'underline', cursor: 'pointer', fontSize: 11 }}>
+                  {showSQL ? 'Hide setup instructions' : 'Show Supabase setup instructions'}
+                </button>
+              )}
+              {showSQL && (
+                <pre style={{ marginTop: 8, padding: 10, background: 'rgba(0,0,0,0.3)', borderRadius: 8, fontSize: 10, color: 'rgba(255,255,255,0.6)', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto' }}>
+                  {SETUP_SQL}
+                </pre>
+              )}
+            </div>
+          )}
+
+          {loading && <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)', padding: 20 }}>Loading...</p>}
+
           {tab === 'overview' && summary && (
             <div className="admin-overview">
               <div className="admin-stat-grid">
