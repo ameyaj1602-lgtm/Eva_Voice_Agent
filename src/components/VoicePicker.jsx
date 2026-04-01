@@ -22,6 +22,23 @@ const LANG_NAMES = {
   ml: 'Malayalam', pa: 'Punjabi', ur: 'Urdu',
 };
 
+// Known male voice names (macOS/Chrome) - everything else assumed female
+const MALE_VOICES = new Set([
+  'Albert', 'Daniel', 'Fred', 'Ralph', 'Junior', 'Rishi',
+  'Eddy', 'Grandpa', 'Reed', 'Rocko',
+  // Common across platforms
+  'Google UK English Male', 'Google US English Male', 'Microsoft David',
+  'Microsoft Mark', 'Alex', 'Bruce', 'Tom',
+]);
+
+function isMaleVoice(name) {
+  if (MALE_VOICES.has(name)) return true;
+  // Check if name contains known male identifiers
+  const lower = name.toLowerCase();
+  return lower.includes('male') || lower.includes('grandpa') ||
+    MALE_VOICES.has(name.split(' (')[0]); // Handle "Eddy (English (United States))"
+}
+
 export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode, clonedVoices }) {
   const [isOpen, setIsOpen] = useState(false);
   const [testing, setTesting] = useState(null);
@@ -29,6 +46,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
   const [search, setSearch] = useState('');
   const [showAllLangs, setShowAllLangs] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [deployed, setDeployed] = useState(false);
 
   const [rate, setRate] = useState(() => {
     try { return parseFloat(localStorage.getItem('eva-voice-rate')) || 0.9; } catch { return 0.9; }
@@ -54,7 +72,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
   const testVoice = (voice, customRate, customPitch) => {
     window.speechSynthesis.cancel();
     setTesting(voice?.name || 'preview');
-    const u = new SpeechSynthesisUtterance('Hello, I am Eva, your personal voice companion. I am here to help you feel calm, motivated, and supported.');
+    const u = new SpeechSynthesisUtterance('Hello, I am Eva, your personal voice companion. I am here to help you feel calm and supported.');
     if (voice) u.voice = voice;
     u.rate = customRate ?? rate;
     u.pitch = customPitch ?? pitch;
@@ -64,11 +82,16 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
     window.speechSynthesis.speak(u);
   };
 
-  const selectAndApply = (voice) => {
+  const selectAndDeploy = (voice) => {
+    stopTest();
     onVoiceChange(voice);
     localStorage.setItem('eva-voice-name', voice.name);
+    localStorage.setItem('eva-voice-rate', rate);
+    localStorage.setItem('eva-voice-pitch', pitch);
+    localStorage.setItem('eva-voice-volume', volume);
+    setDeployed(true);
     setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+    setTimeout(() => { setDeployed(false); setSaved(false); }, 2000);
   };
 
   const applyPreset = (preset) => {
@@ -77,23 +100,26 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
     testVoice(selectedVoice, preset.rate, preset.pitch);
   };
 
-  // Group voices by language
+  // Group voices by language, then split female/male within each
   const grouped = {};
   voices.forEach((v) => {
     const lang = v.lang?.split('-')[0] || 'other';
-    if (!grouped[lang]) grouped[lang] = [];
-    grouped[lang].push(v);
+    if (!grouped[lang]) grouped[lang] = { female: [], male: [] };
+    if (isMaleVoice(v.name)) {
+      grouped[lang].male.push(v);
+    } else {
+      grouped[lang].female.push(v);
+    }
   });
 
   const searchLower = search.toLowerCase();
   const filteredGrouped = {};
-  Object.entries(grouped).forEach(([lang, langVoices]) => {
+  Object.entries(grouped).forEach(([lang, { female, male }]) => {
     const langName = (LANG_NAMES[lang] || lang).toLowerCase();
-    const filtered = langVoices.filter((v) => {
-      if (!search) return true;
-      return v.name.toLowerCase().includes(searchLower) || langName.includes(searchLower) || lang.includes(searchLower);
-    });
-    if (filtered.length > 0) filteredGrouped[lang] = filtered;
+    const filterFn = (v) => !search || v.name.toLowerCase().includes(searchLower) || langName.includes(searchLower) || lang.includes(searchLower);
+    const ff = female.filter(filterFn);
+    const fm = male.filter(filterFn);
+    if (ff.length > 0 || fm.length > 0) filteredGrouped[lang] = { female: ff, male: fm };
   });
 
   const primaryLangs = PRIMARY_LANGS.filter(l => filteredGrouped[l]);
@@ -104,19 +130,39 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
     const isActive = selectedVoice?.name === v.name;
     const isTesting = testing === v.name;
     return (
-      <div key={v.name}
-        className={`voice-picker-item ${isActive ? 'active' : ''}`}
+      <div key={v.name} className={`voice-picker-item ${isActive ? 'active' : ''}`}
         style={isActive ? { borderColor: mode.accentColor } : {}}>
-        <button className="voice-picker-select" onClick={() => selectAndApply(v)}>
+        <button className="voice-picker-select" onClick={() => selectAndDeploy(v)}>
           <span className="voice-picker-name">{v.name}</span>
           {isActive && <span className="voice-picker-check" style={{ color: mode.accentColor }}>&#10003;</span>}
         </button>
-        <button
-          className={`voice-picker-test ${isTesting ? 'playing' : ''}`}
+        <button className={`voice-picker-test ${isTesting ? 'playing' : ''}`}
           onClick={() => isTesting ? stopTest() : testVoice(v)}
           style={{ color: isTesting ? '#ff4444' : mode.accentColor, borderColor: isTesting ? '#ff4444' : mode.accentColor }}>
           {isTesting ? '■' : '▶'}
         </button>
+      </div>
+    );
+  };
+
+  const renderLangGroup = (lang) => {
+    const data = filteredGrouped[lang];
+    if (!data) return null;
+    return (
+      <div key={lang} className="voice-picker-group">
+        <div className="voice-picker-lang">{LANG_NAMES[lang] || lang.toUpperCase()}</div>
+        {data.female.length > 0 && (
+          <>
+            <div className="vp-gender-label">Female</div>
+            {data.female.map(renderVoiceItem)}
+          </>
+        )}
+        {data.male.length > 0 && (
+          <>
+            <div className="vp-gender-label">Male</div>
+            {data.male.map(renderVoiceItem)}
+          </>
+        )}
       </div>
     );
   };
@@ -133,16 +179,22 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
         <>
           <div className="voice-picker-backdrop" onClick={() => { stopTest(); setIsOpen(false); }} />
           <div className="voice-picker-dropdown">
+            {/* Header with current voice shown */}
             <div className="voice-picker-header">
-              <h3>Eva's Voice</h3>
-              {saved && <span className="vp-saved-badge">Applied!</span>}
+              <div>
+                <h3>Eva's Voice</h3>
+                <p className="vp-current-voice">
+                  Current: <strong style={{ color: mode.accentColor }}>{selectedVoice?.name || 'Default'}</strong>
+                  {deployed && <span className="vp-deployed-tag">Deployed!</span>}
+                </p>
+              </div>
               <button className="voice-picker-close" onClick={() => { stopTest(); setIsOpen(false); }}>&times;</button>
             </div>
 
-            {/* Stop bar when testing */}
+            {/* Stop bar */}
             {testing && (
               <div className="vp-stop-bar">
-                <span>Playing: {testing}</span>
+                <span>Testing: {testing}</span>
                 <button className="vp-stop-btn" onClick={stopTest}>&#9724; Stop</button>
               </div>
             )}
@@ -165,27 +217,25 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                 </div>
 
                 <div className="voice-picker-list">
-                  {/* Cloned/uploaded voices at top */}
-                  {clonedVoices && Object.keys(clonedVoices).length > 0 && (!search || 'cloned'.includes(searchLower) || 'my voice'.includes(searchLower) || Object.values(clonedVoices).some(v => (v?.name || '').toLowerCase().includes(searchLower))) && (
+                  {/* Cloned voices at top */}
+                  {clonedVoices && Object.keys(clonedVoices).filter(k => k !== 'default').length > 0 && (!search || 'cloned my voice'.includes(searchLower) || Object.values(clonedVoices).some(v => (v?.name || '').toLowerCase().includes(searchLower))) && (
                     <div className="voice-picker-group">
                       <div className="voice-picker-lang">MY VOICES</div>
-                      {Object.entries(clonedVoices).map(([vname, data]) => {
+                      {Object.entries(clonedVoices).filter(([k]) => k !== 'default').map(([vname, data]) => {
                         const name = typeof data === 'object' ? data.name : vname;
-                        if (search && !name.toLowerCase().includes(searchLower) && !'cloned'.includes(searchLower) && !'my voice'.includes(searchLower)) return null;
+                        if (search && !name.toLowerCase().includes(searchLower) && !'cloned my voice'.includes(searchLower)) return null;
                         return (
                           <div key={`cloned-${vname}`} className="voice-picker-item vp-cloned-voice">
-                            <button className="voice-picker-select" onClick={() => selectAndApply({ name: `Cloned: ${name}`, clonedKey: vname })}>
+                            <button className="voice-picker-select" onClick={() => selectAndDeploy({ name: `Cloned: ${name}`, clonedKey: vname })}>
                               <span className="voice-picker-name">{'🎤'} {name}</span>
                               <span className="vp-new-tag">NEW</span>
                             </button>
-                            <button
-                              className={`voice-picker-test ${testing === name ? 'playing' : ''}`}
+                            <button className={`voice-picker-test ${testing === name ? 'playing' : ''}`}
                               onClick={() => {
                                 if (testing === name) { stopTest(); return; }
                                 setTesting(name);
-                                // Test using browser TTS with the name as a demo
                                 window.speechSynthesis.cancel();
-                                const u = new SpeechSynthesisUtterance(`This is ${name}'s cloned voice. Eva will try to speak like this.`);
+                                const u = new SpeechSynthesisUtterance(`This is ${name}'s voice. Eva will speak like this in your therapy sessions.`);
                                 u.rate = rate; u.pitch = pitch; u.volume = volume;
                                 if (selectedVoice) u.voice = selectedVoice;
                                 u.onend = () => setTesting(null);
@@ -201,19 +251,11 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                     </div>
                   )}
 
-                  {primaryLangs.map((lang) => (
-                    <div key={lang} className="voice-picker-group">
-                      <div className="voice-picker-lang">{LANG_NAMES[lang] || lang.toUpperCase()}</div>
-                      {filteredGrouped[lang].map(renderVoiceItem)}
-                    </div>
-                  ))}
+                  {/* Primary languages (female first, male below) */}
+                  {primaryLangs.map(renderLangGroup)}
 
-                  {visibleSecondary.map((lang) => (
-                    <div key={lang} className="voice-picker-group">
-                      <div className="voice-picker-lang">{LANG_NAMES[lang] || lang.toUpperCase()}</div>
-                      {filteredGrouped[lang].map(renderVoiceItem)}
-                    </div>
-                  ))}
+                  {/* Secondary languages */}
+                  {visibleSecondary.map(renderLangGroup)}
 
                   {!search && secondaryLangs.length > 0 && (
                     <button className="vp-show-more" onClick={() => setShowAllLangs(!showAllLangs)}
@@ -222,7 +264,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                     </button>
                   )}
 
-                  {Object.keys(filteredGrouped).length === 0 && (
+                  {Object.keys(filteredGrouped).length === 0 && !clonedVoices && (
                     <p className="vp-no-results">No voices found for "{search}"</p>
                   )}
                 </div>
@@ -276,16 +318,11 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
             <div className="vp-save-footer">
               <button className={`vp-save-btn ${saved ? 'saved' : ''}`}
                 onClick={() => {
-                  localStorage.setItem('eva-voice-rate', rate);
-                  localStorage.setItem('eva-voice-pitch', pitch);
-                  localStorage.setItem('eva-voice-volume', volume);
-                  localStorage.setItem('eva-voice-name', selectedVoice?.name || '');
-                  setSaved(true);
-                  stopTest();
-                  setTimeout(() => { setSaved(false); setIsOpen(false); }, 1200);
+                  selectAndDeploy(selectedVoice);
+                  setTimeout(() => setIsOpen(false), 1200);
                 }}
                 style={{ backgroundColor: saved ? '#38ef7d' : mode.accentColor }}>
-                {saved ? '✓ Saved & Applied!' : 'Save & Apply'}
+                {saved ? '✓ Voice Deployed!' : 'Save & Deploy Voice'}
               </button>
             </div>
           </div>
