@@ -468,27 +468,20 @@ function App() {
           <ProfileSelector profiles={profiles} activeProfile={activeProfile} onSelectProfile={handleSelectProfile} onCreateProfile={handleCreateProfile} onDeleteProfile={handleDeleteProfile} mode={currentMode} />
         </div>
         <div className="header-right">
-          <div className={`credit-bar ${creditStatus.unlocked ? 'unlocked' : ''}`}
-            onClick={() => setShowCreditPopup(true)} title="Credits remaining">
-            <span className={`credit-bar-dot ${
-              creditStatus.unlocked ? 'green' :
-              creditStatus.remaining.total > 10 ? 'green' :
-              creditStatus.remaining.total > 3 ? 'yellow' : 'red'
-            }`} />
-            <span>{creditStatus.unlocked ? '∞' : `${creditStatus.remaining.total}`}</span>
-          </div>
-          <button className="toolbar-btn" onClick={() => setShowSearch(true)} title="Search">{'🔍'}</button>
-          <button className="toolbar-btn" onClick={() => setShowBreathing(true)} title="Breathing">{'🫁'}</button>
-          <button className="toolbar-btn" onClick={() => setShowGratitude(true)} title="Gratitude">{'🙏'}</button>
-          <button className="toolbar-btn" onClick={() => setShowStreak(true)} title="Streak">{'🔥'}</button>
-          <button className="toolbar-btn" onClick={() => { setTimerType('meditation'); setShowTimer(true); }} title="Timer">{'⏱️'}</button>
-          <button className="toolbar-btn" onClick={() => setShowMoodTracker(true)} title="Mood">{'📊'}</button>
-          <button className="toolbar-btn" onClick={() => setShowCustomMode(true)} title="Custom mode">{'✏️'}</button>
-          <button className="clear-chat-btn" onClick={handleClearChat} title="Clear" style={{ color: currentMode.accentColor }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
+          <button className="toolbar-labeled" onClick={() => setShowSearch(true)}>
+            <span>{'🔍'}</span><span className="toolbar-text">Search</span>
           </button>
-          <button className="settings-btn" onClick={() => setShowSettings(true)} title="Settings">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <button className="toolbar-labeled" onClick={() => setShowBreathing(true)}>
+            <span>{'🫁'}</span><span className="toolbar-text">Breathe</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => { setTimerType('meditation'); setShowTimer(true); }}>
+            <span>{'⏱️'}</span><span className="toolbar-text">Timer</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
+            <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => setShowSettings(true)}>
+            <span>{'⚙️'}</span><span className="toolbar-text">Settings</span>
           </button>
           <ModeSelector currentMode={currentMode} onModeChange={handleModeChange} allModes={allModes} />
         </div>

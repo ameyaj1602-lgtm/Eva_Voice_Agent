@@ -717,6 +717,36 @@
   flex: 1;
 }
 
+/* ---- Toolbar Labeled Buttons ---- */
+.toolbar-labeled {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.toolbar-labeled:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.toolbar-labeled:active {
+  transform: scale(0.96);
+}
+
+.toolbar-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+
 /* ---- Toolbar Buttons ---- */
 .toolbar-btn {
   width: 38px;
