@@ -167,11 +167,14 @@ function App() {
   // --- TTS ---
   const speakResponse = useCallback(async (text) => {
     // 1. Try cloned voice via HF Space (free, no credits needed)
-    const clonedData = settings.clonedVoices?.[currentMode.name] || settings.clonedVoices?.['default'];
+    // Find any saved cloned voice - check mode name, 'default', or first available
+    const voices = settings.clonedVoices || {};
+    const clonedData = voices[currentMode.name] || voices['default'] || Object.values(voices).find(v => v?.type === 'hf');
     if (clonedData && typeof clonedData === 'object' && clonedData.type === 'hf') {
       setIsSpeakingState(true);
       try {
-        const audioUrl = await speakWithClonedVoice(text, clonedData.name || currentMode.name);
+        const voiceName = clonedData.name || clonedData.sampleKey?.replace('voice-', '') || currentMode.name;
+        const audioUrl = await speakWithClonedVoice(text, voiceName);
         if (audioUrl) {
           const audio = new Audio(audioUrl);
           audioRef.current = audio;
