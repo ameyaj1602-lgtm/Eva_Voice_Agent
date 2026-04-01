@@ -163,6 +163,9 @@ function App() {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     setIsSpeakingState(false);
     stopBrowserSpeaking();
+    // Also stop typing/processing when user stops speaking
+    setIsTyping(false);
+    setIsProcessing(false);
   }, [stopBrowserSpeaking]);
 
   // --- TTS ---

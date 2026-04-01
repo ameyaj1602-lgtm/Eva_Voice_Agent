@@ -30,6 +30,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
   const [tab, setTab] = useState('voices');
   const [search, setSearch] = useState('');
   const [showAllLangs, setShowAllLangs] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const [rate, setRate] = useState(() => {
     try { return parseFloat(localStorage.getItem('eva-voice-rate')) || 0.9; } catch { return 0.9; }
@@ -270,6 +271,22 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                 </p>
               </div>
             )}
+
+            {/* Save & Apply footer */}
+            <div className="vp-save-footer">
+              <button className={`vp-save-btn ${saved ? 'saved' : ''}`}
+                onClick={() => {
+                  localStorage.setItem('eva-voice-rate', rate);
+                  localStorage.setItem('eva-voice-pitch', pitch);
+                  localStorage.setItem('eva-voice-volume', volume);
+                  localStorage.setItem('eva-voice-name', selectedVoice?.name || '');
+                  setSaved(true);
+                  setTimeout(() => { setSaved(false); setIsOpen(false); }, 1200);
+                }}
+                style={{ backgroundColor: saved ? '#38ef7d' : mode.accentColor }}>
+                {saved ? '✓ Saved & Applied!' : 'Save & Apply'}
+              </button>
+            </div>
           </div>
         </>
       )}

@@ -1659,6 +1659,19 @@
 
 .vp-tune-hint { font-size: 11px; color: rgba(255,255,255,0.25); text-align: center; margin-top: 10px; }
 
+/* Save & Apply footer */
+.vp-save-footer {
+  padding: 10px 12px; border-top: 1px solid rgba(255,255,255,0.06);
+  position: sticky; bottom: 0; background: rgba(20,20,30,0.97);
+}
+.vp-save-btn {
+  width: 100%; padding: 10px; border: none; border-radius: 10px;
+  color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: all 0.3s;
+}
+.vp-save-btn:hover { opacity: 0.85; }
+.vp-save-btn.saved { transform: scale(1.02); }
+
 /* ---- Responsive ---- */
 @media (min-width: 768px) {
   .eva-main {
