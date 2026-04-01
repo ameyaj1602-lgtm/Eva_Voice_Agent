@@ -558,7 +558,10 @@ function App() {
       />
       <ProfilePage isOpen={showProfile} onClose={() => setShowProfile(false)} profile={activeProfile} mode={currentMode} />
       <FeedbackForm isOpen={showFeedback} onClose={() => setShowFeedback(false)} profile={activeProfile} mode={currentMode} />
-      <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
+      <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)}
+        settings={settings} onSaveSettings={handleSaveSettings}
+        onAddMemory={(profileId, fact) => { addMemory(profileId, fact); }}
+        activeProfile={activeProfile} />
       <CreditLimitPopup isOpen={showCreditPopup} onClose={() => setShowCreditPopup(false)}
         creditStatus={creditStatus} type={creditLimitType}
         onUnlock={(pw) => creditManager.tryUnlock(pw)} />
