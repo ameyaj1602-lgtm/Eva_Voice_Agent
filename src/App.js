@@ -28,6 +28,7 @@ import AdminDashboard from './components/AdminDashboard';
 import ProfileFullPage from './components/ProfileFullPage';
 import FeedbackForm from './components/FeedbackForm';
 import './styles/profile.css';
+import VoicePicker from './components/VoicePicker';
 import Sidebar from './components/Sidebar';
 import './styles/sidebar.css';
 import { registerUser, updateUserSession, logConversation, logError } from './services/analytics';
@@ -495,6 +496,7 @@ function App() {
           <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
             <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
           </button>
+          <VoicePicker voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice} mode={currentMode} />
           <button className="toolbar-labeled" onClick={() => setShowSidebar(true)}>
             <span>{'✨'}</span><span className="toolbar-text">Discover</span>
           </button>

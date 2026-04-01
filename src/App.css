@@ -1538,6 +1538,54 @@
   border-color: rgba(255, 68, 68, 0.3);
 }
 
+/* ---- Voice Picker ---- */
+.voice-picker { position: relative; z-index: 100; }
+.voice-picker-backdrop { position: fixed; inset: 0; z-index: 99; }
+.voice-picker-dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0; width: 300px;
+  max-height: 400px; overflow-y: auto;
+  background: rgba(20, 20, 30, 0.97); backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: slideDown 0.25s ease;
+  z-index: 100;
+}
+.voice-picker-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.voice-picker-header h3 { font-size: 15px; font-weight: 600; }
+.voice-picker-close {
+  width: 28px; height: 28px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.08); color: #fff; font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.voice-picker-list { padding: 8px; }
+.voice-picker-lang {
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3);
+  padding: 8px 8px 4px; letter-spacing: 1px;
+}
+.voice-picker-group + .voice-picker-group { margin-top: 4px; }
+.voice-picker-item {
+  display: flex; align-items: center; border-radius: 10px;
+  border: 1px solid transparent; transition: all 0.15s;
+}
+.voice-picker-item:hover { background: rgba(255,255,255,0.06); }
+.voice-picker-item.active { background: rgba(255,255,255,0.04); border-style: solid; }
+.voice-picker-select {
+  flex: 1; display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; background: none; border: none; color: #fff;
+  font-size: 12px; cursor: pointer; text-align: left;
+}
+.voice-picker-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+.voice-picker-check { font-size: 14px; font-weight: 700; }
+.voice-picker-test {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid; background: none; font-size: 11px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  margin-right: 6px; flex-shrink: 0; transition: all 0.15s;
+}
+.voice-picker-test:hover { background: rgba(255,255,255,0.08); }
+
 /* ---- Responsive ---- */
 @media (min-width: 768px) {
   .eva-main {
