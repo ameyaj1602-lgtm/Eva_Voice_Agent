@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getMemory, clearMemory } from '../services/storage';
-import { saveVoiceSample, getVoiceSample, getVoiceSamples, deleteVoiceSample, testClonedVoice, HF_VOICES, speakWithHFVoice } from '../services/voiceClone';
+import { saveVoiceSample, getVoiceSample, deleteVoiceSample, testClonedVoice } from '../services/voiceClone';
 
 function getMoodLog() {
   try { return JSON.parse(localStorage.getItem('eva-mood-log')) || []; } catch { return []; }
@@ -297,43 +297,75 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
         {tab === 'voice' && (
           <>
             <div className="pf-voice-intro">
-              <h3>Choose Eva's Voice</h3>
-              <p>Pick from 16+ high-quality neural voices across 10 languages. Eva will speak in your chosen voice - free and unlimited.</p>
-              <p className="pf-voice-note">Powered by neural AI. Tap any voice to preview it.</p>
+              <h3>Clone Any Voice</h3>
+              <p>Upload audio or record your voice. Eva will speak in that voice. Clone a loved one's voice, your own, or anyone.</p>
+              <p className="pf-voice-note">100% free voice cloning using XTTS-v2 AI. Takes 30-90 seconds to generate. Upload MP3/WAV under 10MB.</p>
             </div>
 
-            {/* Voice grid */}
-            <div className="pf-voice-grid">
-              {Object.entries(HF_VOICES).map(([id, label]) => {
-                const isSelected = clonedVoices?.default?.hfVoice === id;
-                return (
-                  <button key={id} className={`pf-voice-card ${isSelected ? 'selected' : ''}`}
-                    style={isSelected ? { borderColor: mode.accentColor, background: `${mode.accentColor}15` } : {}}
-                    onClick={async () => {
-                      // Set as default voice
-                      onSaveSettings?.({
-                        clonedVoices: { ...clonedVoices, default: { type: 'hf', hfVoice: id, name: label } },
-                      });
-                      setCloneResult({ type: 'info', msg: `Playing "${label}"...` });
-                      const url = await speakWithHFVoice('Hello! I am Eva, your personal voice companion.', id);
-                      if (url) {
-                        new Audio(url).play();
-                        setCloneResult({ type: 'success', msg: `"${label}" set as Eva's voice!` });
-                      } else {
-                        setCloneResult({ type: 'error', msg: 'Voice server error. Try again.' });
-                      }
-                    }}>
-                    <span className="pf-voice-icon">{'🎤'}</span>
-                    <span className="pf-voice-label">{label}</span>
-                    {isSelected && <span className="pf-voice-check" style={{ color: mode.accentColor }}>&#10003;</span>}
-                  </button>
-                );
-              })}
+            {/* Voice name */}
+            <div className="pf-voice-field">
+              <label>Voice Name</label>
+              <input className="settings-input" placeholder="e.g., Mom's Voice, My Voice, Friend..."
+                value={cloneName} onChange={(e) => setCloneName(e.target.value)} />
             </div>
+
+            {/* Upload files */}
+            <div className="pf-voice-field">
+              <label>Upload Audio File</label>
+              <label className="pf-upload-area">
+                <input type="file" accept="audio/*" style={{ display: 'none' }}
+                  onChange={(e) => setCloneFiles(Array.from(e.target.files))} />
+                <span>{cloneFiles.length > 0 ? `${cloneFiles[0].name} (${(cloneFiles[0].size / 1024 / 1024).toFixed(1)}MB)` : 'Click to upload MP3, WAV, M4A (max 10MB)'}</span>
+              </label>
+            </div>
+
+            {/* Or record */}
+            <div className="pf-voice-field">
+              <label>Or Record Here</label>
+              <div className="pf-record-row">
+                <button className={`pf-record-btn ${isRecordingVoice ? 'recording' : ''}`}
+                  onClick={isRecordingVoice ? stopRecordingVoice : startRecordingVoice}
+                  style={{ borderColor: mode.accentColor }}>
+                  {isRecordingVoice ? '\u23F9 Stop Recording' : '\uD83C\uDFA4 Start Recording'}
+                </button>
+                {recordedBlobs.length > 0 && (
+                  <span className="pf-record-count">{recordedBlobs.length} recording(s)</span>
+                )}
+              </div>
+              <p className="pf-voice-note">Record at least 10 seconds of clear speech.</p>
+            </div>
+
+            {/* Clone button */}
+            <button className="pf-clone-btn" onClick={handleCloneVoice}
+              disabled={isCloning || !cloneName.trim() || (cloneFiles.length === 0 && recordedBlobs.length === 0)}
+              style={{ backgroundColor: mode.accentColor }}>
+              {isCloning ? 'Saving Voice...' : 'Save Voice'}
+            </button>
 
             {cloneResult && (
               <div className={`pf-clone-result ${cloneResult.type === 'info' ? 'info' : cloneResult.type}`}>
                 {cloneResult.msg}
+              </div>
+            )}
+
+            {/* Saved voices */}
+            {Object.keys(clonedVoices).length > 0 && (
+              <div className="pf-existing-voices">
+                <h4>Your Saved Voices</h4>
+                {Object.entries(clonedVoices).map(([vname, data]) => (
+                  <div key={vname} className="pf-cloned-item">
+                    <span>{'🎤'} {typeof data === 'object' ? data.name : vname}</span>
+                    <div className="pf-cloned-actions">
+                      <button className="pf-test-btn" onClick={() => handleTestVoice(vname)}
+                        style={{ color: mode.accentColor, borderColor: mode.accentColor }}>
+                        Test
+                      </button>
+                      <button className="pf-delete-voice-btn" onClick={() => handleDeleteVoice(vname)}>
+                        &times;
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </>
