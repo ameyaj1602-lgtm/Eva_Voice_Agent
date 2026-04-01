@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getMemory, clearMemory } from '../services/storage';
-import { saveVoiceSample, getVoiceSamples, deleteVoiceSample, testClonedVoice } from '../services/voiceClone';
+import { saveVoiceSample, getVoiceSample, getVoiceSamples, deleteVoiceSample, testClonedVoice } from '../services/voiceClone';
 
 function getMoodLog() {
   try { return JSON.parse(localStorage.getItem('eva-mood-log')) || []; } catch { return []; }
@@ -100,6 +100,16 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
   };
 
   const handleTestVoice = async (voiceName) => {
+    // Check if we have the audio sample saved
+    const sample = await getVoiceSample(voiceName);
+    if (!sample?.blob) {
+      setCloneResult({ type: 'error', msg: `No audio sample found for "${voiceName}". Please re-upload or record the voice again.` });
+      // Remove the stale entry
+      const updated = { ...clonedVoices };
+      delete updated[voiceName];
+      onSaveSettings?.({ clonedVoices: updated });
+      return;
+    }
     setCloneResult({ type: 'info', msg: 'Testing voice... this may take 30-60 seconds on first use.' });
     const audioUrl = await testClonedVoice(voiceName, 'Hello! This is Eva speaking in your cloned voice. How does it sound?');
     if (audioUrl) {
@@ -107,7 +117,7 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
       audio.play();
       setCloneResult({ type: 'success', msg: 'Playing test audio!' });
     } else {
-      setCloneResult({ type: 'error', msg: 'Voice server is starting up. Try again in 1-2 minutes.' });
+      setCloneResult({ type: 'error', msg: 'Voice cloning server error. The HF Space may be sleeping - visit huggingface.co/spaces/Ameyabro/Eva_Voice_Cloner to wake it, then try again.' });
     }
   };
 
