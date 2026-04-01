@@ -24,6 +24,8 @@ import { detectEmotionLocal } from './services/hume';
 import creditManager from './services/creditManager';
 import CreditLimitPopup from './components/CreditLimitPopup';
 import AdminDashboard from './components/AdminDashboard';
+import ProfilePage from './components/ProfilePage';
+import FeedbackForm from './components/FeedbackForm';
 import { registerUser, updateUserSession, logConversation, logError } from './services/analytics';
 import {
   getProfiles, saveProfile, deleteProfile,
@@ -60,6 +62,8 @@ function App() {
   const [timerType, setTimerType] = useState('meditation');
   const [showStreak, setShowStreak] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [showCreditPopup, setShowCreditPopup] = useState(false);
   const [creditLimitType, setCreditLimitType] = useState('ai');
   const [creditStatus, setCreditStatus] = useState(creditManager.getStatus());
@@ -480,6 +484,12 @@ function App() {
           <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
             <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
           </button>
+          <button className="toolbar-labeled" onClick={() => setShowProfile(true)}>
+            <span>{'👤'}</span><span className="toolbar-text">Profile</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => setShowFeedback(true)}>
+            <span>{'💬'}</span><span className="toolbar-text">Feedback</span>
+          </button>
           <button className="toolbar-labeled" onClick={() => setShowSettings(true)}>
             <span>{'⚙️'}</span><span className="toolbar-text">Settings</span>
           </button>
@@ -521,6 +531,8 @@ function App() {
       <TimerModal isOpen={showTimer} onClose={() => setShowTimer(false)} mode={currentMode} timerType={timerType} />
       <StreakTracker isOpen={showStreak} onClose={() => setShowStreak(false)} mode={currentMode} />
       <ChatSearch isOpen={showSearch} onClose={() => setShowSearch(false)} messages={messages} mode={currentMode} />
+      <ProfilePage isOpen={showProfile} onClose={() => setShowProfile(false)} profile={activeProfile} mode={currentMode} />
+      <FeedbackForm isOpen={showFeedback} onClose={() => setShowFeedback(false)} profile={activeProfile} mode={currentMode} />
       <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
       <CreditLimitPopup isOpen={showCreditPopup} onClose={() => setShowCreditPopup(false)}
         creditStatus={creditStatus} type={creditLimitType}
