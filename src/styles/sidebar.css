@@ -133,6 +133,15 @@
 }
 @keyframes sbPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
+/* Meme Buttons */
+.sb-meme-btn {
+  transition: transform 0.1s !important;
+}
+.sb-meme-btn:active {
+  transform: scale(0.9) !important;
+  background: rgba(255,255,255,0.12) !important;
+}
+
 /* Journal - Enhanced */
 .sb-journal-prompt-card {
   padding: 14px 16px; background: rgba(255,255,255,0.03);

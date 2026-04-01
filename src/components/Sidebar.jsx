@@ -65,6 +65,102 @@ const SOUNDS = [
   { id: 'lofi', name: 'Lo-Fi', icon: '🎵' },
 ];
 
+// Meme soundboard - one-shot sounds using Web Audio API
+function playMemeSound(type) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === 'suspended') ctx.resume();
+  const now = ctx.currentTime;
+
+  if (type === 'airhorn') {
+    // Classic MLG airhorn
+    [440, 587, 698, 880].forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + i * 0.05);
+      osc.stop(now + 1.5);
+    });
+  } else if (type === 'bruh') {
+    // Low descending tone
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(now + 0.5);
+  } else if (type === 'sadtrombone') {
+    // Wah wah wah wahhh
+    const notes = [293.66, 277.18, 261.63, 220];
+    notes.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0, now + i * 0.4);
+      gain.gain.linearRampToValueAtTime(0.3, now + i * 0.4 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.4 + (i === 3 ? 0.8 : 0.35));
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + i * 0.4);
+      osc.stop(now + i * 0.4 + (i === 3 ? 0.8 : 0.4));
+    });
+  } else if (type === 'boom') {
+    // Vine boom / bass drop
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+    gain.gain.setValueAtTime(0.8, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(now + 0.5);
+  } else if (type === 'tada') {
+    // Victory fanfare
+    const melody = [523, 659, 784, 1047];
+    melody.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0, now + i * 0.15);
+      gain.gain.linearRampToValueAtTime(0.15, now + i * 0.15 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + (i === 3 ? 0.5 : 0.12));
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + i * 0.15);
+      osc.stop(now + i * 0.15 + 0.5);
+    });
+  } else if (type === 'wrong') {
+    // Buzzer / wrong answer
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 90;
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.setValueAtTime(0.3, now + 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(now + 0.7);
+  }
+
+  setTimeout(() => ctx.close(), 3000);
+}
+
+const MEME_SOUNDS = [
+  { id: 'airhorn', name: 'Airhorn', icon: '📯' },
+  { id: 'bruh', name: 'Bruh', icon: '😐' },
+  { id: 'boom', name: 'Vine Boom', icon: '💥' },
+  { id: 'sadtrombone', name: 'Sad Trombone', icon: '🎺' },
+  { id: 'tada', name: 'Ta-da!', icon: '🎉' },
+  { id: 'wrong', name: 'Wrong!', icon: '❌' },
+];
+
 const SIGN_EMOJIS = {
   aries: '\u2648', taurus: '\u2649', gemini: '\u264A', cancer: '\u264B',
   leo: '\u264C', virgo: '\u264D', libra: '\u264E', scorpio: '\u264F',
@@ -193,6 +289,19 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
                   style={playingSound === s.id ? { borderColor: mode.accentColor, color: mode.accentColor } : {}}>
                   <span>{s.icon}</span> {s.name}
                   {playingSound === s.id && <span className="sb-playing-dot" style={{ backgroundColor: mode.accentColor }} />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* MEME SOUNDBOARD */}
+          <div className="sb-category">
+            <span className="sb-cat-label">Meme Sounds 😂</span>
+            <div className="sb-sounds">
+              {MEME_SOUNDS.map((s) => (
+                <button key={s.id} className="sb-sound-chip sb-meme-btn"
+                  onClick={() => playMemeSound(s.id)}>
+                  <span>{s.icon}</span> {s.name}
                 </button>
               ))}
             </div>
