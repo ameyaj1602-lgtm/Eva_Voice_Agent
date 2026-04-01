@@ -481,15 +481,7 @@ function App() {
         ))}
       </div>
 
-      {/* Themed background image */}
-      {currentMode.bgImage && (
-        <div className="mode-bg-image" style={{
-          backgroundImage: `url(${currentMode.bgImage})`,
-          opacity: currentMode.bgOpacity || 0.06,
-        }} />
-      )}
-
-      {/* Mode banner */}
+      {/* Mode banner - image only at top */}
       {currentMode.bannerImage && (
         <div className="mode-banner" style={{ backgroundImage: `url(${currentMode.bannerImage})` }}>
           <div className="mode-banner-overlay" style={{ background: currentMode.gradient }} />

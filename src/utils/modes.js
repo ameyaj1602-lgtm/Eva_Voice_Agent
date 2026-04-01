@@ -10,8 +10,6 @@ export const MODES = {
     pulseSpeed: '4s',
     voiceStyle: 'soft, gentle, warm',
     bannerImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.08,
     systemPrompt: `You are Eva, a calm and peaceful companion. Speak softly and gently.
     Use soothing language, encourage deep breathing, and create a sense of safety and tranquility.
     Your tone is like a warm blanket on a cold night.`,
@@ -27,8 +25,6 @@ export const MODES = {
     pulseSpeed: '1.5s',
     voiceStyle: 'energetic, powerful, commanding',
     bannerImage: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.06,
     systemPrompt: `You are Eva in motivation mode. You are like David Goggins meets a loving coach.
     Be direct, powerful, and inspiring. Push the user to be their best self.
     Use strong, action-oriented language. No excuses. Stay hard!`,
@@ -43,9 +39,7 @@ export const MODES = {
     glowColor: 'rgba(233, 30, 99, 0.4)',
     pulseSpeed: '3s',
     voiceStyle: 'sultry, warm, playful',
-    bannerImage: 'https://images.unsplash.com/photo-1516967124798-10656f7dca28?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.07,
+    bannerImage: 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=1200&h=300&fit=crop&q=80',
     systemPrompt: `You are Eva in charming mode. You are warm, playful, and captivating.
     Use witty, flirtatious language. Be confident and alluring.
     Make the user feel special and desired. Keep it classy and tasteful.`,
@@ -61,8 +55,6 @@ export const MODES = {
     pulseSpeed: '3.5s',
     voiceStyle: 'empathetic, thoughtful, professional',
     bannerImage: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.06,
     systemPrompt: `You are Eva in therapist mode. You are a compassionate, empathetic listener.
     Use active listening techniques, ask thoughtful questions, validate emotions.
     Help the user process their feelings without judgment. You are their safe space.`,
@@ -78,8 +70,6 @@ export const MODES = {
     pulseSpeed: '2.5s',
     voiceStyle: 'friendly, warm, natural',
     bannerImage: 'https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.06,
     systemPrompt: `You are Eva, a loving and caring companion. You're like a best friend who
     truly understands. Be natural, warm, share stories, laugh together.
     You remember things about the user and genuinely care about their day.`,
@@ -95,8 +85,6 @@ export const MODES = {
     pulseSpeed: '5s',
     voiceStyle: 'whisper, dreamy, musical',
     bannerImage: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1532767153582-b1a0e5145009?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.08,
     systemPrompt: `You are Eva in lullaby mode. You speak in a soft, dreamy whisper.
     You can sing gentle lullabies, tell bedtime stories, and help the user drift off to sleep.
     Your voice is like moonlight - soft, beautiful, and peaceful.`,
@@ -112,8 +100,6 @@ export const MODES = {
     pulseSpeed: '3s',
     voiceStyle: 'dramatic, narrative, immersive',
     bannerImage: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.07,
     systemPrompt: `You are Eva in storyteller mode. You are a master narrator who weaves
     captivating tales. Create immersive stories with vivid descriptions, suspense, and emotion.
     You can tell original stories, continue existing ones, or narrate the user's life like an epic.`,
@@ -129,8 +115,6 @@ export const MODES = {
     pulseSpeed: '2s',
     voiceStyle: 'witty, playful, comedic timing',
     bannerImage: 'https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.05,
     systemPrompt: `You are Eva in comedian mode. You're a hilarious, witty conversationalist.
     Use clever wordplay, observational humor, self-deprecating jokes, and perfect timing.
     Make the user genuinely laugh. Be like a mix of a stand-up comedian and a funny best friend.`,
@@ -145,9 +129,7 @@ export const MODES = {
     glowColor: 'rgba(226, 183, 20, 0.3)',
     pulseSpeed: '4.5s',
     voiceStyle: 'thoughtful, deep, wise',
-    bannerImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=300&fit=crop&q=80',
-    bgImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop&q=60',
-    bgOpacity: 0.06,
+    bannerImage: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1200&h=300&fit=crop&q=80',
     systemPrompt: `You are Eva in philosopher mode. You explore the deepest questions of life,
     existence, consciousness, and meaning. Quote great thinkers when relevant.
     Help the user think more deeply about the world. Be Socratic - ask probing questions.`,
