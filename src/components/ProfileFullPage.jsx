@@ -27,8 +27,10 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
   const [cloneResult, setCloneResult] = useState(null);
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [recordedBlobs, setRecordedBlobs] = useState([]);
+  const [isTestPlaying, setIsTestPlaying] = useState(false);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+  const testAudioRef = useRef(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -114,6 +116,24 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
     setIsCloning(false);
   };
 
+  const stopTestAudio = () => {
+    if (testAudioRef.current) {
+      testAudioRef.current.pause();
+      testAudioRef.current = null;
+    }
+    setIsTestPlaying(false);
+  };
+
+  const playTestAudio = (audioUrl) => {
+    stopTestAudio();
+    const audio = new Audio(audioUrl);
+    testAudioRef.current = audio;
+    setIsTestPlaying(true);
+    audio.onended = () => { setIsTestPlaying(false); testAudioRef.current = null; };
+    audio.onerror = () => { setIsTestPlaying(false); testAudioRef.current = null; };
+    audio.play();
+  };
+
   const handleTestVoice = async (voiceName) => {
     const voiceData = clonedVoices[voiceName];
     const testText = 'Hello! This is Eva speaking in your cloned voice. How does it sound?';
@@ -123,8 +143,7 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
       setCloneResult({ type: 'info', msg: 'Testing via Fish Audio (high quality)...' });
       const audioUrl = await fishTTS(settings.fishAudioApiKey, testText, voiceData.modelId);
       if (audioUrl) {
-        const audio = new Audio(audioUrl);
-        audio.play();
+        playTestAudio(audioUrl);
         setCloneResult({ type: 'success', msg: 'Playing Fish Audio voice clone!' });
         return;
       }
@@ -137,8 +156,7 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
       setCloneResult({ type: 'info', msg: 'Testing via XTTS (free, takes 30-90 seconds)...' });
       const audioUrl = await testClonedVoice(voiceName, testText);
       if (audioUrl) {
-        const audio = new Audio(audioUrl);
-        audio.play();
+        playTestAudio(audioUrl);
         setCloneResult({ type: 'success', msg: 'Playing XTTS voice clone!' });
         return;
       }
@@ -146,6 +164,15 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
 
     // 3. Nothing worked
     setCloneResult({ type: 'error', msg: 'Voice test failed. Add Fish Audio API key in Admin for reliable cloning, or try again later.' });
+  };
+
+  const handleUseInSessions = (voiceName) => {
+    const voiceData = clonedVoices[voiceName];
+    // Set this as the default voice for all modes
+    onSaveSettings?.({
+      clonedVoices: { ...clonedVoices, default: voiceData, [voiceName]: voiceData },
+    });
+    setCloneResult({ type: 'success', msg: `"${voiceName}" is now Eva's voice in all therapy sessions!` });
   };
 
   const handleDeleteVoice = (voiceName) => {
@@ -375,17 +402,34 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
               </div>
             )}
 
+            {/* Audio player controls when testing */}
+            {isTestPlaying && (
+              <div className="pf-audio-controls" style={{ borderColor: `${mode.accentColor}33` }}>
+                <div className="pf-audio-playing">
+                  <span className="pf-audio-dot" style={{ backgroundColor: mode.accentColor }} />
+                  <span>Playing cloned voice...</span>
+                </div>
+                <button className="pf-audio-stop" onClick={stopTestAudio}>
+                  &#9724; Stop
+                </button>
+              </div>
+            )}
+
             {/* Saved voices - sticky at bottom */}
             {Object.keys(clonedVoices).length > 0 && (
               <div className="pf-saved-voices-sticky">
                 <h4>Your Saved Voices</h4>
-                {Object.entries(clonedVoices).map(([vname, data]) => (
+                {Object.entries(clonedVoices).filter(([k]) => k !== 'default').map(([vname, data]) => (
                   <div key={vname} className="pf-cloned-item">
                     <span>{'🎤'} {typeof data === 'object' ? data.name : vname}</span>
                     <div className="pf-cloned-actions">
-                      <button className="pf-test-btn" onClick={() => handleTestVoice(vname)}
-                        style={{ color: mode.accentColor, borderColor: mode.accentColor }}>
-                        Test
+                      <button className="pf-test-btn" onClick={() => isTestPlaying ? stopTestAudio() : handleTestVoice(vname)}
+                        style={{ color: isTestPlaying ? '#ff4444' : mode.accentColor, borderColor: isTestPlaying ? '#ff4444' : mode.accentColor }}>
+                        {isTestPlaying ? '■ Stop' : '▶ Test'}
+                      </button>
+                      <button className="pf-use-btn" onClick={() => handleUseInSessions(vname)}
+                        style={{ backgroundColor: mode.accentColor }}>
+                        Use in Sessions
                       </button>
                       <button className="pf-delete-voice-btn" onClick={() => handleDeleteVoice(vname)}>
                         &times;

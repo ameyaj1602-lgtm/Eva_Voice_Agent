@@ -355,6 +355,32 @@
 
 .pf-cloned-id { font-size: 11px; color: rgba(255,255,255,0.25); font-family: monospace; }
 
+/* Audio player controls */
+.pf-audio-controls {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-radius: 12px; border: 1px solid;
+  background: rgba(78,205,196,0.06); margin-top: 16px;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.pf-audio-playing { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.pf-audio-dot { width: 8px; height: 8px; border-radius: 50%; animation: blink 1s infinite; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.pf-audio-stop {
+  padding: 6px 16px; border: 1px solid #ff4444; border-radius: 8px;
+  background: rgba(255,68,68,0.15); color: #ff4444;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.pf-audio-stop:hover { background: rgba(255,68,68,0.25); }
+
+/* Use in Sessions button */
+.pf-use-btn {
+  padding: 4px 12px; border-radius: 8px; border: none;
+  color: #fff; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.2s;
+}
+.pf-use-btn:hover { opacity: 0.85; }
+
 /* Voice selection grid */
 .pf-voice-grid {
   display: grid;
