@@ -16,7 +16,6 @@ export async function getRandomQuote() {
     const data = await res.json();
     if (data?.[0]) return { text: data[0].q, author: data[0].a };
   } catch {}
-  // Fallback
   return { text: "The only way out is through.", author: "Robert Frost" };
 }
 
@@ -71,6 +70,81 @@ export async function getRandomAffirmation() {
   } catch {
     return "You are worthy of love and happiness.";
   }
+}
+
+// --- Bored API (activity suggestions) ---
+export async function getBoredActivity() {
+  try {
+    const res = await fetchSafe('https://bored-api.appbrewery.com/random');
+    const data = await res.json();
+    return { activity: data?.activity, type: data?.type, participants: data?.participants };
+  } catch {
+    return { activity: 'Take a walk outside and notice 5 beautiful things', type: 'relaxation', participants: 1 };
+  }
+}
+
+// --- Cat Pictures ---
+export async function getRandomCat() {
+  try {
+    const res = await fetchSafe('https://api.thecatapi.com/v1/images/search');
+    const data = await res.json();
+    return data?.[0]?.url || null;
+  } catch { return null; }
+}
+
+// --- Dog Pictures ---
+export async function getRandomDog() {
+  try {
+    const res = await fetchSafe('https://dog.ceo/api/breeds/image/random');
+    const data = await res.json();
+    return data?.message || null;
+  } catch { return null; }
+}
+
+// --- NASA Astronomy Picture of the Day ---
+export async function getNasaAPOD() {
+  try {
+    const res = await fetchSafe('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY');
+    const data = await res.json();
+    return { title: data?.title, url: data?.url, explanation: data?.explanation?.slice(0, 200), mediaType: data?.media_type };
+  } catch { return null; }
+}
+
+// --- Open Trivia ---
+export async function getTriviaQuestion() {
+  try {
+    const res = await fetchSafe('https://opentdb.com/api.php?amount=1&type=multiple&encode=url3986');
+    const data = await res.json();
+    const q = data?.results?.[0];
+    if (!q) return null;
+    const answers = [...q.incorrect_answers, q.correct_answer]
+      .map(a => decodeURIComponent(a))
+      .sort(() => Math.random() - 0.5);
+    return {
+      question: decodeURIComponent(q.question),
+      answers,
+      correct: decodeURIComponent(q.correct_answer),
+      category: decodeURIComponent(q.category),
+      difficulty: q.difficulty,
+    };
+  } catch { return null; }
+}
+
+// --- Kanye Quotes ---
+export async function getKanyeQuote() {
+  try {
+    const res = await fetchSafe('https://api.kanye.rest/');
+    const data = await res.json();
+    return data?.quote || null;
+  } catch { return null; }
+}
+
+// --- Unsplash Random Photo (mood-based) ---
+export async function getUnsplashPhoto(query = 'nature calm') {
+  try {
+    const res = await fetchSafe(`https://source.unsplash.com/featured/800x600?${encodeURIComponent(query)}`);
+    return res.url; // Redirects to actual image
+  } catch { return null; }
 }
 
 // --- Weather (needs API key) ---

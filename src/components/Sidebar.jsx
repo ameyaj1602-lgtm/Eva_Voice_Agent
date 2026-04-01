@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getRandomQuote, getRandomAdvice, getRandomJoke, getRandomFact, getRandomAffirmation, getHoroscope } from '../services/freeApis';
+import { getRandomQuote, getRandomAdvice, getRandomJoke, getRandomFact, getRandomAffirmation, getHoroscope, getBoredActivity, getRandomCat, getRandomDog, getNasaAPOD, getTriviaQuestion, getKanyeQuote } from '../services/freeApis';
 import { ZODIAC_DATA, getSignFromDate, getLuckyNumbers, getLuckyColor } from '../utils/horoscope';
 
 // Web Audio ambient sounds (mobile-compatible)
@@ -195,6 +195,12 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
   const [birthDate, setBirthDate] = useState(() => localStorage.getItem('eva-birth-date') || '');
   const [birthTime, setBirthTime] = useState(() => localStorage.getItem('eva-birth-time') || '');
   const [birthPlace, setBirthPlace] = useState(() => localStorage.getItem('eva-birth-place') || '');
+  const [boredActivity, setBoredActivity] = useState(null);
+  const [cutePic, setCutePic] = useState(null);
+  const [nasaAPOD, setNasaAPOD] = useState(null);
+  const [trivia, setTrivia] = useState(null);
+  const [triviaAnswer, setTriviaAnswer] = useState(null);
+  const [kanyeQuote, setKanyeQuote] = useState(null);
   const [playingSound, setPlayingSound] = useState(null);
   const [audioEl, setAudioEl] = useState(null);
   const [journalEntry, setJournalEntry] = useState('');
@@ -334,6 +340,110 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
               ))}
             </div>
             <p className="sb-spotify-note">Open in Spotify for full playlists</p>
+          </div>
+
+          {/* YOUTUBE MUSIC */}
+          <div className="sb-category">
+            <span className="sb-cat-label">YouTube Music</span>
+            <div className="sb-spotify-grid">
+              {[
+                { name: 'Lo-Fi Beats', id: 'jfKfPfyJRdk', emoji: '🎵' },
+                { name: 'Relaxing Piano', id: '4xDzrJKXOOY', emoji: '🎹' },
+              ].map((yt) => (
+                <div key={yt.name} className="sb-spotify-card">
+                  <div className="sb-spotify-header"><span>{yt.emoji}</span><span className="sb-spotify-name">{yt.name}</span></div>
+                  <iframe title={yt.name} width="100%" height="80"
+                    src={`https://www.youtube.com/embed/${yt.id}?autoplay=0`}
+                    frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media"
+                    loading="lazy" style={{ borderRadius: 8 }} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CUTE ANIMALS - Mood Boost */}
+          <div className="sb-category">
+            <span className="sb-cat-label">Mood Boost</span>
+            <div className="sb-mood-boost">
+              {cutePic && <img src={cutePic} alt="cute" className="sb-cute-img" />}
+              <div className="sb-cute-btns">
+                <button className="sb-api-btn" onClick={async () => setCutePic(await getRandomCat())}
+                  style={{ borderColor: `${mode.accentColor}33` }}>🐱 Cute Cat</button>
+                <button className="sb-api-btn" onClick={async () => setCutePic(await getRandomDog())}
+                  style={{ borderColor: `${mode.accentColor}33` }}>🐶 Good Boy</button>
+              </div>
+            </div>
+          </div>
+
+          {/* BORED? Activity Suggestions */}
+          <div className="sb-category">
+            <span className="sb-cat-label">Feeling Bored?</span>
+            {boredActivity ? (
+              <div className="sb-bored-card" style={{ borderColor: `${mode.accentColor}22` }}>
+                <p className="sb-bored-activity">{boredActivity.activity}</p>
+                <span className="sb-bored-type">{boredActivity.type} · {boredActivity.participants} person(s)</span>
+              </div>
+            ) : null}
+            <button className="sb-api-btn" onClick={async () => setBoredActivity(await getBoredActivity())}
+              style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: 8 }}>
+              🎲 Suggest Something
+            </button>
+          </div>
+
+          {/* TRIVIA */}
+          <div className="sb-category">
+            <span className="sb-cat-label">Trivia Challenge</span>
+            {trivia ? (
+              <div className="sb-trivia-card">
+                <p className="sb-trivia-q">{trivia.question}</p>
+                <span className="sb-trivia-cat">{trivia.category} · {trivia.difficulty}</span>
+                <div className="sb-trivia-answers">
+                  {trivia.answers.map((a, i) => (
+                    <button key={i} className={`sb-trivia-ans ${triviaAnswer === a ? (a === trivia.correct ? 'correct' : 'wrong') : ''} ${triviaAnswer && a === trivia.correct ? 'correct' : ''}`}
+                      onClick={() => setTriviaAnswer(a)} disabled={!!triviaAnswer}
+                      style={triviaAnswer === a && a === trivia.correct ? { borderColor: '#38ef7d' } : {}}>
+                      {a}
+                    </button>
+                  ))}
+                </div>
+                {triviaAnswer && (
+                  <p className="sb-trivia-result" style={{ color: triviaAnswer === trivia.correct ? '#38ef7d' : '#ff6b6b' }}>
+                    {triviaAnswer === trivia.correct ? '✅ Correct!' : `❌ It was: ${trivia.correct}`}
+                  </p>
+                )}
+              </div>
+            ) : null}
+            <button className="sb-api-btn" onClick={async () => { setTriviaAnswer(null); setTrivia(await getTriviaQuestion()); }}
+              style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: 8 }}>
+              🧠 New Question
+            </button>
+          </div>
+
+          {/* NASA APOD */}
+          <div className="sb-category">
+            <span className="sb-cat-label">NASA Picture of the Day</span>
+            {nasaAPOD ? (
+              <div className="sb-nasa-card">
+                {nasaAPOD.mediaType === 'image' && <img src={nasaAPOD.url} alt={nasaAPOD.title} className="sb-nasa-img" />}
+                <h4 className="sb-nasa-title">{nasaAPOD.title}</h4>
+                <p className="sb-nasa-desc">{nasaAPOD.explanation}...</p>
+              </div>
+            ) : (
+              <button className="sb-api-btn" onClick={async () => setNasaAPOD(await getNasaAPOD())}
+                style={{ borderColor: `${mode.accentColor}33`, width: '100%' }}>
+                🚀 Load Today's Photo
+              </button>
+            )}
+          </div>
+
+          {/* KANYE QUOTES */}
+          <div className="sb-category">
+            <span className="sb-cat-label">Kanye Says</span>
+            {kanyeQuote && <p className="sb-kanye-quote">"{kanyeQuote}"<span> — Kanye West</span></p>}
+            <button className="sb-api-btn" onClick={async () => setKanyeQuote(await getKanyeQuote())}
+              style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: kanyeQuote ? 8 : 0 }}>
+              🎤 Random Kanye Quote
+            </button>
           </div>
 
           {/* JOURNAL - Enhanced */}
