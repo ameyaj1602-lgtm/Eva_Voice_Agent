@@ -19,7 +19,7 @@ function createAmbientSound(type) {
     filter.type = type === 'rain' ? 'highpass' : 'lowpass';
     filter.frequency.value = type === 'rain' ? 800 : 300;
     const gain = ctx.createGain();
-    gain.gain.value = type === 'rain' ? 0.15 : 0.2;
+    gain.gain.value = type === 'rain' ? 0.4 : 0.5;
     source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
     source.start(); nodes.push(source);
   } else if (type === 'fire') {
@@ -31,7 +31,7 @@ function createAmbientSound(type) {
     source.buffer = buffer; source.loop = true;
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass'; filter.frequency.value = 600; filter.Q.value = 0.5;
-    const gain = ctx.createGain(); gain.gain.value = 0.25;
+    const gain = ctx.createGain(); gain.gain.value = 0.5;
     source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
     source.start(); nodes.push(source);
   } else if (type === 'birds') {
@@ -41,7 +41,7 @@ function createAmbientSound(type) {
       gain.gain.value = 0; osc.connect(gain); gain.connect(ctx.destination); osc.start();
       const loop = () => {
         const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+        gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
         gain.gain.linearRampToValueAtTime(0, now + 0.15);
         osc.frequency.setValueAtTime(2000 + Math.random() * 2000, now);
         setTimeout(loop, 500 + Math.random() * 2000);
@@ -50,7 +50,7 @@ function createAmbientSound(type) {
   } else if (type === 'lofi') {
     [261.6, 329.6, 392.0].forEach((f) => {
       const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      osc.type = 'triangle'; osc.frequency.value = f; gain.gain.value = 0.06;
+      osc.type = 'triangle'; osc.frequency.value = f; gain.gain.value = 0.15;
       osc.connect(gain); gain.connect(ctx.destination); osc.start(); nodes.push(osc);
     });
   }
@@ -120,10 +120,29 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
   };
 
   const toggleSound = (sound) => {
-    if (audioEl) { audioEl.stop(); setAudioEl(null); }
+    // Stop current sound
+    if (audioEl) {
+      try { audioEl.stop(); } catch {}
+      setAudioEl(null);
+    }
     if (playingSound === sound.id) { setPlayingSound(null); return; }
-    const amb = createAmbientSound(sound.id);
-    setAudioEl(amb); setPlayingSound(sound.id);
+
+    // Mobile fix: create context inside click handler and ensure it's resumed
+    try {
+      const amb = createAmbientSound(sound.id);
+      // Double-check resume for iOS Safari
+      if (amb.ctx && amb.ctx.state === 'suspended') {
+        amb.ctx.resume().then(() => {
+          setAudioEl(amb);
+          setPlayingSound(sound.id);
+        });
+      } else {
+        setAudioEl(amb);
+        setPlayingSound(sound.id);
+      }
+    } catch (err) {
+      console.warn('Sound failed:', err);
+    }
   };
 
   const saveJournalEntry = () => {
