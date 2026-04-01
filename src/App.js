@@ -28,6 +28,7 @@ import CreditLimitPopup from './components/CreditLimitPopup';
 import AdminDashboard from './components/AdminDashboard';
 import ProfileFullPage from './components/ProfileFullPage';
 import FeedbackForm from './components/FeedbackForm';
+import JourneyModal from './components/JourneyModal';
 import './styles/profile.css';
 import VoicePicker from './components/VoicePicker';
 import Sidebar from './components/Sidebar';
@@ -71,6 +72,7 @@ function App() {
   const [showSearch, setShowSearch] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showJourney, setShowJourney] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showCreditPopup, setShowCreditPopup] = useState(false);
   const [creditLimitType, setCreditLimitType] = useState('ai');
@@ -550,6 +552,9 @@ function App() {
           <button className="toolbar-labeled" onClick={() => { setTimerType('meditation'); setShowTimer(true); }}>
             <span>{'⏱️'}</span><span className="toolbar-text">Timer</span>
           </button>
+          <button className="toolbar-labeled" onClick={() => setShowJourney(true)}>
+            <span>{'🧭'}</span><span className="toolbar-text">Journey</span>
+          </button>
           <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
             <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
           </button>
@@ -614,6 +619,9 @@ function App() {
         onOpenSettings={() => setShowSettings(true)}
         onExportChat={handleExportChat}
       />
+      <JourneyModal isOpen={showJourney} onClose={() => setShowJourney(false)} mode={currentMode}
+        onOpenBreathing={() => { setShowJourney(false); setShowBreathing(true); }}
+        onOpenTimer={() => { setShowJourney(false); setTimerType('meditation'); setShowTimer(true); }} />
       <FeedbackForm isOpen={showFeedback} onClose={() => setShowFeedback(false)} profile={activeProfile} mode={currentMode} />
       <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)}
         settings={settings} onSaveSettings={handleSaveSettings}

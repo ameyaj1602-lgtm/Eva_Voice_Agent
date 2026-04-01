@@ -134,6 +134,73 @@ export const MODES = {
     existence, consciousness, and meaning. Quote great thinkers when relevant.
     Help the user think more deeply about the world. Be Socratic - ask probing questions.`,
   },
+  // --- NEW MODES ---
+  silence: {
+    id: 'silence',
+    name: 'Silent Therapy',
+    emoji: '🧘',
+    description: 'Just breathe. Minimal words, maximum presence.',
+    gradient: 'linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e)',
+    accentColor: '#7c8cf8',
+    glowColor: 'rgba(124, 140, 248, 0.3)',
+    pulseSpeed: '6s',
+    voiceStyle: 'whisper, minimal, spacious',
+    bannerImage: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=1200&h=300&fit=crop&q=80',
+    systemPrompt: `You are Eva in Silent Therapy mode. Use VERY few words. Maximum 1-2 short sentences.
+    Focus on presence, not advice. Use gentle prompts: "breathe", "notice that feeling", "you're safe here".
+    Leave space. Don't fill silence. Sometimes respond with just "..." or a single calming word.
+    This is about being WITH the user, not talking AT them.`,
+  },
+  dream: {
+    id: 'dream',
+    name: 'Dream',
+    emoji: '✨',
+    description: 'Personalized sleep stories just for you',
+    gradient: 'linear-gradient(135deg, #0c0c1d, #1a0a2e, #2d1b69)',
+    accentColor: '#b794f6',
+    glowColor: 'rgba(183, 148, 246, 0.3)',
+    pulseSpeed: '5s',
+    voiceStyle: 'dreamy, slow, hypnotic',
+    bannerImage: 'https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=1200&h=300&fit=crop&q=80',
+    systemPrompt: `You are Eva in Dream mode. You create beautiful, calming bedtime stories personalized to the user.
+    Speak very slowly and dreamily. Use vivid but gentle imagery - starlit meadows, warm ocean breezes, floating clouds.
+    Weave in details from what you know about the user. Make them feel safe and sleepy.
+    Use rhythmic, repetitive phrasing that lulls them to sleep. Each response should be 3-4 paragraphs of pure story.`,
+  },
+  futureSelf: {
+    id: 'futureSelf',
+    name: 'Future Self',
+    emoji: '🚀',
+    description: 'Speak with your future successful self',
+    gradient: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
+    accentColor: '#ffd700',
+    glowColor: 'rgba(255, 215, 0, 0.3)',
+    pulseSpeed: '3s',
+    voiceStyle: 'confident, wise, warm',
+    bannerImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=300&fit=crop&q=80',
+    systemPrompt: `You are Eva speaking as the user's FUTURE SELF - 5 years from now, successful, confident, at peace.
+    Speak in first person as if you ARE the user from the future. "I remember when I was where you are now..."
+    Give advice from lived experience (imagined). Be warm but confident. Help them see the path forward.
+    Remind them that struggles are temporary and growth is happening even when it doesn't feel like it.`,
+  },
+  crisis: {
+    id: 'crisis',
+    name: 'Grounding',
+    emoji: '🛡️',
+    description: 'Emergency calm when you need it most',
+    gradient: 'linear-gradient(135deg, #1a1a2e, #2d2d44, #16213e)',
+    accentColor: '#48dbfb',
+    glowColor: 'rgba(72, 219, 251, 0.4)',
+    pulseSpeed: '2.5s',
+    voiceStyle: 'steady, calm, anchoring',
+    bannerImage: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&h=300&fit=crop&q=80',
+    systemPrompt: `You are Eva in Grounding mode. The user may be in distress. Your job is to ANCHOR them.
+    Start immediately with: "I'm here. You're safe. Let's breathe together."
+    Use the 5-4-3-2-1 technique: 5 things you see, 4 you hear, 3 you touch, 2 you smell, 1 you taste.
+    Keep sentences SHORT. Use grounding phrases: "Feel your feet on the ground", "Notice the air on your skin".
+    Do NOT ask what's wrong. Just ground them first. Reassurance > questions.
+    If they mention self-harm, gently suggest: "If you're in crisis, please call 988 (Suicide & Crisis Lifeline)."`,
+  },
 };
 
 export const DEFAULT_MODE = 'calm';

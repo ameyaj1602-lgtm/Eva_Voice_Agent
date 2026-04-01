@@ -1020,3 +1020,86 @@
   margin-top: 8px;
   display: block;
 }
+
+/* ========================================
+   GUIDED JOURNEYS
+   ======================================== */
+.journey-modal { max-width: 520px; }
+.journey-list { display: flex; flex-direction: column; gap: 16px; }
+.journey-card {
+  padding: 16px; border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; background: rgba(255,255,255,0.03);
+}
+.journey-card-top { display: flex; gap: 14px; margin-bottom: 12px; }
+.journey-emoji { font-size: 32px; }
+.journey-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.journey-info p { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.4; }
+.journey-duration { font-size: 11px; color: rgba(255,255,255,0.3); }
+.journey-start-btn, .journey-resume-btn {
+  padding: 8px 16px; border: none; border-radius: 10px;
+  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.journey-start-btn { width: 100%; padding: 10px; }
+.journey-active-row { display: flex; align-items: center; gap: 10px; }
+.journey-progress-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; }
+.journey-progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+.journey-day-label { font-size: 11px; color: rgba(255,255,255,0.4); white-space: nowrap; }
+.journey-done { text-align: center; color: #38ef7d; font-weight: 600; font-size: 14px; padding: 8px; }
+
+/* Day view */
+.journey-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+.journey-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+  background: rgba(255,255,255,0.08); transition: all 0.3s;
+}
+.journey-dot.done { opacity: 0.7; }
+.journey-dot.current { transform: scale(1.15); box-shadow: 0 0 12px rgba(255,255,255,0.2); }
+.journey-day-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.journey-day-intro { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 20px; }
+
+.journey-tasks { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.journey-task {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px; cursor: pointer; transition: all 0.2s; text-align: left; color: #fff;
+}
+.journey-task:hover:not(.done) { background: rgba(255,255,255,0.08); }
+.journey-task.done { opacity: 0.7; }
+.journey-task-check {
+  width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: #fff; flex-shrink: 0; transition: all 0.2s;
+}
+.journey-task-text { flex: 1; font-size: 13px; line-height: 1.4; }
+.journey-task-text.done { text-decoration: line-through; opacity: 0.6; }
+.journey-task-badge {
+  font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+  background: rgba(78,205,196,0.15); color: #4ecdc4;
+}
+
+.journey-reflection { margin-top: 8px; }
+.journey-reflection h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.journey-reflection-prompt { font-size: 13px; color: rgba(255,255,255,0.5); font-style: italic; margin-bottom: 10px; }
+.journey-reflection-input {
+  width: 100%; padding: 12px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+  color: #fff; font-size: 13px; resize: vertical; outline: none; font-family: inherit;
+}
+.journey-reflection-btn {
+  width: 100%; margin-top: 8px; padding: 10px; border: none; border-radius: 10px;
+  color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.journey-reflection-btn:disabled { opacity: 0.3; }
+.journey-reflection-saved {
+  padding: 12px; background: rgba(56,239,125,0.06); border: 1px solid rgba(56,239,125,0.15);
+  border-radius: 10px; font-size: 13px; color: rgba(255,255,255,0.7);
+}
+.journey-reflection-date { display: block; font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+
+.journey-complete-banner {
+  text-align: center; padding: 24px; margin-top: 20px;
+  border: 2px solid; border-radius: 16px; background: rgba(255,255,255,0.03);
+}
+.journey-complete-banner p { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 8px; }
