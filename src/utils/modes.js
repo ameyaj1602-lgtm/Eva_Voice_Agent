@@ -134,11 +134,12 @@ export const MODES = {
     existence, consciousness, and meaning. Quote great thinkers when relevant.
     Help the user think more deeply about the world. Be Socratic - ask probing questions.`,
   },
-  // --- NEW MODES ---
+  // --- SPECIAL MODES (shown in Discover, not main grid) ---
   silence: {
     id: 'silence',
     name: 'Silent Therapy',
     emoji: '🧘',
+    special: true,
     description: 'Just breathe. Minimal words, maximum presence.',
     gradient: 'linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e)',
     accentColor: '#7c8cf8',
@@ -155,6 +156,7 @@ export const MODES = {
     id: 'dream',
     name: 'Dream',
     emoji: '✨',
+    special: true,
     description: 'Personalized sleep stories just for you',
     gradient: 'linear-gradient(135deg, #0c0c1d, #1a0a2e, #2d1b69)',
     accentColor: '#b794f6',
@@ -171,6 +173,7 @@ export const MODES = {
     id: 'futureSelf',
     name: 'Future Self',
     emoji: '🚀',
+    special: true,
     description: 'Speak with your future successful self',
     gradient: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)',
     accentColor: '#ffd700',
@@ -187,6 +190,7 @@ export const MODES = {
     id: 'crisis',
     name: 'Grounding',
     emoji: '🛡️',
+    special: true,
     description: 'Emergency calm when you need it most',
     gradient: 'linear-gradient(135deg, #1a1a2e, #2d2d44, #16213e)',
     accentColor: '#48dbfb',

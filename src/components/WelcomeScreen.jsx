@@ -63,7 +63,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
       );
     }
   }, []);
-  const modes = Object.values(MODES);
+  const modes = Object.values(MODES).filter(m => !m.special);
   const topModes = modes.slice(0, 3);
   const restModes = modes.slice(3);
   const streak = getStreakCount();

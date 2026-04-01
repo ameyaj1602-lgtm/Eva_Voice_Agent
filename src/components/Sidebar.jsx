@@ -192,9 +192,9 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
   });
   const [horoscopeLoading, setHoroscopeLoading] = useState(false);
   const [showBirthForm, setShowBirthForm] = useState(false);
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState('');
-  const [birthPlace, setBirthPlace] = useState('');
+  const [birthDate, setBirthDate] = useState(() => localStorage.getItem('eva-birth-date') || '');
+  const [birthTime, setBirthTime] = useState(() => localStorage.getItem('eva-birth-time') || '');
+  const [birthPlace, setBirthPlace] = useState(() => localStorage.getItem('eva-birth-place') || '');
   const [playingSound, setPlayingSound] = useState(null);
   const [audioEl, setAudioEl] = useState(null);
   const [journalEntry, setJournalEntry] = useState('');
@@ -307,6 +307,35 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
             </div>
           </div>
 
+          {/* SPOTIFY PLAYLISTS */}
+          <div className="sb-category">
+            <span className="sb-cat-label">Spotify Playlists</span>
+            <div className="sb-spotify-grid">
+              {[
+                { name: 'Calm & Peaceful', id: '37i9dQZF1DWZd79rJ6a7lp', emoji: '🌿' },
+                { name: 'Deep Sleep', id: '37i9dQZF1DWZd79rJ6a7lp', emoji: '🌙' },
+                { name: 'Focus Flow', id: '37i9dQZF1DX4sWSpwq3LiO', emoji: '🎯' },
+                { name: 'Motivation Boost', id: '37i9dQZF1DXdxcBWuJkbcy', emoji: '🔥' },
+              ].map((pl) => (
+                <div key={pl.name} className="sb-spotify-card">
+                  <div className="sb-spotify-header">
+                    <span>{pl.emoji}</span>
+                    <span className="sb-spotify-name">{pl.name}</span>
+                  </div>
+                  <iframe
+                    title={pl.name}
+                    src={`https://open.spotify.com/embed/playlist/${pl.id}?utm_source=generator&theme=0`}
+                    width="100%" height="80" frameBorder="0"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    style={{ borderRadius: 8 }}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="sb-spotify-note">Open in Spotify for full playlists</p>
+          </div>
+
           {/* JOURNAL - Enhanced */}
           <div className="sb-category">
             <span className="sb-cat-label">Journal</span>
@@ -399,7 +428,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
           <div className="sb-category">
             <span className="sb-cat-label">Horoscope</span>
 
-            {/* If no sign saved, show birth date form */}
+            {/* If no sign saved, show birth date form prompt */}
             {!selectedSign && !showBirthForm && (
               <button className="sb-birth-prompt" onClick={() => setShowBirthForm(true)}
                 style={{ borderColor: `${mode.accentColor}33` }}>
@@ -408,6 +437,14 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
                   <strong>Discover your sign</strong>
                   <span>Enter your birth details for personalized readings</span>
                 </div>
+              </button>
+            )}
+
+            {/* Edit birth details button (when sign already saved) */}
+            {selectedSign && !showBirthForm && (
+              <button className="sb-edit-birth" onClick={() => setShowBirthForm(true)}
+                style={{ color: mode.accentColor }}>
+                Edit birth details
               </button>
             )}
 
