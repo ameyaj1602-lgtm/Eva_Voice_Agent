@@ -1,0 +1,338 @@
+/* ========================================
+   WELCOME SCREEN - Pinterest Aesthetic
+   ======================================== */
+
+.welcome-screen {
+  min-height: 100vh;
+  background: linear-gradient(165deg, #fdf6f0, #f5ede4, #faf0e6, #fff5ee);
+  padding: 0 0 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ---- Floating Petals ---- */
+.welcome-petals {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.petal {
+  position: absolute;
+  width: var(--petal-size);
+  height: var(--petal-size);
+  left: var(--petal-x);
+  top: -40px;
+  background: radial-gradient(ellipse, #f4c2c2 0%, #fce4ec 60%, transparent 70%);
+  border-radius: 50% 0 50% 0;
+  opacity: 0.4;
+  animation: fallPetal 12s ease-in-out infinite;
+  animation-delay: var(--petal-delay);
+  transform: rotate(var(--petal-rotation));
+}
+
+@keyframes fallPetal {
+  0% { top: -10%; opacity: 0; transform: rotate(0deg) translateX(0); }
+  10% { opacity: 0.5; }
+  50% { opacity: 0.3; }
+  100% { top: 110%; opacity: 0; transform: rotate(720deg) translateX(100px); }
+}
+
+/* ---- Hero ---- */
+.welcome-hero {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 60px 24px 30px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.welcome-greeting {
+  margin-bottom: 24px;
+}
+
+.welcome-wave {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+  animation: gentleSway 3s ease-in-out infinite;
+}
+
+@keyframes gentleSway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.welcome-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  font-weight: 700;
+  color: #3d2c2c;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.welcome-subtitle {
+  font-family: 'Lora', serif;
+  font-size: 20px;
+  color: #8b7355;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.welcome-intro {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.welcome-message {
+  font-family: 'Lora', serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #6b5a4e;
+  margin-bottom: 12px;
+}
+
+.welcome-message strong {
+  color: #c08b6a;
+  font-weight: 600;
+}
+
+.welcome-message.secondary {
+  font-style: italic;
+  color: #9b8a7e;
+  font-size: 15px;
+}
+
+/* ---- Feelings Section ---- */
+.feelings-section {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  margin: 20px auto 0;
+  padding: 0 24px;
+}
+
+.feelings-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: #4a3f35;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.feelings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.feeling-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+
+.feeling-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-color: var(--feeling-color);
+}
+
+.feeling-btn.selected {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--feeling-color);
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.feeling-emoji {
+  font-size: 28px;
+}
+
+.feeling-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b5a4e;
+}
+
+.feeling-suggestion {
+  text-align: center;
+  margin-top: 16px;
+  font-family: 'Lora', serif;
+  font-size: 15px;
+  font-style: italic;
+  animation: fadeInUp 0.4s ease;
+}
+
+/* ---- Divider ---- */
+.welcome-divider {
+  text-align: center;
+  margin: 40px auto;
+  max-width: 500px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-divider span {
+  background: #faf0e6;
+  padding: 0 16px;
+  font-size: 13px;
+  color: #b0a090;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+}
+
+.welcome-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* ---- Mode Cards Gallery ---- */
+.modes-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.mode-card {
+  background: #fff;
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  text-align: left;
+}
+
+.mode-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
+.mode-card-image {
+  position: relative;
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 12px;
+}
+
+.mode-card-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.mode-card:hover .mode-card-overlay {
+  opacity: 0.85;
+}
+
+.mode-card-emoji {
+  position: relative;
+  z-index: 2;
+  font-size: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.mode-card-info {
+  padding: 16px 18px 20px;
+}
+
+.mode-card-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #3d2c2c;
+  margin-bottom: 4px;
+}
+
+.mode-card-desc {
+  font-size: 13px;
+  color: #9b8a7e;
+  line-height: 1.4;
+}
+
+/* ---- Trust Footer ---- */
+.welcome-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 48px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.trust-icon {
+  font-size: 16px;
+}
+
+.welcome-trust p {
+  font-size: 13px;
+  color: #b0a090;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+  .welcome-title {
+    font-size: 32px;
+  }
+
+  .feelings-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modes-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-hero {
+    padding: 40px 20px 20px;
+  }
+}
+
+@media (min-width: 768px) {
+  .welcome-title {
+    font-size: 52px;
+  }
+
+  .welcome-subtitle {
+    font-size: 22px;
+  }
+
+  .modes-gallery {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
