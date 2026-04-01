@@ -1,13 +1,12 @@
 /* ========================================
-   WELCOME SCREEN - Dark App UI
-   Inspired by meditation/wellness apps
+   WELCOME SCREEN - Full Web Layout
    ======================================== */
 
 .ws {
   min-height: 100vh;
   background: #0d0d1a;
   color: #fff;
-  padding: 20px 20px 100px;
+  padding: 40px 60px 60px;
   overflow-y: auto;
   overflow-x: hidden;
   font-family: 'Inter', sans-serif;
@@ -15,18 +14,21 @@
 
 /* ---- Header ---- */
 .ws-header {
-  padding: 10px 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
 }
 
 .ws-date {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
   font-weight: 500;
 }
 
 .ws-greeting {
   font-family: 'Playfair Display', serif;
-  font-size: 28px;
+  font-size: 44px;
   font-weight: 700;
   margin-top: 4px;
   color: #fff;
@@ -35,39 +37,39 @@
 /* ---- Hero Card ---- */
 .ws-hero-card {
   background: linear-gradient(135deg, #4a3aad, #6c5ce7, #a29bfe);
-  border-radius: 20px;
-  padding: 28px 24px;
-  margin-bottom: 28px;
+  border-radius: 24px;
+  padding: 40px 44px;
+  margin-bottom: 48px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
   overflow: hidden;
-  min-height: 140px;
+  min-height: 180px;
 }
 
 .ws-hero-content {
   flex: 1;
   z-index: 2;
+  max-width: 500px;
 }
 
 .ws-hero-text {
   font-family: 'Lora', serif;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #fff;
-  margin-bottom: 16px;
-  max-width: 260px;
+  margin-bottom: 20px;
 }
 
 .ws-hero-btn {
-  padding: 10px 24px;
+  padding: 12px 32px;
   background: #fff;
   color: #4a3aad;
   border: none;
-  border-radius: 24px;
-  font-size: 14px;
+  border-radius: 28px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
@@ -75,31 +77,31 @@
 
 .ws-hero-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .ws-hero-art {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 140px;
+  height: 140px;
   flex-shrink: 0;
 }
 
 .ws-hero-orb {
-  width: 90px;
-  height: 90px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
   border: 1px solid rgba(255,255,255,0.15);
   animation: floatOrb 4s ease-in-out infinite;
   position: absolute;
-  top: 5px;
+  top: 10px;
   right: 0;
 }
 
 .ws-hero-orb.small {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   top: -10px;
   right: -5px;
   animation-delay: 1s;
@@ -107,52 +109,47 @@
 
 @keyframes floatOrb {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-10px); }
 }
 
 /* ---- Section ---- */
 .ws-section {
-  margin-bottom: 28px;
+  margin-bottom: 48px;
 }
 
 .ws-section-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
   color: rgba(255, 255, 255, 0.85);
 }
 
 /* ---- Feelings ---- */
 .ws-feelings {
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  scrollbar-width: none;
-}
-
-.ws-feelings::-webkit-scrollbar {
-  display: none;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .ws-feeling {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.06);
+  gap: 8px;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: 18px;
   cursor: pointer;
   transition: all 0.3s;
-  min-width: 80px;
+  min-width: 100px;
   color: #fff;
 }
 
 .ws-feeling:hover {
   background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .ws-feeling.active {
@@ -162,19 +159,18 @@
 }
 
 .ws-feeling-emoji {
-  font-size: 26px;
+  font-size: 30px;
 }
 
 .ws-feeling-label {
-  font-size: 11px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.6);
   font-weight: 500;
 }
 
 .ws-feeling-hint {
-  text-align: center;
-  margin-top: 12px;
-  font-size: 14px;
+  margin-top: 16px;
+  font-size: 15px;
   color: #a29bfe;
   font-style: italic;
   animation: fadeInUp 0.3s ease;
@@ -185,72 +181,64 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- Quick Start Cards ---- */
+/* ---- Quick Start Cards - Horizontal ---- */
 .ws-quick-cards {
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  scrollbar-width: none;
-}
-
-.ws-quick-cards::-webkit-scrollbar {
-  display: none;
+  gap: 20px;
 }
 
 .ws-quick-card {
-  min-width: 180px;
-  max-width: 200px;
-  border-radius: 18px;
+  flex: 1;
+  min-width: 0;
+  border-radius: 20px;
   border: none;
   cursor: pointer;
   transition: all 0.3s;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .ws-quick-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
 }
 
 .ws-quick-card-inner {
-  padding: 22px 18px;
+  padding: 28px 24px;
   color: #fff;
-  min-height: 150px;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 }
 
 .ws-quick-emoji {
-  font-size: 32px;
-  margin-bottom: 10px;
+  font-size: 36px;
+  margin-bottom: 12px;
 }
 
 .ws-quick-name {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .ws-quick-desc {
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.7);
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
-/* ---- Recommendation Grid ---- */
+/* ---- Recommendation Grid - Wide ---- */
 .ws-rec-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
 .ws-rec-card {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s;
@@ -259,13 +247,13 @@
 }
 
 .ws-rec-card:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
 }
 
 .ws-rec-img {
-  height: 90px;
+  height: 120px;
   background-size: cover;
   background-position: center;
   position: relative;
@@ -283,33 +271,33 @@
 .ws-rec-emoji {
   position: relative;
   z-index: 2;
-  font-size: 28px;
+  font-size: 32px;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
 }
 
 .ws-rec-info {
-  padding: 12px 14px 14px;
+  padding: 16px 18px 20px;
 }
 
 .ws-rec-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .ws-rec-desc {
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
-/* ---- Quote Card ---- */
+/* ---- Quote + Privacy - Side by Side ---- */
 .ws-quote-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 18px;
-  padding: 22px 20px;
-  margin: 28px 0;
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin: 48px 0 24px;
 }
 
 .ws-quote-label {
@@ -322,90 +310,111 @@
 
 .ws-quote-text {
   font-family: 'Lora', serif;
-  font-size: 16px;
+  font-size: 18px;
   font-style: italic;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.75);
-  margin: 10px 0 8px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 12px 0 10px;
 }
 
 .ws-quote-author {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* ---- Privacy ---- */
 .ws-privacy {
   text-align: center;
-  padding: 16px 0;
+  padding: 20px 0;
 }
 
 .ws-privacy span {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.25);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.2);
 }
 
-/* ---- Bottom Navigation ---- */
-.ws-bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 8px));
-  background: rgba(13, 13, 26, 0.95);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  z-index: 100;
+/* ---- Affirmation Card ---- */
+.welcome-affirmation {
+  max-width: 600px;
+  margin: 0 auto 32px;
+  padding: 24px 32px;
+  background: rgba(108, 92, 231, 0.08);
+  border-radius: 18px;
+  text-align: center;
+  border: 1px solid rgba(108, 92, 231, 0.12);
 }
 
-.ws-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.35);
-  cursor: pointer;
-  padding: 4px 12px;
-  transition: color 0.2s;
-  font-size: 10px;
-  font-weight: 500;
+.affirmation-text {
+  font-family: 'Lora', serif;
+  font-size: 17px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.6;
 }
 
-.ws-nav-item:hover {
-  color: rgba(255, 255, 255, 0.7);
+.affirmation-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 10px;
+  display: block;
 }
 
-.ws-nav-item.active {
-  color: #a29bfe;
-}
-
-.ws-nav-item span {
-  margin-top: 2px;
-}
-
-/* ---- Responsive ---- */
-@media (min-width: 768px) {
+/* ---- Responsive (shrink for smaller screens) ---- */
+@media (max-width: 1024px) {
   .ws {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 24px 24px 100px;
+    padding: 32px 40px 40px;
   }
 
   .ws-greeting {
-    font-size: 34px;
+    font-size: 36px;
   }
 
   .ws-rec-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 768px) {
   .ws {
-    max-width: 500px;
+    padding: 24px 20px 40px;
+  }
+
+  .ws-greeting {
+    font-size: 28px;
+  }
+
+  .ws-hero-card {
+    padding: 28px 24px;
+  }
+
+  .ws-hero-text {
+    font-size: 17px;
+  }
+
+  .ws-quick-cards {
+    flex-wrap: wrap;
+  }
+
+  .ws-quick-card {
+    min-width: calc(50% - 10px);
+  }
+
+  .ws-rec-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ws-feelings {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ws-feelings::-webkit-scrollbar { display: none; }
+
+  .ws-feeling {
+    min-width: 90px;
+    flex-shrink: 0;
   }
 }

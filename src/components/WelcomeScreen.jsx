@@ -141,29 +141,6 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling 
         <span>{'🔒'} Your chats are private & stored on your device only</span>
       </div>
 
-      {/* Bottom Nav */}
-      <nav className="ws-bottom-nav">
-        <button className="ws-nav-item active">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-          <span>Home</span>
-        </button>
-        <button className="ws-nav-item" onClick={() => onSelectMode('lullaby')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <span>Sleep</span>
-        </button>
-        <button className="ws-nav-item" onClick={() => onSelectMode('calm')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-          <span>Meditate</span>
-        </button>
-        <button className="ws-nav-item" onClick={() => onSelectMode('therapist')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          <span>Journal</span>
-        </button>
-        <button className="ws-nav-item" onClick={() => onSelectMode('companion')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>Profile</span>
-        </button>
-      </nav>
     </div>
   );
 }
