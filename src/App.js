@@ -23,6 +23,8 @@ import { transcribeAudio } from './services/deepgram';
 import { detectEmotionLocal } from './services/hume';
 import creditManager from './services/creditManager';
 import CreditLimitPopup from './components/CreditLimitPopup';
+import AdminDashboard from './components/AdminDashboard';
+import { registerUser, updateUserSession, logConversation, logError } from './services/analytics';
 import {
   getProfiles, saveProfile, deleteProfile,
   getActiveProfileId, setActiveProfileId,
@@ -61,6 +63,9 @@ function App() {
   const [showCreditPopup, setShowCreditPopup] = useState(false);
   const [creditLimitType, setCreditLimitType] = useState('ai');
   const [creditStatus, setCreditStatus] = useState(creditManager.getStatus());
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [onboardingEmail, setOnboardingEmail] = useState('');
+  const [onboardingCompany, setOnboardingCompany] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingName, setOnboardingName] = useState('');
   const [profiles, setProfiles] = useState([]);
@@ -112,7 +117,10 @@ function App() {
     const activeId = getActiveProfileId();
     const active = existing.find((p) => p.id === activeId) || existing[0];
     setActiveProfile(active);
-    if (active) setActiveProfileId(active.id);
+    if (active) {
+      setActiveProfileId(active.id);
+      updateUserSession(active.id);
+    }
   }, []);
 
   // Load chat history
@@ -203,6 +211,9 @@ function App() {
 
       addMessage('assistant', response);
 
+      // Log conversation for admin dashboard
+      logConversation(activeProfile?.id, activeProfile?.name, currentMode.id, userText, response, source);
+
       if (source === 'offline') {
         toast.warning?.('Using offline responses - add API key in Settings');
       }
@@ -224,6 +235,7 @@ function App() {
     } catch (err) {
       addMessage('assistant', "I'm having trouble thinking right now. Try again?");
       toast.error?.('AI response failed');
+      logError(err, `getEvaResponse - mode: ${currentMode.id}`);
     } finally {
       setIsTyping(false);
       setIsProcessing(false);
@@ -257,6 +269,12 @@ function App() {
         addMessage('assistant', 'Unlimited access activated! All credit limits removed for this session. Enjoy!');
         toast.success?.('Unlimited access unlocked!');
       }
+      return;
+    }
+
+    // Check for ADMIN command
+    if (text.trim().toUpperCase() === 'ADMIN') {
+      setShowAdmin(true);
       return;
     }
 
@@ -339,12 +357,15 @@ function App() {
   const handleSaveSettings = useCallback((s) => setSettings((prev) => ({ ...prev, ...s })), []);
 
   // --- Profiles ---
-  const handleCreateProfile = useCallback((name) => {
-    const p = { id: crypto.randomUUID(), name };
+  const handleCreateProfile = useCallback((name, email, company) => {
+    const id = crypto.randomUUID();
+    const p = { id, name, email, company };
     const updated = saveProfile(p);
     setProfiles(updated);
-    const created = updated.find((x) => x.name === name);
+    const created = updated.find((x) => x.id === id);
     if (created) { setActiveProfile(created); setActiveProfileId(created.id); }
+    // Register for analytics
+    registerUser({ id, name, email, company });
     setShowOnboarding(false);
   }, []);
 
@@ -405,9 +426,14 @@ function App() {
             </div>
           </div>
           <h1 className="onboarding-title">Hey, I'm Eva</h1>
-          <p className="onboarding-sub">Your personal companion. What should I call you?</p>
-          <form className="onboarding-form" onSubmit={(e) => { e.preventDefault(); if (onboardingName.trim()) handleCreateProfile(onboardingName.trim()); }}>
-            <input type="text" className="onboarding-input" placeholder="Enter your name..." value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)} autoFocus />
+          <p className="onboarding-sub">Your personal companion. Tell me a bit about yourself.</p>
+          <form className="onboarding-form" onSubmit={(e) => {
+            e.preventDefault();
+            if (onboardingName.trim()) handleCreateProfile(onboardingName.trim(), onboardingEmail.trim(), onboardingCompany.trim());
+          }}>
+            <input type="text" className="onboarding-input" placeholder="Your name *" value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)} autoFocus />
+            <input type="email" className="onboarding-input" placeholder="Email (optional)" value={onboardingEmail} onChange={(e) => setOnboardingEmail(e.target.value)} />
+            <input type="text" className="onboarding-input" placeholder="Company / Work (optional)" value={onboardingCompany} onChange={(e) => setOnboardingCompany(e.target.value)} />
             <button type="submit" className="onboarding-btn" disabled={!onboardingName.trim()} style={{ backgroundColor: '#6c5ce7' }}>Let's Go</button>
           </form>
         </div>
@@ -500,6 +526,7 @@ function App() {
       <TimerModal isOpen={showTimer} onClose={() => setShowTimer(false)} mode={currentMode} timerType={timerType} />
       <StreakTracker isOpen={showStreak} onClose={() => setShowStreak(false)} mode={currentMode} />
       <ChatSearch isOpen={showSearch} onClose={() => setShowSearch(false)} messages={messages} mode={currentMode} />
+      <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
       <CreditLimitPopup isOpen={showCreditPopup} onClose={() => setShowCreditPopup(false)}
         creditStatus={creditStatus} type={creditLimitType}
         onUnlock={(pw) => creditManager.tryUnlock(pw)} />
