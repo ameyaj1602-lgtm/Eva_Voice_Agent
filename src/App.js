@@ -26,6 +26,8 @@ import CreditLimitPopup from './components/CreditLimitPopup';
 import AdminDashboard from './components/AdminDashboard';
 import ProfilePage from './components/ProfilePage';
 import FeedbackForm from './components/FeedbackForm';
+import Sidebar from './components/Sidebar';
+import './styles/sidebar.css';
 import { registerUser, updateUserSession, logConversation, logError } from './services/analytics';
 import {
   getProfiles, saveProfile, deleteProfile,
@@ -64,6 +66,7 @@ function App() {
   const [showSearch, setShowSearch] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [showCreditPopup, setShowCreditPopup] = useState(false);
   const [creditLimitType, setCreditLimitType] = useState('ai');
   const [creditStatus, setCreditStatus] = useState(creditManager.getStatus());
@@ -472,26 +475,13 @@ function App() {
           <ProfileSelector profiles={profiles} activeProfile={activeProfile} onSelectProfile={handleSelectProfile} onCreateProfile={handleCreateProfile} onDeleteProfile={handleDeleteProfile} mode={currentMode} />
         </div>
         <div className="header-right">
-          <button className="toolbar-labeled" onClick={() => setShowSearch(true)}>
-            <span>{'🔍'}</span><span className="toolbar-text">Search</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowBreathing(true)}>
-            <span>{'🫁'}</span><span className="toolbar-text">Breathe</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => { setTimerType('meditation'); setShowTimer(true); }}>
-            <span>{'⏱️'}</span><span className="toolbar-text">Timer</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
-            <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowProfile(true)}>
-            <span>{'👤'}</span><span className="toolbar-text">Profile</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowFeedback(true)}>
-            <span>{'💬'}</span><span className="toolbar-text">Feedback</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowSettings(true)}>
-            <span>{'⚙️'}</span><span className="toolbar-text">Settings</span>
+          <div className={`credit-bar ${creditStatus.unlocked ? 'unlocked' : ''}`}
+            onClick={() => setShowCreditPopup(true)} title="Credits">
+            <span className={`credit-bar-dot ${creditStatus.unlocked ? 'green' : creditStatus.remaining.total > 10 ? 'green' : creditStatus.remaining.total > 3 ? 'yellow' : 'red'}`} />
+            <span>{creditStatus.unlocked ? '\u221E' : creditStatus.remaining.total}</span>
+          </div>
+          <button className="toolbar-labeled" onClick={() => setShowSidebar(true)}>
+            <span>{'☰'}</span><span className="toolbar-text">Features</span>
           </button>
           <ModeSelector currentMode={currentMode} onModeChange={handleModeChange} allModes={allModes} />
         </div>
@@ -531,6 +521,19 @@ function App() {
       <TimerModal isOpen={showTimer} onClose={() => setShowTimer(false)} mode={currentMode} timerType={timerType} />
       <StreakTracker isOpen={showStreak} onClose={() => setShowStreak(false)} mode={currentMode} />
       <ChatSearch isOpen={showSearch} onClose={() => setShowSearch(false)} messages={messages} mode={currentMode} />
+      <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings}
+        onOpenBreathing={() => setShowBreathing(true)}
+        onOpenTimer={() => { setTimerType('meditation'); setShowTimer(true); }}
+        onOpenMoodTracker={() => setShowMoodTracker(true)}
+        onOpenGratitude={() => setShowGratitude(true)}
+        onOpenStreak={() => setShowStreak(true)}
+        onOpenSearch={() => setShowSearch(true)}
+        onOpenProfile={() => setShowProfile(true)}
+        onOpenFeedback={() => setShowFeedback(true)}
+        onOpenCustomMode={() => setShowCustomMode(true)}
+        onOpenSettings={() => setShowSettings(true)}
+        onExportChat={handleExportChat}
+      />
       <ProfilePage isOpen={showProfile} onClose={() => setShowProfile(false)} profile={activeProfile} mode={currentMode} />
       <FeedbackForm isOpen={showFeedback} onClose={() => setShowFeedback(false)} profile={activeProfile} mode={currentMode} />
       <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
