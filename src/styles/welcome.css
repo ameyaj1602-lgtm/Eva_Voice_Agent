@@ -29,6 +29,24 @@
   align-items: center;
 }
 
+.ws-discover-btn {
+  padding: 8px 20px;
+  background: rgba(108, 92, 231, 0.15);
+  border: 1px solid rgba(108, 92, 231, 0.3);
+  border-radius: 20px;
+  color: #a29bfe;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 16px;
+}
+
+.ws-discover-btn:hover {
+  background: rgba(108, 92, 231, 0.25);
+  transform: scale(1.05);
+}
+
 .ws-brand {
   font-family: 'Playfair Display', serif;
   font-size: 28px;

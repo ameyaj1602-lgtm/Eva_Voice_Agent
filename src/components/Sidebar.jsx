@@ -9,12 +9,7 @@ const AMBIENT_SOUNDS = [
   { id: 'lofi', name: 'Lo-Fi Beats', emoji: '\u{1F3B5}', url: 'https://cdn.pixabay.com/audio/2024/09/26/audio_24af1e4195.mp3' },
 ];
 
-export default function Sidebar({
-  isOpen, onClose, mode, settings,
-  onOpenBreathing, onOpenTimer, onOpenMoodTracker, onOpenGratitude,
-  onOpenStreak, onOpenSearch, onOpenProfile, onOpenFeedback,
-  onOpenCustomMode, onOpenSettings, onExportChat,
-}) {
+export default function Sidebar({ isOpen, onClose, mode, settings }) {
   const [activePanel, setActivePanel] = useState(null);
   const [quote, setQuote] = useState(null);
   const [advice, setAdvice] = useState(null);
@@ -26,22 +21,15 @@ export default function Sidebar({
   const [selectedSign, setSelectedSign] = useState('aries');
   const [playingSound, setPlayingSound] = useState(null);
   const [audioEl, setAudioEl] = useState(null);
-  const [fontSize, setFontSize] = useState(() => {
-    return parseInt(localStorage.getItem('eva-font-size') || '14');
-  });
-  const [voiceSpeed, setVoiceSpeed] = useState(() => {
-    return parseFloat(localStorage.getItem('eva-voice-speed') || '1.0');
-  });
+  const [fontSize, setFontSize] = useState(() => parseInt(localStorage.getItem('eva-font-size') || '14'));
+  const [voiceSpeed, setVoiceSpeed] = useState(() => parseFloat(localStorage.getItem('eva-voice-speed') || '1.0'));
 
-  // Apply font size globally
   useEffect(() => {
     document.documentElement.style.setProperty('--chat-font-size', `${fontSize}px`);
     localStorage.setItem('eva-font-size', String(fontSize));
   }, [fontSize]);
 
-  useEffect(() => {
-    localStorage.setItem('eva-voice-speed', String(voiceSpeed));
-  }, [voiceSpeed]);
+  useEffect(() => { localStorage.setItem('eva-voice-speed', String(voiceSpeed)); }, [voiceSpeed]);
 
   const fetchQuote = async () => { setQuote(await getRandomQuote()); };
   const fetchAdvice = async () => { setAdvice(await getRandomAdvice()); };
@@ -50,23 +38,19 @@ export default function Sidebar({
   const fetchAffirmation = async () => { setAffirmation(await getRandomAffirmation()); };
 
   const fetchWeather = async () => {
-    if (!settings.openWeatherKey && !process.env.REACT_APP_OPENWEATHER_API_KEY) return;
-    const key = settings.openWeatherKey || process.env.REACT_APP_OPENWEATHER_API_KEY;
+    const key = settings?.openWeatherKey || process.env.REACT_APP_OPENWEATHER_API_KEY;
+    if (!key) return;
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const w = await getWeather(key, pos.coords.latitude, pos.coords.longitude);
-        setWeather(w);
-      }, () => {
-        // Default to Mumbai if location denied
-        getWeather(key, 19.076, 72.8777).then(setWeather);
-      });
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => { setWeather(await getWeather(key, pos.coords.latitude, pos.coords.longitude)); },
+        async () => { setWeather(await getWeather(key, 19.076, 72.8777)); }
+      );
     }
   };
 
   const fetchHoroscope = async (sign) => {
     setSelectedSign(sign);
-    const h = await getHoroscope(sign);
-    setHoroscope(h);
+    setHoroscope(await getHoroscope(sign));
   };
 
   const toggleSound = (sound) => {
@@ -80,12 +64,11 @@ export default function Sidebar({
     setPlayingSound(sound.id);
   };
 
-  // Cleanup audio on unmount
   useEffect(() => { return () => { if (audioEl) audioEl.pause(); }; }, [audioEl]);
 
   if (!isOpen) return null;
 
-  const SidebarItem = ({ emoji, label, onClick, active }) => (
+  const Item = ({ emoji, label, onClick, active }) => (
     <button className={`sb-item ${active ? 'active' : ''}`} onClick={onClick}
       style={active ? { color: mode.accentColor, borderLeftColor: mode.accentColor } : {}}>
       <span className="sb-item-emoji">{emoji}</span>
@@ -98,22 +81,12 @@ export default function Sidebar({
       <div className="sb-overlay" onClick={onClose} />
       <div className="sb" style={{ '--sb-accent': mode.accentColor }}>
         <div className="sb-header">
-          <h2 className="sb-title">Features</h2>
+          <h2 className="sb-title">{'✨'} Discover</h2>
           <button className="settings-close" onClick={onClose}>&times;</button>
         </div>
 
         <div className="sb-body">
-          {/* WELLNESS */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Wellness</span>
-            <SidebarItem emoji="🫁" label="Breathing Exercise" onClick={() => { onClose(); onOpenBreathing(); }} />
-            <SidebarItem emoji="⏱️" label="Meditation Timer" onClick={() => { onClose(); onOpenTimer(); }} />
-            <SidebarItem emoji="📊" label="Mood Tracker" onClick={() => { onClose(); onOpenMoodTracker(); }} />
-            <SidebarItem emoji="🙏" label="Gratitude Journal" onClick={() => { onClose(); onOpenGratitude(); }} />
-            <SidebarItem emoji="🔥" label="Streak Tracker" onClick={() => { onClose(); onOpenStreak(); }} />
-          </div>
-
-          {/* SOUNDS */}
+          {/* AMBIENT SOUNDS */}
           <div className="sb-category">
             <span className="sb-cat-label">Ambient Sounds</span>
             <div className="sb-sounds">
@@ -123,16 +96,17 @@ export default function Sidebar({
                   style={playingSound === s.id ? { borderColor: mode.accentColor, background: `${mode.accentColor}15` } : {}}>
                   <span>{s.emoji}</span>
                   <span className="sb-sound-name">{s.name}</span>
-                  {playingSound === s.id && <span className="sb-sound-playing">{'▶'}</span>}
+                  {playingSound === s.id && <span className="sb-sound-playing">{'\u25B6'}</span>}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* DISCOVER */}
+          {/* DISCOVER - FREE APIS */}
           <div className="sb-category">
-            <span className="sb-cat-label">Discover</span>
-            <SidebarItem emoji="💡" label="Random Quote" active={activePanel === 'quote'}
+            <span className="sb-cat-label">Inspiration</span>
+
+            <Item emoji="💡" label="Random Quote" active={activePanel === 'quote'}
               onClick={() => { setActivePanel(activePanel === 'quote' ? null : 'quote'); fetchQuote(); }} />
             {activePanel === 'quote' && quote && (
               <div className="sb-panel">
@@ -142,7 +116,7 @@ export default function Sidebar({
               </div>
             )}
 
-            <SidebarItem emoji="🎯" label="Life Advice" active={activePanel === 'advice'}
+            <Item emoji="🎯" label="Life Advice" active={activePanel === 'advice'}
               onClick={() => { setActivePanel(activePanel === 'advice' ? null : 'advice'); fetchAdvice(); }} />
             {activePanel === 'advice' && advice && (
               <div className="sb-panel">
@@ -151,7 +125,20 @@ export default function Sidebar({
               </div>
             )}
 
-            <SidebarItem emoji="😂" label="Random Joke" active={activePanel === 'joke'}
+            <Item emoji="✨" label="Affirmation" active={activePanel === 'affirm'}
+              onClick={() => { setActivePanel(activePanel === 'affirm' ? null : 'affirm'); fetchAffirmation(); }} />
+            {activePanel === 'affirm' && affirmation && (
+              <div className="sb-panel">
+                <p className="sb-panel-text">{affirmation}</p>
+                <button className="sb-panel-btn" onClick={fetchAffirmation} style={{ color: mode.accentColor }}>New Affirmation</button>
+              </div>
+            )}
+          </div>
+
+          <div className="sb-category">
+            <span className="sb-cat-label">Fun</span>
+
+            <Item emoji="😂" label="Random Joke" active={activePanel === 'joke'}
               onClick={() => { setActivePanel(activePanel === 'joke' ? null : 'joke'); fetchJoke(); }} />
             {activePanel === 'joke' && joke && (
               <div className="sb-panel">
@@ -160,7 +147,7 @@ export default function Sidebar({
               </div>
             )}
 
-            <SidebarItem emoji="🧪" label="Fun Fact" active={activePanel === 'fact'}
+            <Item emoji="🧪" label="Fun Fact" active={activePanel === 'fact'}
               onClick={() => { setActivePanel(activePanel === 'fact' ? null : 'fact'); fetchFact(); }} />
             {activePanel === 'fact' && fact && (
               <div className="sb-panel">
@@ -168,27 +155,21 @@ export default function Sidebar({
                 <button className="sb-panel-btn" onClick={fetchFact} style={{ color: mode.accentColor }}>New Fact</button>
               </div>
             )}
+          </div>
 
-            <SidebarItem emoji="✨" label="Affirmation" active={activePanel === 'affirm'}
-              onClick={() => { setActivePanel(activePanel === 'affirm' ? null : 'affirm'); fetchAffirmation(); }} />
-            {activePanel === 'affirm' && affirmation && (
-              <div className="sb-panel">
-                <p className="sb-panel-text">{affirmation}</p>
-                <button className="sb-panel-btn" onClick={fetchAffirmation} style={{ color: mode.accentColor }}>New Affirmation</button>
-              </div>
-            )}
+          <div className="sb-category">
+            <span className="sb-cat-label">Daily</span>
 
-            <SidebarItem emoji="🌤️" label="Weather Mood" active={activePanel === 'weather'}
+            <Item emoji="🌤️" label="Weather Mood" active={activePanel === 'weather'}
               onClick={() => { setActivePanel(activePanel === 'weather' ? null : 'weather'); fetchWeather(); }} />
             {activePanel === 'weather' && weather && (
               <div className="sb-panel">
                 <p className="sb-panel-text">{weather.mood?.emoji} {weather.temp}°C in {weather.city}</p>
                 <p className="sb-panel-sub">{weather.description} — {weather.mood?.text}</p>
-                <p className="sb-panel-sub">Suggested mode: {weather.mood?.suggestion}</p>
               </div>
             )}
 
-            <SidebarItem emoji="♈" label="Horoscope" active={activePanel === 'horoscope'}
+            <Item emoji="♈" label="Horoscope" active={activePanel === 'horoscope'}
               onClick={() => { setActivePanel(activePanel === 'horoscope' ? null : 'horoscope'); fetchHoroscope(selectedSign); }} />
             {activePanel === 'horoscope' && (
               <div className="sb-panel">
@@ -206,37 +187,19 @@ export default function Sidebar({
             )}
           </div>
 
-          {/* TOOLS */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Tools</span>
-            <SidebarItem emoji="🔍" label="Search Chats" onClick={() => { onClose(); onOpenSearch(); }} />
-            <SidebarItem emoji="📥" label="Export Chat" onClick={() => { onClose(); onExportChat(); }} />
-            <SidebarItem emoji="✏️" label="Create Custom Mode" onClick={() => { onClose(); onOpenCustomMode(); }} />
-          </div>
-
           {/* ACCESSIBILITY */}
           <div className="sb-category">
             <span className="sb-cat-label">Accessibility</span>
             <div className="sb-slider-row">
               <span className="sb-slider-label">Font Size: {fontSize}px</span>
               <input type="range" min="12" max="22" value={fontSize}
-                onChange={(e) => setFontSize(Number(e.target.value))}
-                className="sb-slider" />
+                onChange={(e) => setFontSize(Number(e.target.value))} className="sb-slider" />
             </div>
             <div className="sb-slider-row">
               <span className="sb-slider-label">Voice Speed: {voiceSpeed}x</span>
               <input type="range" min="0.5" max="2.0" step="0.1" value={voiceSpeed}
-                onChange={(e) => setVoiceSpeed(Number(e.target.value))}
-                className="sb-slider" />
+                onChange={(e) => setVoiceSpeed(Number(e.target.value))} className="sb-slider" />
             </div>
-          </div>
-
-          {/* ACCOUNT */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Account</span>
-            <SidebarItem emoji="👤" label="My Profile" onClick={() => { onClose(); onOpenProfile(); }} />
-            <SidebarItem emoji="💬" label="Give Feedback" onClick={() => { onClose(); onOpenFeedback(); }} />
-            <SidebarItem emoji="⚙️" label="Settings" onClick={() => { onClose(); onOpenSettings(); }} />
           </div>
         </div>
       </div>

@@ -40,7 +40,7 @@ function getDateStr() {
   return new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 }
 
-export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling }) {
+export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling, onOpenSidebar }) {
   const [selectedFeeling, setSelectedFeeling] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
   const modes = Object.values(MODES);
@@ -61,6 +61,9 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling 
           <h1 className="ws-greeting">{getGreeting()}, {userName || 'there'}</h1>
         </div>
         <div className="ws-header-right">
+          <button className="ws-discover-btn" onClick={onOpenSidebar}>
+            {'✨'} Discover
+          </button>
           <span className="ws-brand">Eva</span>
         </div>
       </div>

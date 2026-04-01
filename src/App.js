@@ -452,9 +452,15 @@ function App() {
 
   // --- WELCOME ---
   if (showWelcome) {
-    return <WelcomeScreen userName={activeProfile?.name}
-      onSelectMode={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }}
-      onSelectFeeling={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }} />;
+    return (
+      <>
+        <WelcomeScreen userName={activeProfile?.name}
+          onSelectMode={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }}
+          onSelectFeeling={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }}
+          onOpenSidebar={() => setShowSidebar(true)} />
+        <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings} />
+      </>
+    );
   }
 
   // --- MAIN CHAT ---
@@ -480,8 +486,23 @@ function App() {
             <span className={`credit-bar-dot ${creditStatus.unlocked ? 'green' : creditStatus.remaining.total > 10 ? 'green' : creditStatus.remaining.total > 3 ? 'yellow' : 'red'}`} />
             <span>{creditStatus.unlocked ? '\u221E' : creditStatus.remaining.total}</span>
           </div>
+          <button className="toolbar-labeled" onClick={() => setShowSearch(true)}>
+            <span>{'🔍'}</span><span className="toolbar-text">Search</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => setShowBreathing(true)}>
+            <span>{'🫁'}</span><span className="toolbar-text">Breathe</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => { setTimerType('meditation'); setShowTimer(true); }}>
+            <span>{'⏱️'}</span><span className="toolbar-text">Timer</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
+            <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => setShowProfile(true)}>
+            <span>{'👤'}</span><span className="toolbar-text">Profile</span>
+          </button>
           <button className="toolbar-labeled" onClick={() => setShowSidebar(true)}>
-            <span>{'☰'}</span><span className="toolbar-text">Features</span>
+            <span>{'✨'}</span><span className="toolbar-text">Discover</span>
           </button>
           <ModeSelector currentMode={currentMode} onModeChange={handleModeChange} allModes={allModes} />
         </div>
