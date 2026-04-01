@@ -6,22 +6,17 @@ _original_load = torch.load
 torch.load = lambda *args, **kwargs: _original_load(*args, **{**kwargs, 'weights_only': False})
 
 import gradio as gr
-import spaces
 from TTS.api import TTS
 import tempfile
 
-# Load model on CPU at startup (downloads the 1.8GB model)
-tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
+# Load model on CPU (no GPU available on free tier)
+print("Loading XTTS-v2 model on CPU...")
+tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to("cpu")
+print("Model loaded!")
 
-@spaces.GPU
 def clone_and_speak(text, audio_file, language="en"):
     if not text or not audio_file:
         return None
-
-    # Move model to GPU when ZeroGPU provides it
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    tts.to(device)
-
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         output_path = f.name
     tts.tts_to_file(text=text, speaker_wav=audio_file, language=language, file_path=output_path)
@@ -36,7 +31,7 @@ demo = gr.Interface(
     ],
     outputs=gr.Audio(label="Cloned voice output"),
     title="Eva Voice Cloner",
-    description="Upload a voice sample and enter text. Eva will speak in that voice.",
+    description="Upload a voice sample and enter text. Eva will speak in that voice. (CPU mode - may take 30-60s per generation)",
     flagging_mode="never",
 )
 
