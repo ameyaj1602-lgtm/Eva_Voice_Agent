@@ -178,7 +178,9 @@ const JOURNAL_PROMPTS = [
   "What's something you need to let go of?",
 ];
 
-export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) {
+export default function Sidebar({ isOpen, onClose, mode, settings, lightMode,
+  onOpenBreathing, onOpenTimer, onOpenMoodTracker, onOpenGratitude, onOpenStreak,
+  onOpenSearch, onOpenProfile, onOpenFeedback, onOpenCustomMode, onOpenSettings, onExportChat }) {
   const [activePanel, setActivePanel] = useState(null);
   const [quote, setQuote] = useState(null);
   const [advice, setAdvice] = useState(null);

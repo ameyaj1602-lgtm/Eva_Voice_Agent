@@ -155,10 +155,8 @@ export default function Avatar({ mode, isListening, isSpeaking, volume }) {
               height: `${mouthHeight}px`,
               borderRadius: mouthRadius,
               backgroundColor: isSpeaking ? `${mode.accentColor}88` : 'transparent',
-              borderColor: mode.accentColor,
-              borderWidth: isSpeaking ? '0' : '2px',
-              borderStyle: isSpeaking ? 'none' : 'solid',
-              borderTop: isListening ? `2px solid ${mode.accentColor}` : isSpeaking ? 'none' : 'none',
+              border: isSpeaking ? 'none' : `2px solid ${mode.accentColor}`,
+              borderTop: isListening ? `2px solid ${mode.accentColor}` : isSpeaking ? 'none' : undefined,
               transition: 'width 0.08s, height 0.08s, border-radius 0.1s',
             }}
           />
