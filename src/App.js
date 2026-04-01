@@ -24,8 +24,9 @@ import { detectEmotionLocal } from './services/hume';
 import creditManager from './services/creditManager';
 import CreditLimitPopup from './components/CreditLimitPopup';
 import AdminDashboard from './components/AdminDashboard';
-import ProfilePage from './components/ProfilePage';
+import ProfileFullPage from './components/ProfileFullPage';
 import FeedbackForm from './components/FeedbackForm';
+import './styles/profile.css';
 import Sidebar from './components/Sidebar';
 import './styles/sidebar.css';
 import { registerUser, updateUserSession, logConversation, logError } from './services/analytics';
@@ -464,6 +465,13 @@ function App() {
     );
   }
 
+  // --- FULL PAGE PROFILE ---
+  if (showProfile) {
+    return <ProfileFullPage profile={activeProfile} mode={currentMode} settings={settings}
+      onBack={() => setShowProfile(false)}
+      onSaveSettings={handleSaveSettings} />;
+  }
+
   // --- MAIN CHAT ---
   return (
     <div className="eva-app" style={{ background: currentMode.gradient }}>
@@ -556,7 +564,6 @@ function App() {
         onOpenSettings={() => setShowSettings(true)}
         onExportChat={handleExportChat}
       />
-      <ProfilePage isOpen={showProfile} onClose={() => setShowProfile(false)} profile={activeProfile} mode={currentMode} />
       <FeedbackForm isOpen={showFeedback} onClose={() => setShowFeedback(false)} profile={activeProfile} mode={currentMode} />
       <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)}
         settings={settings} onSaveSettings={handleSaveSettings}
