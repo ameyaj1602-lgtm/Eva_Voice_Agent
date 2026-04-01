@@ -19,6 +19,7 @@ import { useVoiceRecorder } from './hooks/useVoiceRecorder';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { getAIResponse } from './services/ai';
 import { synthesizeSpeech, DEFAULT_VOICES, MODE_VOICE_MAP } from './services/elevenlabs';
+import { speakWithClonedVoice } from './services/voiceClone';
 import { transcribeAudio } from './services/deepgram';
 import { detectEmotionLocal } from './services/hume';
 import creditManager from './services/creditManager';
@@ -165,19 +166,34 @@ function App() {
 
   // --- TTS ---
   const speakResponse = useCallback(async (text) => {
-    // Credit check for TTS (only for ElevenLabs, browser TTS is free)
+    // 1. Try cloned voice via HF Space (free, no credits needed)
+    const clonedData = settings.clonedVoices?.[currentMode.name] || settings.clonedVoices?.['default'];
+    if (clonedData && typeof clonedData === 'object' && clonedData.type === 'hf') {
+      setIsSpeakingState(true);
+      try {
+        const audioUrl = await speakWithClonedVoice(text, clonedData.name || currentMode.name);
+        if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          audio.onended = () => setIsSpeakingState(false);
+          audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
+          await audio.play();
+          return;
+        }
+      } catch { /* fall through */ }
+      setIsSpeakingState(false);
+    }
+
+    // 2. Try ElevenLabs (paid, uses credits)
     const elKey = settings.elevenLabsApiKey;
     if (settings.useElevenLabs && elKey && !creditManager.canUse('tts')) {
-      // Fall through to free browser TTS
       browserSpeak(text, currentMode.id);
       return;
     }
     if (settings.useElevenLabs && elKey) {
       creditManager.use('tts');
-      // Check for cloned voice first, then default
-      const clonedId = settings.clonedVoices?.[currentMode.name];
       const voiceKey = MODE_VOICE_MAP[currentMode.id] || 'bella';
-      const voiceId = clonedId || DEFAULT_VOICES[voiceKey]?.id;
+      const voiceId = DEFAULT_VOICES[voiceKey]?.id;
       if (voiceId) {
         setIsSpeakingState(true);
         try {
@@ -194,6 +210,8 @@ function App() {
         setIsSpeakingState(false);
       }
     }
+
+    // 3. Free browser TTS fallback
     browserSpeak(text, currentMode.id);
   }, [settings, currentMode, browserSpeak]);
 

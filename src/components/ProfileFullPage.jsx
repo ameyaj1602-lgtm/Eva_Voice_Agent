@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getMemory, clearMemory } from '../services/storage';
-import { cloneVoice } from '../services/elevenlabs';
-import { cloneVoiceFree } from '../services/voiceClone';
+import { saveVoiceSample, getVoiceSamples, deleteVoiceSample, testClonedVoice } from '../services/voiceClone';
 
 function getMoodLog() {
   try { return JSON.parse(localStorage.getItem('eva-mood-log')) || []; } catch { return []; }
@@ -80,44 +79,43 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
     setIsCloning(true);
     setCloneResult(null);
 
-    // Try FREE Hugging Face Space first
     try {
-      const testAudioBlob = allFiles[0] instanceof File ? allFiles[0] : new Blob([allFiles[0]], { type: 'audio/webm' });
-      const freeResult = await cloneVoiceFree('Hello, this is a test of voice cloning.', testAudioBlob);
+      // Save voice sample locally (instant, no API call needed)
+      const audioBlob = allFiles[0] instanceof File ? allFiles[0] : new Blob([allFiles[0]], { type: 'audio/webm' });
+      const saved = await saveVoiceSample(cloneName.trim(), audioBlob);
 
-      if (freeResult) {
-        // Save the voice sample as a blob URL for future use
-        const sampleUrl = URL.createObjectURL(testAudioBlob);
+      if (saved) {
         onSaveSettings?.({
-          clonedVoices: { ...clonedVoices, [cloneName]: { type: 'hf', sampleUrl, name: cloneName } },
+          clonedVoices: { ...clonedVoices, [cloneName.trim()]: { type: 'hf', name: cloneName.trim(), sampleKey: saved.key } },
         });
-        setCloneResult({ type: 'success', msg: `Voice "${cloneName}" created using free cloning! Eva can now speak in this voice.` });
+        setCloneResult({ type: 'success', msg: `Voice "${cloneName}" saved! Eva will use this voice sample when speaking.` });
         setCloneName(''); setCloneFiles([]); setRecordedBlobs([]);
-        setIsCloning(false);
-        return;
+      } else {
+        setCloneResult({ type: 'error', msg: 'Failed to save voice sample. Please try again.' });
       }
     } catch (err) {
-      console.warn('Free cloning failed, trying ElevenLabs:', err.message);
-    }
-
-    // Fall back to ElevenLabs
-    const apiKey = settings?.elevenLabsApiKey;
-    if (!apiKey) {
-      setCloneResult({ type: 'error', msg: 'Free voice cloner is setting up. Try again in a few minutes, or add ElevenLabs key in Settings for instant cloning.' });
-      setIsCloning(false);
-      return;
-    }
-
-    const res = await cloneVoice(apiKey, cloneName.trim(), `Cloned by ${profile.name}`, allFiles);
-
-    if (res.success) {
-      setCloneResult({ type: 'success', msg: `Voice "${cloneName}" created via ElevenLabs! Eva can now speak in this voice.` });
-      onSaveSettings?.({ clonedVoices: { ...clonedVoices, [cloneName]: { type: 'elevenlabs', voiceId: res.voiceId, name: cloneName } } });
-      setCloneName(''); setCloneFiles([]); setRecordedBlobs([]);
-    } else {
-      setCloneResult({ type: 'error', msg: res.error || 'Cloning failed. The free server may be starting up - try again in 2 minutes.' });
+      setCloneResult({ type: 'error', msg: 'Error saving voice sample: ' + err.message });
     }
     setIsCloning(false);
+  };
+
+  const handleTestVoice = async (voiceName) => {
+    setCloneResult({ type: 'info', msg: 'Testing voice... this may take 30-60 seconds on first use.' });
+    const audioUrl = await testClonedVoice(voiceName, 'Hello! This is Eva speaking in your cloned voice. How does it sound?');
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.play();
+      setCloneResult({ type: 'success', msg: 'Playing test audio!' });
+    } else {
+      setCloneResult({ type: 'error', msg: 'Voice server is starting up. Try again in 1-2 minutes.' });
+    }
+  };
+
+  const handleDeleteVoice = (voiceName) => {
+    deleteVoiceSample(voiceName);
+    const updated = { ...clonedVoices };
+    delete updated[voiceName];
+    onSaveSettings?.({ clonedVoices: updated });
   };
 
   const TabBtn = ({ id, label }) => (
@@ -199,10 +197,9 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
               <div className="pf-week-section">
                 <h3>My Cloned Voices</h3>
                 <div className="pf-cloned-list">
-                  {Object.entries(clonedVoices).map(([name, id]) => (
-                    <div key={id} className="pf-cloned-item">
-                      <span>{'🎤'} {name}</span>
-                      <span className="pf-cloned-id">{id.slice(0, 8)}...</span>
+                  {Object.entries(clonedVoices).map(([vname, data]) => (
+                    <div key={vname} className="pf-cloned-item">
+                      <span>{'🎤'} {typeof data === 'object' ? data.name : vname}</span>
                     </div>
                   ))}
                 </div>
@@ -336,7 +333,7 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
             </button>
 
             {cloneResult && (
-              <div className={`pf-clone-result ${cloneResult.type}`}>
+              <div className={`pf-clone-result ${cloneResult.type === 'info' ? 'info' : cloneResult.type}`}>
                 {cloneResult.msg}
               </div>
             )}
@@ -345,10 +342,18 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
             {Object.keys(clonedVoices).length > 0 && (
               <div className="pf-existing-voices">
                 <h4>Your Cloned Voices</h4>
-                {Object.entries(clonedVoices).map(([name, id]) => (
-                  <div key={id} className="pf-cloned-item">
-                    <span>{'🎤'} {name}</span>
-                    <span className="pf-cloned-id">ID: {id.slice(0, 12)}...</span>
+                {Object.entries(clonedVoices).map(([vname, data]) => (
+                  <div key={vname} className="pf-cloned-item">
+                    <span>{'🎤'} {typeof data === 'object' ? data.name : vname}</span>
+                    <div className="pf-cloned-actions">
+                      <button className="pf-test-btn" onClick={() => handleTestVoice(vname)}
+                        style={{ color: mode.accentColor, borderColor: mode.accentColor }}>
+                        Test
+                      </button>
+                      <button className="pf-delete-voice-btn" onClick={() => handleDeleteVoice(vname)}>
+                        &times;
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
