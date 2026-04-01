@@ -109,7 +109,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
         </div>
         <div className="ws-profile-streak">
           <span className="ws-profile-streak-num">{streak}</span>
-          <span className="ws-profile-streak-label">{'\uD83D\uDD25'} day streak</span>
+          <span className="ws-profile-streak-label">🔥 day streak</span>
         </div>
       </button>
 

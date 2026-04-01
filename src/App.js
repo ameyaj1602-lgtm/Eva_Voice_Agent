@@ -452,6 +452,13 @@ function App() {
   }
 
   // --- WELCOME ---
+  // --- FULL PAGE PROFILE (check FIRST, before welcome) ---
+  if (showProfile) {
+    return <ProfileFullPage profile={activeProfile} mode={currentMode} settings={settings}
+      onBack={() => setShowProfile(false)}
+      onSaveSettings={handleSaveSettings} />;
+  }
+
   if (showWelcome) {
     return (
       <>
@@ -463,13 +470,6 @@ function App() {
         <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings} lightMode={localStorage.getItem('eva-theme') === 'light'} />
       </>
     );
-  }
-
-  // --- FULL PAGE PROFILE ---
-  if (showProfile) {
-    return <ProfileFullPage profile={activeProfile} mode={currentMode} settings={settings}
-      onBack={() => setShowProfile(false)}
-      onSaveSettings={handleSaveSettings} />;
   }
 
   // --- MAIN CHAT ---
