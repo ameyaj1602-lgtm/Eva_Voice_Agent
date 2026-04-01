@@ -20,6 +20,7 @@ import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { getAIResponse } from './services/ai';
 import { synthesizeSpeech, DEFAULT_VOICES, MODE_VOICE_MAP } from './services/elevenlabs';
 import { transcribeAudio } from './services/deepgram';
+import { detectEmotionLocal } from './services/hume';
 import {
   getProfiles, saveProfile, deleteProfile,
   getActiveProfileId, setActiveProfileId,
@@ -182,6 +183,15 @@ function App() {
 
       if (activeProfile && settings.geminiApiKey) {
         extractMemories(userText, activeProfile.id);
+      }
+
+      // Emotion detection - suggest mode switch
+      const { emotion, suggestedMode, confidence } = detectEmotionLocal(userText);
+      if (suggestedMode && suggestedMode !== currentMode.id && confidence >= 0.7) {
+        const modeName = (allModes[suggestedMode] || MODES[suggestedMode])?.name;
+        if (modeName) {
+          toast(`Feeling ${emotion.toLowerCase()}? Try ${modeName} mode`);
+        }
       }
 
       if (settings.autoSpeak) speakResponse(response);
