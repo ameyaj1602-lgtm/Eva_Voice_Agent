@@ -176,7 +176,7 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
                 <div className="pf-cloned-list">
                   {Object.entries(clonedVoices).map(([name, id]) => (
                     <div key={id} className="pf-cloned-item">
-                      <span>{'\uD83C\uDFA4'} {name}</span>
+                      <span>{'🎤'} {name}</span>
                       <span className="pf-cloned-id">{id.slice(0, 8)}...</span>
                     </div>
                   ))}
@@ -212,9 +212,39 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
         {/* MOOD */}
         {tab === 'mood' && (
           <>
-            <p className="pf-section-hint">Your mood over time</p>
+            {/* Log mood inline */}
+            {!(() => { const today = new Date().toDateString(); return moods.some((m) => new Date(m.date).toDateString() === today); })() ? (
+              <div className="pf-mood-log">
+                <p className="pf-section-hint">How are you feeling right now?</p>
+                <div className="pf-mood-options">
+                  {[
+                    { emoji: '😁', label: 'Great', value: 5, color: '#38ef7d' },
+                    { emoji: '😊', label: 'Good', value: 4, color: '#4ecdc4' },
+                    { emoji: '😐', label: 'Okay', value: 3, color: '#f5af19' },
+                    { emoji: '😔', label: 'Low', value: 2, color: '#fcb69f' },
+                    { emoji: '😢', label: 'Bad', value: 1, color: '#f5576c' },
+                  ].map((m) => (
+                    <button key={m.value} className="pf-mood-opt" onClick={() => {
+                      const log = getMoodLog();
+                      log.push({ ...m, date: Date.now() });
+                      localStorage.setItem('eva-mood-log', JSON.stringify(log.slice(-30)));
+                      setMoods(log);
+                    }} style={{ '--mood-c': m.color }}>
+                      <span style={{ fontSize: 28 }}>{m.emoji}</span>
+                      <span className="pf-mood-opt-label">{m.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="pf-section-hint" style={{ color: mode.accentColor, textAlign: 'center', padding: 16 }}>
+                ✅ You've logged your mood today!
+              </p>
+            )}
+
+            <h3 style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', margin: '24px 0 12px' }}>Your mood over time</h3>
             {last7Moods.length === 0
-              ? <p className="pf-empty">Use the mood tracker to start logging. Click {'\uD83D\uDCCA'} Mood in the chat toolbar.</p>
+              ? <p className="pf-empty">Log your first mood above to start tracking!</p>
               : <div className="pf-mood-chart">
                   {last7Moods.map((entry, i) => (
                     <div key={i} className="pf-mood-col">
@@ -292,7 +322,7 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
                 <h4>Your Cloned Voices</h4>
                 {Object.entries(clonedVoices).map(([name, id]) => (
                   <div key={id} className="pf-cloned-item">
-                    <span>{'\uD83C\uDFA4'} {name}</span>
+                    <span>{'🎤'} {name}</span>
                     <span className="pf-cloned-id">ID: {id.slice(0, 12)}...</span>
                   </div>
                 ))}
