@@ -1616,6 +1616,25 @@
 .vp-show-more:hover { opacity: 0.7; }
 .vp-no-results { text-align: center; padding: 20px; font-size: 13px; color: rgba(255,255,255,0.3); }
 
+/* Stop bar when testing voice */
+.vp-stop-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 14px; background: rgba(255,68,68,0.1);
+  border-bottom: 1px solid rgba(255,68,68,0.2);
+  font-size: 12px; color: rgba(255,255,255,0.7); animation: fadeIn 0.2s ease;
+}
+.vp-stop-btn {
+  padding: 4px 12px; border: 1px solid #ff4444; border-radius: 8px;
+  background: rgba(255,68,68,0.15); color: #ff4444;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+}
+.vp-stop-btn:hover { background: rgba(255,68,68,0.3); }
+.voice-picker-test.playing { animation: pulse 1s infinite; }
+.vp-saved-badge {
+  font-size: 11px; color: #38ef7d; font-weight: 600;
+  background: rgba(56,239,125,0.1); padding: 2px 8px; border-radius: 6px;
+}
+
 /* Voice Picker Tabs */
 .vp-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .vp-tab {
