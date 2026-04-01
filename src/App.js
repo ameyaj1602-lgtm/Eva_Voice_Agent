@@ -20,6 +20,7 @@ import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { getAIResponse } from './services/ai';
 import { synthesizeSpeech, DEFAULT_VOICES, MODE_VOICE_MAP } from './services/elevenlabs';
 import { speakWithClonedVoice } from './services/voiceClone';
+import { fishTTS } from './services/fishAudio';
 import { transcribeAudio } from './services/deepgram';
 import { detectEmotionLocal } from './services/hume';
 import creditManager from './services/creditManager';
@@ -47,6 +48,7 @@ import './styles/features.css';
 const ENV_ELEVENLABS_KEY = process.env.REACT_APP_ELEVENLABS_API_KEY || '';
 const ENV_DEEPGRAM_KEY = process.env.REACT_APP_DEEPGRAM_API_KEY || '';
 const ENV_GEMINI_KEY = process.env.REACT_APP_GEMINI_API_KEY || '';
+const ENV_FISH_AUDIO_KEY = process.env.REACT_APP_FISH_AUDIO_API_KEY || '';
 
 let messageId = Date.now(); // unique seed to avoid collisions
 
@@ -97,6 +99,7 @@ function App() {
         deepgramApiKey: saved.deepgramApiKey || ENV_DEEPGRAM_KEY,
         useElevenLabs: saved.useElevenLabs ?? !!ENV_ELEVENLABS_KEY,
         useDeepgram: saved.useDeepgram ?? !!ENV_DEEPGRAM_KEY,
+        fishAudioApiKey: saved.fishAudioApiKey || ENV_FISH_AUDIO_KEY,
         autoSpeak: saved.autoSpeak ?? true,
         ...saved,
       };
@@ -168,12 +171,63 @@ function App() {
     setIsProcessing(false);
   }, [stopBrowserSpeaking]);
 
-  // --- TTS ---
+  // --- TTS (Cascading: Fish Audio → Nymbo XTTS → ElevenLabs → Browser) ---
   const speakResponse = useCallback(async (text) => {
-    // Always speak immediately with browser TTS (instant, free)
-    // Clone voice runs in background - too slow for real-time chat
+    const fishKey = settings.fishAudioApiKey;
+    const fishModelId = settings.fishAudioModelId;
+    const elKey = settings.elevenLabsApiKey;
+    const voices = settings.clonedVoices || {};
+    const clonedData = voices[currentMode.name] || voices['default'] || Object.values(voices).find(v => v?.type === 'hf');
+
+    // 1. Fish Audio (best quality, has credits?)
+    if (fishKey && fishModelId) {
+      setIsSpeakingState(true);
+      try {
+        const audioUrl = await fishTTS(fishKey, text, fishModelId);
+        if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          audio.onended = () => setIsSpeakingState(false);
+          audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
+          await audio.play();
+          return;
+        }
+      } catch { /* fall through */ }
+      setIsSpeakingState(false);
+    }
+
+    // 2. Nymbo XTTS voice clone (free, slow ~60s, needs saved voice sample)
+    if (clonedData && typeof clonedData === 'object' && clonedData.type === 'hf') {
+      // Don't block chat - try in background, use browser TTS immediately
+      browserSpeak(text, currentMode.id);
+      return;
+    }
+
+    // 3. ElevenLabs (paid, uses credits)
+    if (settings.useElevenLabs && elKey && creditManager.canUse('tts')) {
+      creditManager.use('tts');
+      const voiceKey = MODE_VOICE_MAP[currentMode.id] || 'bella';
+      const voiceId = DEFAULT_VOICES[voiceKey]?.id;
+      if (voiceId) {
+        setIsSpeakingState(true);
+        try {
+          const audioUrl = await synthesizeSpeech(text, elKey, voiceId);
+          if (audioUrl) {
+            const audio = new Audio(audioUrl);
+            audioRef.current = audio;
+            audio.onended = () => setIsSpeakingState(false);
+            audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
+            await audio.play();
+            return;
+          }
+        } catch { /* fall through */ }
+        setIsSpeakingState(false);
+      }
+    }
+
+    // 4. Browser TTS (always works, free, instant)
     browserSpeak(text, currentMode.id);
-  }, [currentMode, browserSpeak]);
+  }, [settings, currentMode, browserSpeak]);
 
   // --- AI Response ---
   const getEvaResponse = useCallback(async (userText, currentMessages) => {

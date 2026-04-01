@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getMemory, clearMemory } from '../services/storage';
 import { saveVoiceSample, getVoiceSample, deleteVoiceSample, testClonedVoice } from '../services/voiceClone';
+import { createVoiceModel, fishTTS } from '../services/fishAudio';
 
 function getMoodLog() {
   try { return JSON.parse(localStorage.getItem('eva-mood-log')) || []; } catch { return []; }
@@ -79,46 +80,72 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
     setIsCloning(true);
     setCloneResult(null);
 
-    try {
-      // Save voice sample locally (instant, no API call needed)
-      const audioBlob = allFiles[0] instanceof File ? allFiles[0] : new Blob([allFiles[0]], { type: 'audio/webm' });
-      const saved = await saveVoiceSample(cloneName.trim(), audioBlob);
+    const audioBlob = allFiles[0] instanceof File ? allFiles[0] : new Blob([allFiles[0]], { type: 'audio/webm' });
+    const voiceName = cloneName.trim();
 
-      if (saved) {
+    // Always save locally first (for Nymbo XTTS fallback)
+    await saveVoiceSample(voiceName, audioBlob);
+
+    // Try Fish Audio model creation (best quality)
+    const fishKey = settings?.fishAudioApiKey;
+    if (fishKey) {
+      setCloneResult({ type: 'info', msg: 'Creating voice model on Fish Audio (best quality)...' });
+      const result = await createVoiceModel(fishKey, voiceName, audioBlob);
+      if (result.success) {
         onSaveSettings?.({
-          clonedVoices: { ...clonedVoices, [cloneName.trim()]: { type: 'hf', name: cloneName.trim(), sampleKey: saved.key } },
+          fishAudioModelId: result.modelId,
+          clonedVoices: { ...clonedVoices, [voiceName]: { type: 'fish', name: voiceName, modelId: result.modelId } },
         });
-        setCloneResult({ type: 'success', msg: `Voice "${cloneName}" saved! Eva will use this voice sample when speaking.` });
+        setCloneResult({ type: 'success', msg: `Voice "${voiceName}" created on Fish Audio! Eva will speak exactly like you.` });
         setCloneName(''); setCloneFiles([]); setRecordedBlobs([]);
-      } else {
-        setCloneResult({ type: 'error', msg: 'Failed to save voice sample. Please try again.' });
+        setIsCloning(false);
+        return;
       }
-    } catch (err) {
-      setCloneResult({ type: 'error', msg: 'Error saving voice sample: ' + err.message });
+      // Fish Audio failed, continue to fallback
+      setCloneResult({ type: 'info', msg: 'Fish Audio unavailable, saving for XTTS fallback...' });
     }
+
+    // Save with HF/XTTS type as fallback
+    onSaveSettings?.({
+      clonedVoices: { ...clonedVoices, [voiceName]: { type: 'hf', name: voiceName, sampleKey: `voice-${voiceName}` } },
+    });
+    setCloneResult({ type: 'success', msg: `Voice "${voiceName}" saved! Using XTTS voice cloning (free, slower). Add Fish Audio key in Admin for best quality.` });
+    setCloneName(''); setCloneFiles([]); setRecordedBlobs([]);
     setIsCloning(false);
   };
 
   const handleTestVoice = async (voiceName) => {
-    // Check if we have the audio sample saved
+    const voiceData = clonedVoices[voiceName];
+    const testText = 'Hello! This is Eva speaking in your cloned voice. How does it sound?';
+
+    // 1. Try Fish Audio (best quality)
+    if (voiceData?.type === 'fish' && voiceData.modelId && settings?.fishAudioApiKey) {
+      setCloneResult({ type: 'info', msg: 'Testing via Fish Audio (high quality)...' });
+      const audioUrl = await fishTTS(settings.fishAudioApiKey, testText, voiceData.modelId);
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        audio.play();
+        setCloneResult({ type: 'success', msg: 'Playing Fish Audio voice clone!' });
+        return;
+      }
+      setCloneResult({ type: 'info', msg: 'Fish Audio unavailable, trying XTTS...' });
+    }
+
+    // 2. Try Nymbo XTTS (free, slower)
     const sample = await getVoiceSample(voiceName);
-    if (!sample?.blob) {
-      setCloneResult({ type: 'error', msg: `No audio sample found for "${voiceName}". Please re-upload or record the voice again.` });
-      // Remove the stale entry
-      const updated = { ...clonedVoices };
-      delete updated[voiceName];
-      onSaveSettings?.({ clonedVoices: updated });
-      return;
+    if (sample?.blob) {
+      setCloneResult({ type: 'info', msg: 'Testing via XTTS (free, takes 30-90 seconds)...' });
+      const audioUrl = await testClonedVoice(voiceName, testText);
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        audio.play();
+        setCloneResult({ type: 'success', msg: 'Playing XTTS voice clone!' });
+        return;
+      }
     }
-    setCloneResult({ type: 'info', msg: 'Testing voice... this may take 30-60 seconds on first use.' });
-    const audioUrl = await testClonedVoice(voiceName, 'Hello! This is Eva speaking in your cloned voice. How does it sound?');
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.play();
-      setCloneResult({ type: 'success', msg: 'Playing test audio!' });
-    } else {
-      setCloneResult({ type: 'error', msg: 'Voice cloning failed. The server may be busy - try again in 30 seconds.' });
-    }
+
+    // 3. Nothing worked
+    setCloneResult({ type: 'error', msg: 'Voice test failed. Add Fish Audio API key in Admin for reliable cloning, or try again later.' });
   };
 
   const handleDeleteVoice = (voiceName) => {

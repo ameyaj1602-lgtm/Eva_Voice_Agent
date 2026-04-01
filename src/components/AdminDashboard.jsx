@@ -24,6 +24,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
   const [configElevenLabsKey, setConfigElevenLabsKey] = useState('');
   const [configDeepgramKey, setConfigDeepgramKey] = useState('');
   const [configWeatherKey, setConfigWeatherKey] = useState('');
+  const [configFishAudioKey, setConfigFishAudioKey] = useState('');
   const [configAutoSpeak, setConfigAutoSpeak] = useState(true);
   const [configUseElevenLabs, setConfigUseElevenLabs] = useState(false);
   const [configUseDeepgram, setConfigUseDeepgram] = useState(false);
@@ -42,6 +43,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
     setConfigElevenLabsKey(settings.elevenLabsApiKey || '');
     setConfigDeepgramKey(settings.deepgramApiKey || '');
     setConfigWeatherKey(settings.openWeatherKey || process.env.REACT_APP_OPENWEATHER_API_KEY || '');
+    setConfigFishAudioKey(settings.fishAudioApiKey || '');
     setConfigAutoSpeak(settings.autoSpeak ?? true);
     setConfigUseElevenLabs(settings.useElevenLabs ?? false);
     setConfigUseDeepgram(settings.useDeepgram ?? false);
@@ -87,6 +89,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
       elevenLabsApiKey: configElevenLabsKey,
       deepgramApiKey: configDeepgramKey,
       openWeatherKey: configWeatherKey,
+      fishAudioApiKey: configFishAudioKey,
       autoSpeak: configAutoSpeak,
       useElevenLabs: configUseElevenLabs,
       useDeepgram: configUseDeepgram,
@@ -236,6 +239,11 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
                     <label className="admin-key-label">OpenWeather</label>
                     <input type="password" className="settings-input" value={configWeatherKey}
                       onChange={(e) => setConfigWeatherKey(e.target.value)} placeholder="Weather key..." />
+                  </div>
+                  <div>
+                    <label className="admin-key-label">Fish Audio (Voice Clone)</label>
+                    <input type="password" className="settings-input" value={configFishAudioKey}
+                      onChange={(e) => setConfigFishAudioKey(e.target.value)} placeholder="Fish Audio API key..." />
                   </div>
                 </div>
               </div>
