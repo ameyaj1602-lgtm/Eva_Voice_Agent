@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { getConversationStarters } from '../utils/conversationStarters';
 
 const REACTIONS = ['\u2764\uFE0F', '\u{1F602}', '\u{1F622}', '\u{1F525}', '\u{1F44F}', '\u{1F917}'];
 
-export default function ChatInterface({ messages, mode, isTyping, onReact }) {
+export default function ChatInterface({ messages, mode, isTyping, onReact, onSendStarter }) {
   const bottomRef = useRef(null);
   const [activeReaction, setActiveReaction] = useState(null);
 
@@ -16,14 +17,22 @@ export default function ChatInterface({ messages, mode, isTyping, onReact }) {
   };
 
   if (messages.length === 0 && !isTyping) {
+    const starters = getConversationStarters(mode.id);
     return (
       <div className="chat-empty">
         <p className="chat-empty-text" style={{ color: mode.accentColor }}>
           {mode.emoji} Hey there, I'm Eva
         </p>
-        <p className="chat-empty-sub">
-          Tap the mic or type a message to start talking
-        </p>
+        <p className="chat-empty-sub">Try one of these to get started:</p>
+        <div className="chat-starters">
+          {starters.slice(0, 3).map((s, i) => (
+            <button key={i} className="chat-starter-btn"
+              onClick={() => onSendStarter?.(s)}
+              style={{ borderColor: `${mode.accentColor}33` }}>
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
     );
   }

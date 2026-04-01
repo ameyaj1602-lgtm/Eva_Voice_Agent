@@ -10,6 +10,10 @@ import WelcomeScreen from './components/WelcomeScreen';
 import BreathingExercise from './components/BreathingExercise';
 import MoodTracker from './components/MoodTracker';
 import CustomModeCreator from './components/CustomModeCreator';
+import GratitudeJournal from './components/GratitudeJournal';
+import TimerModal from './components/TimerModal';
+import StreakTracker, { recordVisit } from './components/StreakTracker';
+import ChatSearch from './components/ChatSearch';
 import { useToast } from './components/Toast';
 import { useVoiceRecorder } from './hooks/useVoiceRecorder';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
@@ -46,6 +50,11 @@ function App() {
   const [showBreathing, setShowBreathing] = useState(false);
   const [showMoodTracker, setShowMoodTracker] = useState(false);
   const [showCustomMode, setShowCustomMode] = useState(false);
+  const [showGratitude, setShowGratitude] = useState(false);
+  const [showTimer, setShowTimer] = useState(false);
+  const [timerType, setTimerType] = useState('meditation');
+  const [showStreak, setShowStreak] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingName, setOnboardingName] = useState('');
   const [profiles, setProfiles] = useState([]);
@@ -80,6 +89,9 @@ function App() {
 
   // Keep messagesRef in sync
   useEffect(() => { messagesRef.current = messages; }, [messages]);
+
+  // Record streak visit
+  useEffect(() => { recordVisit(); }, []);
 
   // Initialize profiles
   useEffect(() => {
@@ -365,9 +377,12 @@ function App() {
           <ProfileSelector profiles={profiles} activeProfile={activeProfile} onSelectProfile={handleSelectProfile} onCreateProfile={handleCreateProfile} onDeleteProfile={handleDeleteProfile} mode={currentMode} />
         </div>
         <div className="header-right">
+          <button className="toolbar-btn" onClick={() => setShowSearch(true)} title="Search">{'🔍'}</button>
           <button className="toolbar-btn" onClick={() => setShowBreathing(true)} title="Breathing">{'🫁'}</button>
+          <button className="toolbar-btn" onClick={() => setShowGratitude(true)} title="Gratitude">{'🙏'}</button>
+          <button className="toolbar-btn" onClick={() => setShowStreak(true)} title="Streak">{'🔥'}</button>
+          <button className="toolbar-btn" onClick={() => { setTimerType('meditation'); setShowTimer(true); }} title="Timer">{'⏱️'}</button>
           <button className="toolbar-btn" onClick={() => setShowMoodTracker(true)} title="Mood">{'📊'}</button>
-          <button className="toolbar-btn" onClick={handleExportChat} title="Export">{'📥'}</button>
           <button className="toolbar-btn" onClick={() => setShowCustomMode(true)} title="Custom mode">{'✏️'}</button>
           <button className="clear-chat-btn" onClick={handleClearChat} title="Clear" style={{ color: currentMode.accentColor }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
@@ -392,7 +407,7 @@ function App() {
         </div>
         <div className="chat-section">
           {isRecording && <div className="interim-transcript" style={{ color: currentMode.accentColor }}>{'🎙️'} Recording... speak now</div>}
-          <ChatInterface messages={messages} mode={currentMode} isTyping={isTyping} onReact={handleReaction} />
+          <ChatInterface messages={messages} mode={currentMode} isTyping={isTyping} onReact={handleReaction} onSendStarter={handleSendText} />
         </div>
       </main>
 
@@ -409,6 +424,10 @@ function App() {
       <BreathingExercise isOpen={showBreathing} onClose={() => setShowBreathing(false)} mode={currentMode} />
       <MoodTracker isOpen={showMoodTracker} onClose={() => setShowMoodTracker(false)} mode={currentMode} />
       <CustomModeCreator isOpen={showCustomMode} onClose={() => setShowCustomMode(false)} onCreateMode={handleCreateCustomMode} />
+      <GratitudeJournal isOpen={showGratitude} onClose={() => setShowGratitude(false)} mode={currentMode} />
+      <TimerModal isOpen={showTimer} onClose={() => setShowTimer(false)} mode={currentMode} timerType={timerType} />
+      <StreakTracker isOpen={showStreak} onClose={() => setShowStreak(false)} mode={currentMode} />
+      <ChatSearch isOpen={showSearch} onClose={() => setShowSearch(false)} messages={messages} mode={currentMode} />
     </div>
   );
 }
