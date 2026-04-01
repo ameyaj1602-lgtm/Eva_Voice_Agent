@@ -118,6 +118,10 @@ export function useSpeechSynthesis() {
         comedian:    { rate: 0.05, pitch: 0.1, volume: 0.05, pause: 200 },
         storyteller: { rate: -0.05, pitch: 0, volume: 0, pause: 350 },
         seductive:   { rate: -0.15, pitch: -0.1, volume: -0.15, pause: 450 },
+        silence:     { rate: -0.2, pitch: -0.15, volume: -0.25, pause: 800 },
+        dream:       { rate: -0.2, pitch: -0.15, volume: -0.2, pause: 600 },
+        futureSelf:  { rate: -0.05, pitch: 0, volume: 0, pause: 300 },
+        crisis:      { rate: -0.05, pitch: -0.05, volume: -0.05, pause: 200 },
       };
 
       const adj = modeAdjust[modeId] || { rate: 0, pitch: 0, volume: 0, pause: 250 };

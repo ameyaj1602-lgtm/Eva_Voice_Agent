@@ -63,6 +63,34 @@ const STARTERS = {
     "Is happiness a choice or a circumstance?",
     "What would you tell someone who feels lost?",
   ],
+  silence: [
+    "I just need someone here, don't say much",
+    "Sit with me in silence for a bit",
+    "I don't want to talk, just breathe with me",
+    "Guide me through some quiet breathing",
+    "I need space to think, just be present",
+  ],
+  dream: [
+    "Tell me a bedtime story about floating through clouds",
+    "Paint me a picture of a peaceful meadow at sunset",
+    "I want to dream about the ocean tonight",
+    "Take me somewhere magical, I'm ready to sleep",
+    "Describe the most beautiful place you can imagine",
+  ],
+  futureSelf: [
+    "What does my life look like in 5 years?",
+    "Tell me I'm going to be okay, from the future",
+    "What advice would future me give present me?",
+    "Am I on the right path? Tell me from experience",
+    "What do I need to hear from my future self right now?",
+  ],
+  crisis: [
+    "I'm spiraling, help me ground myself",
+    "Everything feels too much right now",
+    "I need help calming down immediately",
+    "I can't breathe, help me",
+    "I feel like I'm losing control",
+  ],
 };
 
 export function getConversationStarters(modeId) {

@@ -27,6 +27,10 @@ export const MODE_VOICE_MAP = {
   storyteller: 'clyde',
   comedian: 'drew',
   philosopher: 'josh',
+  silence: 'bella',
+  dream: 'bella',
+  futureSelf: 'sam',
+  crisis: 'elli',
 };
 
 export async function getVoices(apiKey) {
