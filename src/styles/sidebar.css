@@ -12,22 +12,54 @@
 }
 @keyframes sbSlide { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-/* Light mode */
-.sb.sb-light { background: #faf8f5; color: #2d2c2c; border-color: rgba(0,0,0,0.08); }
-.sb.sb-light .sb-cat-label { color: rgba(0,0,0,0.4); }
-.sb.sb-light .sb-item { color: rgba(0,0,0,0.6); }
-.sb.sb-light .sb-item:hover { background: rgba(0,0,0,0.04); color: #2d2c2c; }
-.sb.sb-light .sb-panel { background: rgba(0,0,0,0.03); }
-.sb.sb-light .sb-panel-text { color: rgba(0,0,0,0.7); }
-.sb.sb-light .sb-panel-author { color: rgba(0,0,0,0.4); }
-.sb.sb-light .sb-sound-chip { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); color: rgba(0,0,0,0.6); }
-.sb.sb-light .sb-journal-input { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); color: #2d2c2c; }
-.sb.sb-light .sb-journal-entry { background: rgba(0,0,0,0.03); }
-.sb.sb-light .sb-journal-entry p { color: rgba(0,0,0,0.6); }
-.sb.sb-light .sb-sign-btn { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.06); }
-.sb.sb-light .sb-sign-name { color: rgba(0,0,0,0.5); }
-.sb.sb-light .sb-horoscope-result { background: rgba(0,0,0,0.03); color: rgba(0,0,0,0.6); }
-.sb.sb-light .sb-close { color: rgba(0,0,0,0.4); background: rgba(0,0,0,0.05); }
+/* Light mode - FULL coverage */
+.sb.sb-light { background: #faf8f5; color: #1a1a1a; border-color: rgba(0,0,0,0.1); }
+.sb.sb-light .sb-title { color: #1a1a1a; }
+.sb.sb-light .sb-cat-label { color: #888; }
+.sb.sb-light .sb-item { color: #333; }
+.sb.sb-light .sb-item:hover { background: rgba(0,0,0,0.05); color: #000; }
+.sb.sb-light .sb-item.active { background: rgba(0,0,0,0.05); }
+.sb.sb-light .sb-panel { background: #f0ede8; }
+.sb.sb-light .sb-panel-text { color: #333; }
+.sb.sb-light .sb-panel-author { color: #888; }
+.sb.sb-light .sb-sound-chip { background: #f0ede8; border-color: rgba(0,0,0,0.1); color: #444; }
+.sb.sb-light .sb-sound-chip:hover { background: #e8e4de; }
+/* Journal light mode */
+.sb.sb-light .sb-journal-prompt-card { background: #f0ede8; border-color: rgba(0,0,0,0.08); }
+.sb.sb-light .sb-journal-prompt-label { color: #888; }
+.sb.sb-light .sb-journal-prompt-text { color: #333; }
+.sb.sb-light .sb-journal-input { background: #fff; border-color: rgba(0,0,0,0.12); color: #1a1a1a; }
+.sb.sb-light .sb-journal-input::placeholder { color: #aaa; }
+.sb.sb-light .sb-journal-count { color: #aaa; }
+.sb.sb-light .sb-journal-history-label { color: #888; }
+.sb.sb-light .sb-journal-entry { background: #f0ede8; border-left-color: rgba(0,0,0,0.1); }
+.sb.sb-light .sb-journal-entry p { color: #444; }
+.sb.sb-light .sb-journal-date { color: #888; }
+.sb.sb-light .sb-journal-time { color: #aaa; }
+/* Horoscope light mode */
+.sb.sb-light .sb-birth-prompt { background: #f0ede8; border-color: rgba(0,0,0,0.1); color: #333; }
+.sb.sb-light .sb-birth-prompt strong { color: #1a1a1a; }
+.sb.sb-light .sb-birth-prompt span { color: #888; }
+.sb.sb-light .sb-birth-form label { color: #666; }
+.sb.sb-light .sb-birth-input { background: #fff; border-color: rgba(0,0,0,0.12); color: #1a1a1a; }
+.sb.sb-light .sb-zodiac-name { color: #444; }
+.sb.sb-light .sb-zodiac-detail { background: #f0ede8; }
+.sb.sb-light .sb-zodiac-detail h4 { color: #1a1a1a; }
+.sb.sb-light .sb-zodiac-dates { color: #888; }
+.sb.sb-light .sb-zodiac-meta { color: #666; }
+.sb.sb-light .sb-zodiac-meta strong { color: #333; }
+.sb.sb-light .sb-trait-chip { color: #555; }
+.sb.sb-light .sb-zodiac-compat { color: #666; }
+.sb.sb-light .sb-zodiac-compat strong { color: #333; }
+.sb.sb-light .sb-sign-btn { background: #f0ede8; border-color: rgba(0,0,0,0.08); }
+.sb.sb-light .sb-sign-name { color: #555; }
+.sb.sb-light .sb-horoscope-result { background: #f0ede8; color: #444; }
+.sb.sb-light .sb-horoscope-label { color: #888; }
+.sb.sb-light .sb-horoscope-loading { color: #888; }
+.sb.sb-light .sb-close { color: #666; background: rgba(0,0,0,0.06); }
+.sb.sb-light .sb-close:hover { background: rgba(0,0,0,0.1); }
+.sb.sb-light .sb-slider-label { color: #666; }
+.sb.sb-light .sb-slider { background: rgba(0,0,0,0.1); }
 
 .sb-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -106,8 +138,8 @@
   padding: 14px 16px; background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; margin-bottom: 12px;
 }
-.sb-journal-prompt-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.3); font-weight: 600; }
-.sb-journal-prompt-text { font-size: 15px; color: rgba(255,255,255,0.7); margin: 8px 0; font-style: italic; line-height: 1.5; font-family: 'Lora', serif; }
+.sb-journal-prompt-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); font-weight: 600; }
+.sb-journal-prompt-text { font-size: 15px; color: rgba(255,255,255,0.85); margin: 8px 0; font-style: italic; line-height: 1.5; font-family: 'Lora', serif; }
 .sb-journal-prompt-new { background: none; border: none; font-size: 11px; cursor: pointer; font-weight: 600; }
 
 .sb-journal { margin-bottom: 12px; }
@@ -117,7 +149,7 @@
   color: #fff; font-size: 14px; font-family: 'Lora', serif; resize: vertical;
   outline: none; line-height: 1.6; min-height: 80px;
 }
-.sb-journal-input::placeholder { color: rgba(255,255,255,0.2); }
+.sb-journal-input::placeholder { color: rgba(255,255,255,0.4); }
 .sb-journal-input:focus { border-color: rgba(255,255,255,0.15); }
 .sb-journal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
 .sb-journal-count { font-size: 11px; color: rgba(255,255,255,0.2); }
