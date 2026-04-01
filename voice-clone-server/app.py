@@ -2,17 +2,18 @@ import os
 os.environ["COQUI_TOS_AGREED"] = "1"
 
 import torch
-# Fix: PyTorch 2.11+ defaults weights_only=True, TTS needs False
 _original_load = torch.load
 torch.load = lambda *args, **kwargs: _original_load(*args, **{**kwargs, 'weights_only': False})
 
 import gradio as gr
+import spaces
 from TTS.api import TTS
 import tempfile
 
-device = "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
 
+@spaces.GPU
 def clone_and_speak(text, audio_file, language="en"):
     if not text or not audio_file:
         return None
@@ -31,7 +32,7 @@ demo = gr.Interface(
     outputs=gr.Audio(label="Cloned voice output"),
     title="Eva Voice Cloner",
     description="Upload a voice sample and enter text. Eva will speak in that voice.",
-    allow_flagging="never",
+    flagging_mode="never",
 )
 
 demo.launch()
