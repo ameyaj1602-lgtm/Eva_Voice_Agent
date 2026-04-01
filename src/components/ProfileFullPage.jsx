@@ -117,7 +117,7 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
       audio.play();
       setCloneResult({ type: 'success', msg: 'Playing test audio!' });
     } else {
-      setCloneResult({ type: 'error', msg: 'Voice cloning server error. The HF Space may be sleeping - visit huggingface.co/spaces/Ameyabro/Eva_Voice_Cloner to wake it, then try again.' });
+      setCloneResult({ type: 'error', msg: 'Voice cloning failed. The server may be busy - try again in 30 seconds.' });
     }
   };
 

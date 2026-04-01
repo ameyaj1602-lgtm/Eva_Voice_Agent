@@ -522,6 +522,12 @@ function App() {
       </main>
 
       <footer className="eva-footer">
+        {isSpeaking && (
+          <button className="stop-speaking-btn" onClick={stopSpeaking}
+            style={{ backgroundColor: currentMode.accentColor }}>
+            &#9724; Stop Speaking
+          </button>
+        )}
         <VoiceControl mode={currentMode} isRecording={isRecording} duration={duration}
           onStartRecording={handleStartRecording} onStopRecording={handleStopRecording}
           onSendText={handleSendText} sttSupported={true} />

@@ -781,6 +781,16 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
+/* Stop Speaking Button */
+.stop-speaking-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; max-width: 300px; margin: 0 auto 10px; padding: 10px 16px;
+  border: none; border-radius: 12px; color: #fff;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  animation: fadeInUp 0.3s ease; transition: opacity 0.2s;
+}
+.stop-speaking-btn:hover { opacity: 0.85; }
+
 /* ---- Header Right ---- */
 .header-right {
   display: flex;
@@ -1585,6 +1595,26 @@
   margin-right: 6px; flex-shrink: 0; transition: all 0.15s;
 }
 .voice-picker-test:hover { background: rgba(255,255,255,0.08); }
+
+/* Voice Picker Search */
+.vp-search { position: relative; padding: 8px 12px; }
+.vp-search-input {
+  width: 100%; padding: 8px 32px 8px 12px; background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+  color: #fff; font-size: 13px; outline: none;
+}
+.vp-search-input::placeholder { color: rgba(255,255,255,0.3); }
+.vp-search-input:focus { border-color: rgba(255,255,255,0.2); }
+.vp-search-clear {
+  position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: rgba(255,255,255,0.4); font-size: 16px; cursor: pointer;
+}
+.vp-show-more {
+  width: 100%; padding: 12px; background: none; border: none; border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+}
+.vp-show-more:hover { opacity: 0.7; }
+.vp-no-results { text-align: center; padding: 20px; font-size: 13px; color: rgba(255,255,255,0.3); }
 
 /* Voice Picker Tabs */
 .vp-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.06); }

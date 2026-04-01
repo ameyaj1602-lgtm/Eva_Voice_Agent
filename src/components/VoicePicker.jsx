@@ -9,12 +9,28 @@ const PRESETS = [
   { name: 'Deep & Low', rate: 0.85, pitch: 0.7, icon: '🎭' },
 ];
 
-export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode, onSaveVoiceSettings }) {
+// Primary languages shown by default
+const PRIMARY_LANGS = ['en', 'hi', 'mr'];
+const LANG_NAMES = {
+  en: 'English', hi: 'Hindi', mr: 'Marathi',
+  es: 'Spanish', fr: 'French', de: 'German', it: 'Italian', pt: 'Portuguese',
+  ja: 'Japanese', ko: 'Korean', zh: 'Chinese', ar: 'Arabic', ru: 'Russian',
+  nl: 'Dutch', pl: 'Polish', tr: 'Turkish', sv: 'Swedish', da: 'Danish',
+  fi: 'Finnish', nb: 'Norwegian', cs: 'Czech', el: 'Greek', he: 'Hebrew',
+  id: 'Indonesian', ms: 'Malay', th: 'Thai', vi: 'Vietnamese', ro: 'Romanian',
+  hu: 'Hungarian', uk: 'Ukrainian', sk: 'Slovak', bg: 'Bulgarian', hr: 'Croatian',
+  ca: 'Catalan', eu: 'Basque', gl: 'Galician', ta: 'Tamil', te: 'Telugu',
+  bn: 'Bengali', gu: 'Gujarati', kn: 'Kannada', ml: 'Malayalam', pa: 'Punjabi',
+  ur: 'Urdu',
+};
+
+export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [testing, setTesting] = useState(null);
-  const [tab, setTab] = useState('voices'); // 'voices' or 'tune'
+  const [tab, setTab] = useState('voices');
+  const [search, setSearch] = useState('');
+  const [showAllLangs, setShowAllLangs] = useState(false);
 
-  // Voice tuning state - load from localStorage
   const [rate, setRate] = useState(() => {
     try { return parseFloat(localStorage.getItem('eva-voice-rate')) || 0.9; } catch { return 0.9; }
   });
@@ -25,7 +41,6 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
     try { return parseFloat(localStorage.getItem('eva-voice-volume')) || 0.85; } catch { return 0.85; }
   });
 
-  // Save tuning to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('eva-voice-rate', rate);
     localStorage.setItem('eva-voice-pitch', pitch);
@@ -51,14 +66,32 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
     testVoice(selectedVoice, preset.rate, preset.pitch);
   };
 
-  // Group voices by language, only show quality voices
+  // Group voices by language
   const grouped = {};
   voices.forEach((v) => {
     const lang = v.lang?.split('-')[0] || 'other';
     if (!grouped[lang]) grouped[lang] = [];
     grouped[lang].push(v);
   });
-  const langOrder = ['en', ...Object.keys(grouped).filter(l => l !== 'en').sort()];
+
+  // Filter by search
+  const searchLower = search.toLowerCase();
+  const filteredGrouped = {};
+  Object.entries(grouped).forEach(([lang, langVoices]) => {
+    const langName = (LANG_NAMES[lang] || lang).toLowerCase();
+    const filtered = langVoices.filter((v) => {
+      if (!search) return true;
+      return v.name.toLowerCase().includes(searchLower) || langName.includes(searchLower) || lang.includes(searchLower);
+    });
+    if (filtered.length > 0) filteredGrouped[lang] = filtered;
+  });
+
+  // Split into primary and secondary languages
+  const primaryLangs = PRIMARY_LANGS.filter(l => filteredGrouped[l]);
+  const secondaryLangs = Object.keys(filteredGrouped).filter(l => !PRIMARY_LANGS.includes(l)).sort();
+
+  // When searching, show all matching languages
+  const visibleSecondary = search ? secondaryLangs : (showAllLangs ? secondaryLangs : []);
 
   return (
     <div className="voice-picker">
@@ -96,47 +129,93 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
 
             {/* Voices tab */}
             {tab === 'voices' && (
-              <div className="voice-picker-list">
-                {langOrder.map((lang) => {
-                  const langVoices = grouped[lang];
-                  if (!langVoices) return null;
-                  return (
+              <>
+                {/* Search bar */}
+                <div className="vp-search">
+                  <input
+                    type="text"
+                    className="vp-search-input"
+                    placeholder="Search voice or language..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    autoFocus
+                  />
+                  {search && (
+                    <button className="vp-search-clear" onClick={() => setSearch('')}>&times;</button>
+                  )}
+                </div>
+
+                <div className="voice-picker-list">
+                  {/* Primary languages: EN, HI, MR */}
+                  {primaryLangs.map((lang) => (
                     <div key={lang} className="voice-picker-group">
-                      <div className="voice-picker-lang">{lang.toUpperCase()}</div>
-                      {langVoices.map((v) => (
+                      <div className="voice-picker-lang">{LANG_NAMES[lang] || lang.toUpperCase()}</div>
+                      {filteredGrouped[lang].map((v) => (
                         <div
                           key={v.name}
                           className={`voice-picker-item ${selectedVoice?.name === v.name ? 'active' : ''}`}
                           style={selectedVoice?.name === v.name ? { borderColor: mode.accentColor } : {}}
                         >
-                          <button
-                            className="voice-picker-select"
-                            onClick={() => { onVoiceChange(v); }}
-                          >
+                          <button className="voice-picker-select" onClick={() => onVoiceChange(v)}>
                             <span className="voice-picker-name">{v.name}</span>
                             {selectedVoice?.name === v.name && (
                               <span className="voice-picker-check" style={{ color: mode.accentColor }}>&#10003;</span>
                             )}
                           </button>
-                          <button
-                            className="voice-picker-test"
-                            onClick={() => testVoice(v)}
-                            style={{ color: mode.accentColor, borderColor: mode.accentColor }}
-                          >
+                          <button className="voice-picker-test" onClick={() => testVoice(v)}
+                            style={{ color: mode.accentColor, borderColor: mode.accentColor }}>
                             {testing === v.name ? '...' : '▶'}
                           </button>
                         </div>
                       ))}
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+
+                  {/* Secondary languages (hidden by default) */}
+                  {visibleSecondary.map((lang) => (
+                    <div key={lang} className="voice-picker-group">
+                      <div className="voice-picker-lang">{LANG_NAMES[lang] || lang.toUpperCase()}</div>
+                      {filteredGrouped[lang].map((v) => (
+                        <div
+                          key={v.name}
+                          className={`voice-picker-item ${selectedVoice?.name === v.name ? 'active' : ''}`}
+                          style={selectedVoice?.name === v.name ? { borderColor: mode.accentColor } : {}}
+                        >
+                          <button className="voice-picker-select" onClick={() => onVoiceChange(v)}>
+                            <span className="voice-picker-name">{v.name}</span>
+                            {selectedVoice?.name === v.name && (
+                              <span className="voice-picker-check" style={{ color: mode.accentColor }}>&#10003;</span>
+                            )}
+                          </button>
+                          <button className="voice-picker-test" onClick={() => testVoice(v)}
+                            style={{ color: mode.accentColor, borderColor: mode.accentColor }}>
+                            {testing === v.name ? '...' : '▶'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+
+                  {/* Show more / less toggle */}
+                  {!search && secondaryLangs.length > 0 && (
+                    <button className="vp-show-more" onClick={() => setShowAllLangs(!showAllLangs)}
+                      style={{ color: mode.accentColor }}>
+                      {showAllLangs
+                        ? 'Hide other languages ▲'
+                        : `Show ${secondaryLangs.length} more languages ▼`}
+                    </button>
+                  )}
+
+                  {Object.keys(filteredGrouped).length === 0 && (
+                    <p className="vp-no-results">No voices found for "{search}"</p>
+                  )}
+                </div>
+              </>
             )}
 
             {/* Tune tab */}
             {tab === 'tune' && (
               <div className="vp-tune">
-                {/* Presets */}
                 <div className="vp-presets-label">Quick Presets</div>
                 <div className="vp-presets">
                   {PRESETS.map((p) => (
@@ -148,7 +227,6 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                   ))}
                 </div>
 
-                {/* Sliders */}
                 <div className="vp-slider-group">
                   <div className="vp-slider-row">
                     <label>Speed</label>
@@ -182,7 +260,6 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                   <div className="vp-slider-labels"><span>Quiet</span><span>Loud</span></div>
                 </div>
 
-                {/* Preview button */}
                 <button className="vp-preview-btn" onClick={() => testVoice(selectedVoice)}
                   style={{ backgroundColor: mode.accentColor }}>
                   {testing ? 'Playing...' : '▶ Preview Voice'}
