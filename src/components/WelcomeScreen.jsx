@@ -113,24 +113,19 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
         </div>
       </button>
 
-      {/* Weather */}
-      {weather && (
-        <div className="ws-weather">
-          <span className="ws-weather-icon">{weather.mood?.emoji}</span>
-          <div className="ws-weather-info">
-            <span className="ws-weather-temp">{weather.temp}°C</span>
-            <span className="ws-weather-desc">{weather.city} &middot; {weather.description}</span>
-          </div>
-          <span className="ws-weather-suggestion">{weather.mood?.text}</span>
-        </div>
-      )}
-
-      {/* Hero Card with background image */}
+      {/* Hero Card with background image + weather */}
       <div className="ws-hero-card">
         <img className="ws-hero-video" src={HERO_BG} alt="" style={{ objectFit: 'cover' }} />
         <div className="ws-hero-overlay" />
         <div className="ws-hero-content">
-          <p className="ws-hero-label">Today's thought</p>
+          <div className="ws-hero-top-row">
+            <p className="ws-hero-label">Today's thought</p>
+            {weather && (
+              <span className="ws-hero-weather">
+                {weather.mood?.emoji} {weather.temp}°C {weather.city}
+              </span>
+            )}
+          </div>
           <p className="ws-hero-text">{getDailyAffirmation()}</p>
           <button className="ws-hero-btn" onClick={() => onSelectMode('calm')}>
             Talk to Eva

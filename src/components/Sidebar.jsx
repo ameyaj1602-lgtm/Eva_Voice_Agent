@@ -55,11 +55,11 @@ function createAmbientSound(type) {
 }
 
 const SOUNDS = [
-  { id: 'rain', name: 'Rain', icon: '\uD83C\uDF27\uFE0F' },
-  { id: 'ocean', name: 'Ocean', icon: '\uD83C\uDF0A' },
-  { id: 'fire', name: 'Fire', icon: '\uD83D\uDD25' },
-  { id: 'birds', name: 'Birds', icon: '\uD83D\uDC26' },
-  { id: 'lofi', name: 'Lo-Fi', icon: '\uD83C\uDFB5' },
+  { id: 'rain', name: 'Rain', icon: '🌧️' },
+  { id: 'ocean', name: 'Ocean', icon: '🌊' },
+  { id: 'fire', name: 'Fire', icon: '🔥' },
+  { id: 'birds', name: 'Birds', icon: '🐦' },
+  { id: 'lofi', name: 'Lo-Fi', icon: '🎵' },
 ];
 
 const SIGN_EMOJIS = {
@@ -181,7 +181,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
           {/* INSPIRATION */}
           <div className="sb-category">
             <span className="sb-cat-label">Inspiration</span>
-            <Item icon="\uD83D\uDCA1" label="Random Quote" active={activePanel === 'quote'}
+            <Item icon="💡" label="Random Quote" active={activePanel === 'quote'}
               onClick={() => { setActivePanel(activePanel === 'quote' ? null : 'quote'); fetchQuote(); }} />
             {activePanel === 'quote' && quote && (
               <div className="sb-panel">
@@ -190,7 +190,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
                 <button className="sb-panel-btn" onClick={fetchQuote} style={{ color: mode.accentColor }}>New Quote</button>
               </div>
             )}
-            <Item icon="\uD83C\uDFAF" label="Life Advice" active={activePanel === 'advice'}
+            <Item icon="🎯" label="Life Advice" active={activePanel === 'advice'}
               onClick={() => { setActivePanel(activePanel === 'advice' ? null : 'advice'); fetchAdvice(); }} />
             {activePanel === 'advice' && advice && (
               <div className="sb-panel">
@@ -198,7 +198,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
                 <button className="sb-panel-btn" onClick={fetchAdvice} style={{ color: mode.accentColor }}>New Advice</button>
               </div>
             )}
-            <Item icon="\u2728" label="Affirmation" active={activePanel === 'affirm'}
+            <Item icon="✨" label="Affirmation" active={activePanel === 'affirm'}
               onClick={() => { setActivePanel(activePanel === 'affirm' ? null : 'affirm'); fetchAffirmation(); }} />
             {activePanel === 'affirm' && affirmation && (
               <div className="sb-panel">
@@ -211,7 +211,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
           {/* FUN */}
           <div className="sb-category">
             <span className="sb-cat-label">Fun</span>
-            <Item icon="\uD83D\uDE02" label="Random Joke" active={activePanel === 'joke'}
+            <Item icon="😂" label="Random Joke" active={activePanel === 'joke'}
               onClick={() => { setActivePanel(activePanel === 'joke' ? null : 'joke'); fetchJoke(); }} />
             {activePanel === 'joke' && joke && (
               <div className="sb-panel">
@@ -219,7 +219,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
                 <button className="sb-panel-btn" onClick={fetchJoke} style={{ color: mode.accentColor }}>Another One</button>
               </div>
             )}
-            <Item icon="\uD83E\uDDEA" label="Fun Fact" active={activePanel === 'fact'}
+            <Item icon="🧪" label="Fun Fact" active={activePanel === 'fact'}
               onClick={() => { setActivePanel(activePanel === 'fact' ? null : 'fact'); fetchFact(); }} />
             {activePanel === 'fact' && fact && (
               <div className="sb-panel">

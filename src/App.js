@@ -507,9 +507,6 @@ function App() {
           <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
             <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
           </button>
-          <button className="toolbar-labeled" onClick={() => setShowProfile(true)}>
-            <span>{'👤'}</span><span className="toolbar-text">Profile</span>
-          </button>
           <button className="toolbar-labeled" onClick={() => setShowSidebar(true)}>
             <span>{'✨'}</span><span className="toolbar-text">Discover</span>
           </button>
