@@ -21,6 +21,8 @@ import { getAIResponse } from './services/ai';
 import { synthesizeSpeech, DEFAULT_VOICES, MODE_VOICE_MAP } from './services/elevenlabs';
 import { transcribeAudio } from './services/deepgram';
 import { detectEmotionLocal } from './services/hume';
+import creditManager from './services/creditManager';
+import CreditLimitPopup from './components/CreditLimitPopup';
 import {
   getProfiles, saveProfile, deleteProfile,
   getActiveProfileId, setActiveProfileId,
@@ -56,6 +58,9 @@ function App() {
   const [timerType, setTimerType] = useState('meditation');
   const [showStreak, setShowStreak] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showCreditPopup, setShowCreditPopup] = useState(false);
+  const [creditLimitType, setCreditLimitType] = useState('ai');
+  const [creditStatus, setCreditStatus] = useState(creditManager.getStatus());
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingName, setOnboardingName] = useState('');
   const [profiles, setProfiles] = useState([]);
@@ -93,6 +98,11 @@ function App() {
 
   // Record streak visit
   useEffect(() => { recordVisit(); }, []);
+
+  // Subscribe to credit changes
+  useEffect(() => {
+    return creditManager.subscribe((status) => setCreditStatus(status));
+  }, []);
 
   // Initialize profiles
   useEffect(() => {
@@ -139,8 +149,15 @@ function App() {
 
   // --- TTS ---
   const speakResponse = useCallback(async (text) => {
+    // Credit check for TTS (only for ElevenLabs, browser TTS is free)
     const elKey = settings.elevenLabsApiKey;
+    if (settings.useElevenLabs && elKey && !creditManager.canUse('tts')) {
+      // Fall through to free browser TTS
+      browserSpeak(text, currentMode.id);
+      return;
+    }
     if (settings.useElevenLabs && elKey) {
+      creditManager.use('tts');
       const voiceKey = MODE_VOICE_MAP[currentMode.id] || 'bella';
       const voiceId = DEFAULT_VOICES[voiceKey]?.id;
       if (voiceId) {
@@ -165,8 +182,17 @@ function App() {
   // --- AI Response ---
   const getEvaResponse = useCallback(async (userText, currentMessages) => {
     if (isProcessing) return;
+
+    // Credit check for AI
+    if (!creditManager.canUse('ai')) {
+      setCreditLimitType('ai');
+      setShowCreditPopup(true);
+      return;
+    }
+
     setIsProcessing(true);
     setIsTyping(true);
+    creditManager.use('ai');
 
     try {
       const memories = activeProfile ? getMemory(activeProfile.id) : [];
@@ -222,6 +248,27 @@ function App() {
   // --- Send Text ---
   const handleSendText = useCallback((text) => {
     if (isProcessing || !text.trim()) return;
+
+    // Check for UNLOCK password
+    if (text.trim().toUpperCase() === 'UNLOCK') {
+      const success = creditManager.tryUnlock('UNLOCK');
+      if (success) {
+        addMessage('user', text);
+        addMessage('assistant', 'Unlimited access activated! All credit limits removed for this session. Enjoy!');
+        toast.success?.('Unlimited access unlocked!');
+      }
+      return;
+    }
+
+    // Check for LOCK command
+    if (text.trim().toUpperCase() === 'LOCK') {
+      creditManager.lock();
+      addMessage('user', text);
+      addMessage('assistant', 'Credits locked again. Free tier limits are back.');
+      toast?.('Credits locked');
+      return;
+    }
+
     stopSpeaking();
     addMessage('user', text);
     const updated = [...messagesRef.current, { role: 'user', content: text }];
@@ -241,6 +288,12 @@ function App() {
 
     const dgKey = settings.deepgramApiKey;
     if (settings.useDeepgram && dgKey) {
+      if (!creditManager.canUse('stt')) {
+        setCreditLimitType('stt');
+        setShowCreditPopup(true);
+        return;
+      }
+      creditManager.use('stt');
       setIsTyping(true);
       const transcript = await transcribeAudio(blob, dgKey);
       setIsTyping(false);
@@ -387,6 +440,15 @@ function App() {
           <ProfileSelector profiles={profiles} activeProfile={activeProfile} onSelectProfile={handleSelectProfile} onCreateProfile={handleCreateProfile} onDeleteProfile={handleDeleteProfile} mode={currentMode} />
         </div>
         <div className="header-right">
+          <div className={`credit-bar ${creditStatus.unlocked ? 'unlocked' : ''}`}
+            onClick={() => setShowCreditPopup(true)} title="Credits remaining">
+            <span className={`credit-bar-dot ${
+              creditStatus.unlocked ? 'green' :
+              creditStatus.remaining.total > 10 ? 'green' :
+              creditStatus.remaining.total > 3 ? 'yellow' : 'red'
+            }`} />
+            <span>{creditStatus.unlocked ? '∞' : `${creditStatus.remaining.total}`}</span>
+          </div>
           <button className="toolbar-btn" onClick={() => setShowSearch(true)} title="Search">{'🔍'}</button>
           <button className="toolbar-btn" onClick={() => setShowBreathing(true)} title="Breathing">{'🫁'}</button>
           <button className="toolbar-btn" onClick={() => setShowGratitude(true)} title="Gratitude">{'🙏'}</button>
@@ -438,6 +500,9 @@ function App() {
       <TimerModal isOpen={showTimer} onClose={() => setShowTimer(false)} mode={currentMode} timerType={timerType} />
       <StreakTracker isOpen={showStreak} onClose={() => setShowStreak(false)} mode={currentMode} />
       <ChatSearch isOpen={showSearch} onClose={() => setShowSearch(false)} messages={messages} mode={currentMode} />
+      <CreditLimitPopup isOpen={showCreditPopup} onClose={() => setShowCreditPopup(false)}
+        creditStatus={creditStatus} type={creditLimitType}
+        onUnlock={(pw) => creditManager.tryUnlock(pw)} />
     </div>
   );
 }

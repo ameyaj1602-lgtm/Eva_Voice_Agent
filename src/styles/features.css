@@ -316,6 +316,168 @@
   border-bottom: 1px solid rgba(245, 175, 25, 0.15);
 }
 
+/* ---- Credit Limit Popup ---- */
+.credit-popup {
+  width: 90%;
+  max-width: 400px;
+  background: rgba(15, 15, 30, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 32px 28px;
+  text-align: center;
+}
+
+.credit-popup-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.credit-popup-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.credit-popup-desc {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.credit-popup-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.credit-stat {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.credit-stat-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.credit-stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f5576c;
+}
+
+.credit-popup-unlock {
+  margin-bottom: 20px;
+}
+
+.credit-unlock-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 10px;
+}
+
+.credit-unlock-row {
+  display: flex;
+  gap: 8px;
+}
+
+.credit-unlock-input {
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+
+.credit-unlock-btn {
+  padding: 10px 20px;
+  background: #6c5ce7;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.credit-unlock-btn:hover {
+  opacity: 0.85;
+}
+
+.credit-unlock-error {
+  color: #f5576c;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.credit-popup-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px;
+  transition: color 0.2s;
+}
+
+.credit-popup-close:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ---- Credit Bar (header) ---- */
+.credit-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.credit-bar:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.credit-bar-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.credit-bar-dot.green { background: #38ef7d; }
+.credit-bar-dot.yellow { background: #f5af19; }
+.credit-bar-dot.red { background: #f5576c; }
+
+.credit-bar.unlocked {
+  background: rgba(108, 92, 231, 0.15);
+  color: #a29bfe;
+}
+
+/* ---- Chat unlock message ---- */
+.chat-unlock-msg {
+  text-align: center;
+  padding: 8px;
+  margin: 4px 0;
+  font-size: 12px;
+  color: #38ef7d;
+  animation: fadeInUp 0.3s ease;
+}
+
 /* ---- Conversation Starters ---- */
 .chat-starters {
   display: flex;
