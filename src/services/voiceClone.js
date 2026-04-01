@@ -2,7 +2,7 @@
 // Uses Coqui XTTS-v2 running on HF Spaces
 // Falls back to ElevenLabs if HF Space is unavailable
 
-const HF_SPACE_URL = 'https://ameyabro-eva-voice-cloner.hf.space';
+const HF_SPACE_URL = 'https://Ameyabro-Eva-Voice-Cloner.hf.space';
 
 // Clone voice using HF Space Gradio API
 export async function cloneVoiceFree(text, audioBlob, language = 'en') {
