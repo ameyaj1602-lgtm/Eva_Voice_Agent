@@ -22,7 +22,7 @@ const LANG_NAMES = {
   ml: 'Malayalam', pa: 'Punjabi', ur: 'Urdu',
 };
 
-export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode }) {
+export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode, clonedVoices }) {
   const [isOpen, setIsOpen] = useState(false);
   const [testing, setTesting] = useState(null);
   const [tab, setTab] = useState('voices');
@@ -165,6 +165,42 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                 </div>
 
                 <div className="voice-picker-list">
+                  {/* Cloned/uploaded voices at top */}
+                  {clonedVoices && Object.keys(clonedVoices).length > 0 && (!search || 'cloned'.includes(searchLower) || 'my voice'.includes(searchLower) || Object.values(clonedVoices).some(v => (v?.name || '').toLowerCase().includes(searchLower))) && (
+                    <div className="voice-picker-group">
+                      <div className="voice-picker-lang">MY VOICES</div>
+                      {Object.entries(clonedVoices).map(([vname, data]) => {
+                        const name = typeof data === 'object' ? data.name : vname;
+                        if (search && !name.toLowerCase().includes(searchLower) && !'cloned'.includes(searchLower) && !'my voice'.includes(searchLower)) return null;
+                        return (
+                          <div key={`cloned-${vname}`} className="voice-picker-item vp-cloned-voice">
+                            <button className="voice-picker-select" onClick={() => selectAndApply({ name: `Cloned: ${name}`, clonedKey: vname })}>
+                              <span className="voice-picker-name">{'🎤'} {name}</span>
+                              <span className="vp-new-tag">NEW</span>
+                            </button>
+                            <button
+                              className={`voice-picker-test ${testing === name ? 'playing' : ''}`}
+                              onClick={() => {
+                                if (testing === name) { stopTest(); return; }
+                                setTesting(name);
+                                // Test using browser TTS with the name as a demo
+                                window.speechSynthesis.cancel();
+                                const u = new SpeechSynthesisUtterance(`This is ${name}'s cloned voice. Eva will try to speak like this.`);
+                                u.rate = rate; u.pitch = pitch; u.volume = volume;
+                                if (selectedVoice) u.voice = selectedVoice;
+                                u.onend = () => setTesting(null);
+                                u.onerror = () => setTesting(null);
+                                window.speechSynthesis.speak(u);
+                              }}
+                              style={{ color: testing === name ? '#ff4444' : mode.accentColor, borderColor: testing === name ? '#ff4444' : mode.accentColor }}>
+                              {testing === name ? '■' : '▶'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   {primaryLangs.map((lang) => (
                     <div key={lang} className="voice-picker-group">
                       <div className="voice-picker-lang">{LANG_NAMES[lang] || lang.toUpperCase()}</div>

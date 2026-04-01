@@ -1630,6 +1630,14 @@
 }
 .vp-stop-btn:hover { background: rgba(255,68,68,0.3); }
 .voice-picker-test.playing { animation: pulse 1s infinite; }
+/* Cloned voice in picker */
+.vp-cloned-voice { background: rgba(78,205,196,0.06); border: 1px solid rgba(78,205,196,0.15) !important; }
+.vp-new-tag {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #38ef7d, #4ecdc4); color: #000;
+  padding: 2px 6px; border-radius: 4px; margin-left: 6px;
+}
+
 .vp-saved-badge {
   font-size: 11px; color: #38ef7d; font-weight: 600;
   background: rgba(56,239,125,0.1); padding: 2px 8px; border-radius: 6px;

@@ -375,9 +375,9 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
               </div>
             )}
 
-            {/* Saved voices */}
+            {/* Saved voices - sticky at bottom */}
             {Object.keys(clonedVoices).length > 0 && (
-              <div className="pf-existing-voices">
+              <div className="pf-saved-voices-sticky">
                 <h4>Your Saved Voices</h4>
                 {Object.entries(clonedVoices).map(([vname, data]) => (
                   <div key={vname} className="pf-cloned-item">

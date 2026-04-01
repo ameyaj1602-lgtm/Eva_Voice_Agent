@@ -553,7 +553,7 @@ function App() {
           <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
             <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
           </button>
-          <VoicePicker voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice} mode={currentMode} />
+          <VoicePicker voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice} mode={currentMode} clonedVoices={settings.clonedVoices} />
           <button className="toolbar-labeled" onClick={() => setShowSidebar(true)}>
             <span>{'✨'}</span><span className="toolbar-text">Discover</span>
           </button>
