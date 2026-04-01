@@ -40,57 +40,14 @@ export function useSpeechSynthesis() {
 
       if (selectedVoice) utterance.voice = selectedVoice;
 
-      // Adjust voice params per mode
-      switch (modeId) {
-        case 'calm':
-          utterance.rate = 0.85;
-          utterance.pitch = 0.9;
-          utterance.volume = 0.8;
-          break;
-        case 'motivation':
-          utterance.rate = 1.1;
-          utterance.pitch = 1.1;
-          utterance.volume = 1.0;
-          break;
-        case 'seductive':
-          utterance.rate = 0.8;
-          utterance.pitch = 0.85;
-          utterance.volume = 0.75;
-          break;
-        case 'therapist':
-          utterance.rate = 0.9;
-          utterance.pitch = 1.0;
-          utterance.volume = 0.85;
-          break;
-        case 'companion':
-          utterance.rate = 1.0;
-          utterance.pitch = 1.05;
-          utterance.volume = 0.9;
-          break;
-        case 'lullaby':
-          utterance.rate = 0.7;
-          utterance.pitch = 0.8;
-          utterance.volume = 0.6;
-          break;
-        case 'storyteller':
-          utterance.rate = 0.9;
-          utterance.pitch = 0.95;
-          utterance.volume = 0.9;
-          break;
-        case 'comedian':
-          utterance.rate = 1.05;
-          utterance.pitch = 1.1;
-          utterance.volume = 0.95;
-          break;
-        case 'philosopher':
-          utterance.rate = 0.85;
-          utterance.pitch = 0.9;
-          utterance.volume = 0.85;
-          break;
-        default:
-          utterance.rate = 0.9;
-          utterance.pitch = 1.0;
-      }
+      // Use user's saved tuning settings (from Voice Picker)
+      const savedRate = parseFloat(localStorage.getItem('eva-voice-rate')) || 0.9;
+      const savedPitch = parseFloat(localStorage.getItem('eva-voice-pitch')) || 1.0;
+      const savedVolume = parseFloat(localStorage.getItem('eva-voice-volume')) || 0.85;
+
+      utterance.rate = savedRate;
+      utterance.pitch = savedPitch;
+      utterance.volume = savedVolume;
 
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
