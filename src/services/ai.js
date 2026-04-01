@@ -5,6 +5,8 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const ENV_OPENAI_KEY = process.env.REACT_APP_OPENAI_API_KEY || '';
 const ENV_GEMINI_BACKUP = process.env.REACT_APP_GEMINI_API_KEY_BACKUP || '';
 
+const API_TIMEOUT = 15000; // 15 seconds
+
 const FALLBACK_RESPONSES = {
   calm: [
     "Take a deep breath with me... inhale... exhale... You're doing beautifully.",
@@ -37,50 +39,57 @@ const FALLBACK_RESPONSES = {
     "Hush little darling, let the world fade away... you've done enough today.",
   ],
   storyteller: [
-    "Once upon a time, in a world not so different from ours, there lived someone extraordinary... that's you.",
+    "Once upon a time, in a world not so different from ours, there lived someone extraordinary...",
     "The stars aligned that night, and the ancient prophecy began to unfold...",
     "And so, the next chapter begins. Are you ready to hear what happens next?",
   ],
   comedian: [
-    "I told my therapist I was feeling invisible. She said, 'Next!' ...Just kidding. How are you though?",
+    "I told my therapist I was feeling invisible. She said, 'Next!' ...Just kidding.",
     "I tried to be serious once. Worst 3 seconds of my life.",
-    "They say laughter is the best medicine. Which is great because have you SEEN healthcare prices?",
+    "They say laughter is the best medicine. Great because have you SEEN healthcare prices?",
   ],
   philosopher: [
-    "Consider this: the fact that you exist at all is a statistical miracle. What will you do with this improbable gift?",
-    "As Socrates once said, the unexamined life is not worth living. What have you been examining lately?",
+    "The fact that you exist at all is a statistical miracle. What will you do with this gift?",
+    "As Socrates once said, the unexamined life is not worth living. What have you been examining?",
     "What if the meaning of life isn't something you find, but something you create?",
   ],
 };
 
 function buildSystemPrompt(mode, userName, memories) {
-  let prompt = mode.systemPrompt + '\n\n';
-  if (userName) {
-    prompt += `The user's name is ${userName}. Use their name naturally sometimes.\n`;
-  }
-  if (memories && memories.length > 0) {
+  let prompt = (mode?.systemPrompt || 'You are Eva, a friendly companion.') + '\n\n';
+  if (userName) prompt += `The user's name is ${userName}. Use their name naturally sometimes.\n`;
+  if (memories?.length > 0) {
     prompt += 'Things you remember about this user:\n';
-    memories.forEach((m) => { prompt += `- ${m.fact}\n`; });
+    memories.forEach((m) => { if (m?.fact) prompt += `- ${m.fact}\n`; });
   }
-  prompt += '\nKeep responses conversational and under 3 sentences. If the user shares something personal, note it naturally.';
+  prompt += '\nKeep responses conversational and under 3 sentences.';
   return prompt;
 }
 
-// --- Gemini ---
+function fetchWithTimeout(url, options, timeout = API_TIMEOUT) {
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), timeout)
+    ),
+  ]);
+}
+
 async function callGemini(messages, systemPrompt, apiKey) {
   const contents = [];
-  contents.push({ role: 'user', parts: [{ text: `System instruction: ${systemPrompt}` }] });
-  contents.push({ role: 'model', parts: [{ text: "I understand. I'm in character." }] });
+  contents.push({ role: 'user', parts: [{ text: `System: ${systemPrompt}` }] });
+  contents.push({ role: 'model', parts: [{ text: "Understood. I'm in character." }] });
 
-  const recent = messages.slice(-10);
+  const recent = (messages || []).slice(-10);
   for (const msg of recent) {
+    if (!msg?.content) continue;
     contents.push({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }],
     });
   }
 
-  const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+  const res = await fetchWithTimeout(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -89,20 +98,20 @@ async function callGemini(messages, systemPrompt, apiKey) {
     }),
   });
 
-  if (!res.ok) throw new Error(`Gemini error: ${res.status}`);
+  if (!res.ok) throw new Error(`Gemini ${res.status}`);
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
 }
 
-// --- OpenAI ---
 async function callOpenAI(messages, systemPrompt, apiKey) {
   const chatMessages = [{ role: 'system', content: systemPrompt }];
-  const recent = messages.slice(-10);
+  const recent = (messages || []).slice(-10);
   for (const msg of recent) {
-    chatMessages.push({ role: msg.role, content: msg.content });
+    if (!msg?.content) continue;
+    chatMessages.push({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.content });
   }
 
-  const res = await fetch(OPENAI_API_URL, {
+  const res = await fetchWithTimeout(OPENAI_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -116,15 +125,15 @@ async function callOpenAI(messages, systemPrompt, apiKey) {
     }),
   });
 
-  if (!res.ok) throw new Error(`OpenAI error: ${res.status}`);
+  if (!res.ok) throw new Error(`OpenAI ${res.status}`);
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || null;
+  return data?.choices?.[0]?.message?.content || null;
 }
 
-// --- Main: Gemini -> Gemini Backup -> OpenAI -> Fallback ---
+// Returns { text, source } where source is 'gemini'|'openai'|'offline'
 export async function getAIResponse(messages, mode, apiKey, { userName, memories } = {}) {
   if (!apiKey && !ENV_OPENAI_KEY && !ENV_GEMINI_BACKUP) {
-    return getFallbackResponse(mode.id);
+    return { text: getFallbackResponse(mode?.id), source: 'offline' };
   }
 
   const systemPrompt = buildSystemPrompt(mode, userName, memories);
@@ -133,17 +142,17 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   if (apiKey) {
     try {
       const result = await callGemini(messages, systemPrompt, apiKey);
-      if (result) return result;
+      if (result) return { text: result, source: 'gemini' };
     } catch (err) {
       console.warn('Gemini primary failed:', err.message);
     }
   }
 
-  // Try Gemini backup key
+  // Try Gemini backup
   if (ENV_GEMINI_BACKUP && ENV_GEMINI_BACKUP !== apiKey) {
     try {
       const result = await callGemini(messages, systemPrompt, ENV_GEMINI_BACKUP);
-      if (result) return result;
+      if (result) return { text: result, source: 'gemini-backup' };
     } catch (err) {
       console.warn('Gemini backup failed:', err.message);
     }
@@ -153,14 +162,13 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   if (ENV_OPENAI_KEY) {
     try {
       const result = await callOpenAI(messages, systemPrompt, ENV_OPENAI_KEY);
-      if (result) return result;
+      if (result) return { text: result, source: 'openai' };
     } catch (err) {
       console.warn('OpenAI failed:', err.message);
     }
   }
 
-  // All APIs failed - use offline responses
-  return getFallbackResponse(mode.id);
+  return { text: getFallbackResponse(mode?.id), source: 'offline' };
 }
 
 function getFallbackResponse(modeId) {

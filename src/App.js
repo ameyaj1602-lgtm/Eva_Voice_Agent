@@ -10,7 +10,7 @@ import WelcomeScreen from './components/WelcomeScreen';
 import BreathingExercise from './components/BreathingExercise';
 import MoodTracker from './components/MoodTracker';
 import CustomModeCreator from './components/CustomModeCreator';
-import { exportChatAsText } from './utils/exportChat';
+import { useToast } from './components/Toast';
 import { useVoiceRecorder } from './hooks/useVoiceRecorder';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { getAIResponse } from './services/ai';
@@ -23,121 +23,108 @@ import {
   getMemory, addMemory,
 } from './services/storage';
 import { MODES, DEFAULT_MODE } from './utils/modes';
+import { exportChatAsText } from './utils/exportChat';
+import './App.css';
 import './styles/welcome.css';
 import './styles/features.css';
-import './App.css';
 
-// API keys from .env (fallback to settings/localStorage)
 const ENV_ELEVENLABS_KEY = process.env.REACT_APP_ELEVENLABS_API_KEY || '';
 const ENV_DEEPGRAM_KEY = process.env.REACT_APP_DEEPGRAM_API_KEY || '';
 const ENV_GEMINI_KEY = process.env.REACT_APP_GEMINI_API_KEY || '';
 
-let messageId = 0;
+let messageId = Date.now(); // unique seed to avoid collisions
 
 function App() {
   const [currentMode, setCurrentMode] = useState(MODES[DEFAULT_MODE]);
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isSpeakingState, setIsSpeakingState] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // prevent duplicate sends
   const [showSettings, setShowSettings] = useState(false);
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [showBreathing, setShowBreathing] = useState(false);
   const [showMoodTracker, setShowMoodTracker] = useState(false);
   const [showCustomMode, setShowCustomMode] = useState(false);
-  const [customModes, setCustomModes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('eva-custom-modes')) || {}; }
-    catch { return {}; }
-  });
-  const [profiles, setProfiles] = useState([]);
-  const [activeProfile, setActiveProfile] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingName, setOnboardingName] = useState('');
+  const [profiles, setProfiles] = useState([]);
+  const [activeProfile, setActiveProfile] = useState(null);
+  const [customModes, setCustomModes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('eva-custom-modes')) || {}; } catch { return {}; }
+  });
+
   const audioRef = useRef(null);
+  const messagesRef = useRef(messages); // avoid stale closure
+  const toast = useToast();
 
   const [settings, setSettings] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('eva-settings')) || {};
       return {
-        ...saved,
         geminiApiKey: saved.geminiApiKey || ENV_GEMINI_KEY,
         elevenLabsApiKey: saved.elevenLabsApiKey || ENV_ELEVENLABS_KEY,
         deepgramApiKey: saved.deepgramApiKey || ENV_DEEPGRAM_KEY,
         useElevenLabs: saved.useElevenLabs ?? !!ENV_ELEVENLABS_KEY,
         useDeepgram: saved.useDeepgram ?? !!ENV_DEEPGRAM_KEY,
         autoSpeak: saved.autoSpeak ?? true,
+        ...saved,
       };
-    } catch {
-      return {
-        geminiApiKey: ENV_GEMINI_KEY,
-        elevenLabsApiKey: ENV_ELEVENLABS_KEY,
-        deepgramApiKey: ENV_DEEPGRAM_KEY,
-        useElevenLabs: !!ENV_ELEVENLABS_KEY,
-        useDeepgram: !!ENV_DEEPGRAM_KEY,
-        autoSpeak: true,
-      };
-    }
+    } catch { return { autoSpeak: true }; }
   });
 
-  const {
-    isRecording,
-    duration,
-    volume,
-    startRecording,
-    stopRecording,
-  } = useVoiceRecorder();
-
-  const {
-    isSpeaking: browserSpeaking,
-    voices,
-    selectedVoice,
-    setSelectedVoice,
-    speak: browserSpeak,
-    stop: stopBrowserSpeaking,
-  } = useSpeechSynthesis();
+  const { isRecording, duration, volume, startRecording, stopRecording } = useVoiceRecorder();
+  const { isSpeaking: browserSpeaking, voices, selectedVoice, setSelectedVoice, speak: browserSpeak, stop: stopBrowserSpeaking } = useSpeechSynthesis();
 
   const isSpeaking = isSpeakingState || browserSpeaking;
+
+  // Keep messagesRef in sync
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Initialize profiles
   useEffect(() => {
     const existing = getProfiles();
-    if (existing.length === 0) {
-      setShowOnboarding(true);
-    } else {
-      setProfiles(existing);
-      const activeId = getActiveProfileId();
-      const active = existing.find((p) => p.id === activeId) || existing[0];
-      setActiveProfile(active);
-      setActiveProfileId(active.id);
-    }
+    if (existing.length === 0) { setShowOnboarding(true); return; }
+    setProfiles(existing);
+    const activeId = getActiveProfileId();
+    const active = existing.find((p) => p.id === activeId) || existing[0];
+    setActiveProfile(active);
+    if (active) setActiveProfileId(active.id);
   }, []);
 
-  // Load chat history when profile or mode changes
+  // Load chat history
   useEffect(() => {
     if (activeProfile) {
       const history = getChatHistory(activeProfile.id, currentMode.id);
       setMessages(history);
-      messageId = history.length;
+      messageId = Date.now();
     }
   }, [activeProfile, currentMode]);
 
-  useEffect(() => {
-    localStorage.setItem('eva-settings', JSON.stringify(settings));
-  }, [settings]);
+  // Persist settings
+  useEffect(() => { localStorage.setItem('eva-settings', JSON.stringify(settings)); }, [settings]);
 
+  // Persist messages (debounced)
   useEffect(() => {
-    if (activeProfile && messages.length > 0) {
-      saveChatHistory(activeProfile.id, currentMode.id, messages);
-    }
+    if (!activeProfile || messages.length === 0) return;
+    const t = setTimeout(() => saveChatHistory(activeProfile.id, currentMode.id, messages), 500);
+    return () => clearTimeout(t);
   }, [messages, activeProfile, currentMode]);
 
+  // --- Helpers ---
   const addMessage = useCallback((role, content) => {
     const msg = { id: ++messageId, role, content, timestamp: Date.now() };
     setMessages((prev) => [...prev, msg]);
     return msg;
   }, []);
 
-  // --- TTS: ElevenLabs (primary) or browser (fallback) ---
+  const stopSpeaking = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setIsSpeakingState(false);
+    stopBrowserSpeaking();
+  }, [stopBrowserSpeaking]);
+
+  // --- TTS ---
   const speakResponse = useCallback(async (text) => {
     const elKey = settings.elevenLabsApiKey;
     if (settings.useElevenLabs && elKey) {
@@ -145,87 +132,86 @@ function App() {
       const voiceId = DEFAULT_VOICES[voiceKey]?.id;
       if (voiceId) {
         setIsSpeakingState(true);
-        const audioUrl = await synthesizeSpeech(text, elKey, voiceId);
-        if (audioUrl) {
-          const audio = new Audio(audioUrl);
-          audioRef.current = audio;
-          audio.onended = () => setIsSpeakingState(false);
-          audio.onerror = () => {
-            setIsSpeakingState(false);
-            browserSpeak(text, currentMode.id); // fallback
-          };
-          audio.play().catch(() => {
-            setIsSpeakingState(false);
-            browserSpeak(text, currentMode.id);
-          });
-          return;
-        }
+        try {
+          const audioUrl = await synthesizeSpeech(text, elKey, voiceId);
+          if (audioUrl) {
+            const audio = new Audio(audioUrl);
+            audioRef.current = audio;
+            audio.onended = () => setIsSpeakingState(false);
+            audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
+            await audio.play();
+            return;
+          }
+        } catch { /* fall through to browser */ }
+        setIsSpeakingState(false);
       }
     }
-    // Fallback to browser TTS
     browserSpeak(text, currentMode.id);
   }, [settings, currentMode, browserSpeak]);
 
-  const stopSpeaking = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    setIsSpeakingState(false);
-    stopBrowserSpeaking();
-  }, [stopBrowserSpeaking]);
-
   // --- AI Response ---
-  const getEvaResponse = useCallback(async (userText, allMessages) => {
+  const getEvaResponse = useCallback(async (userText, currentMessages) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
     setIsTyping(true);
-    const messagesForAI = [...allMessages, { role: 'user', content: userText }];
-    const memories = activeProfile ? getMemory(activeProfile.id) : [];
 
-    const response = await getAIResponse(messagesForAI, currentMode, settings.geminiApiKey, {
-      userName: activeProfile?.name,
-      memories,
-    });
+    try {
+      const memories = activeProfile ? getMemory(activeProfile.id) : [];
+      const { text: response, source } = await getAIResponse(
+        currentMessages, currentMode, settings.geminiApiKey,
+        { userName: activeProfile?.name, memories }
+      );
 
-    setIsTyping(false);
-    addMessage('assistant', response);
+      addMessage('assistant', response);
 
-    // Auto-extract memories
-    if (settings.geminiApiKey && activeProfile) {
-      extractAndSaveMemory(userText, activeProfile.id);
+      if (source === 'offline') {
+        toast.warning?.('Using offline responses - add API key in Settings');
+      }
+
+      if (activeProfile && settings.geminiApiKey) {
+        extractMemories(userText, activeProfile.id);
+      }
+
+      if (settings.autoSpeak) speakResponse(response);
+    } catch (err) {
+      addMessage('assistant', "I'm having trouble thinking right now. Try again?");
+      toast.error?.('AI response failed');
+    } finally {
+      setIsTyping(false);
+      setIsProcessing(false);
     }
+  }, [currentMode, settings, activeProfile, addMessage, speakResponse, isProcessing, toast]);
 
-    if (settings.autoSpeak) {
-      speakResponse(response);
-    }
-  }, [currentMode, settings, addMessage, speakResponse, activeProfile]);
-
-  const extractAndSaveMemory = (text, profileId) => {
-    const memoryTriggers = [
-      { pattern: /my name is (\w+)/i, extract: (m) => `User's name is ${m[1]}` },
-      { pattern: /i(?:'m| am) (\d+) years? old/i, extract: (m) => `User is ${m[1]} years old` },
-      { pattern: /i love (\w[\w\s]{2,20})/i, extract: (m) => `User loves ${m[1]}` },
-      { pattern: /i(?:'m| am) from ([\w\s]+)/i, extract: (m) => `User is from ${m[1]}` },
-      { pattern: /i work (?:at|in|as) ([\w\s]+)/i, extract: (m) => `User works as/at ${m[1]}` },
-      { pattern: /my (?:favorite|fav) (\w+) is ([\w\s]+)/i, extract: (m) => `User's favorite ${m[1]} is ${m[2]}` },
+  const extractMemories = (text, profileId) => {
+    if (!text || !profileId) return;
+    const triggers = [
+      { pattern: /my name is ([\w\s]+?)(?:\.|,|!|\?|$)/i, extract: (m) => `Name: ${m[1].trim()}` },
+      { pattern: /i(?:'m| am) (\d+) years? old/i, extract: (m) => `Age: ${m[1]}` },
+      { pattern: /i love ([\w\s]+?)(?:\.|,|!|\?|$)/i, extract: (m) => `Loves: ${m[1].trim()}` },
+      { pattern: /i(?:'m| am) from ([\w\s]+?)(?:\.|,|!|\?|$)/i, extract: (m) => `From: ${m[1].trim()}` },
+      { pattern: /i work (?:at|in|as) ([\w\s]+?)(?:\.|,|!|\?|$)/i, extract: (m) => `Work: ${m[1].trim()}` },
     ];
-    for (const trigger of memoryTriggers) {
-      const match = text.match(trigger.pattern);
-      if (match) addMemory(profileId, trigger.extract(match));
+    for (const t of triggers) {
+      const match = text.match(t.pattern);
+      if (match?.[1]) addMemory(profileId, t.extract(match));
     }
   };
 
-  // --- Send text message ---
+  // --- Send Text ---
   const handleSendText = useCallback((text) => {
+    if (isProcessing || !text.trim()) return;
     stopSpeaking();
     addMessage('user', text);
-    getEvaResponse(text, messages);
-  }, [addMessage, getEvaResponse, messages, stopSpeaking]);
+    const updated = [...messagesRef.current, { role: 'user', content: text }];
+    getEvaResponse(text, updated);
+  }, [addMessage, getEvaResponse, stopSpeaking, isProcessing]);
 
-  // --- Voice: Record -> Deepgram STT -> AI -> ElevenLabs TTS ---
-  const handleStartRecording = useCallback(() => {
+  // --- Voice Recording ---
+  const handleStartRecording = useCallback(async () => {
     stopSpeaking();
-    startRecording();
-  }, [startRecording, stopSpeaking]);
+    try { await startRecording(); }
+    catch { toast.error?.('Microphone access denied. Check browser permissions.'); }
+  }, [startRecording, stopSpeaking, toast]);
 
   const handleStopRecording = useCallback(async () => {
     const blob = await stopRecording();
@@ -233,73 +219,66 @@ function App() {
 
     const dgKey = settings.deepgramApiKey;
     if (settings.useDeepgram && dgKey) {
-      // Use Deepgram for transcription
-      addMessage('user', '[Transcribing voice...]');
+      setIsTyping(true);
       const transcript = await transcribeAudio(blob, dgKey);
-      if (transcript) {
-        // Replace the placeholder message
-        setMessages((prev) => {
-          const updated = [...prev];
-          const lastIdx = updated.length - 1;
-          if (updated[lastIdx]?.content === '[Transcribing voice...]') {
-            updated[lastIdx] = { ...updated[lastIdx], content: transcript };
-          }
-          return updated;
-        });
-        getEvaResponse(transcript, messages);
+      setIsTyping(false);
+      if (transcript?.trim()) {
+        addMessage('user', transcript);
+        const updated = [...messagesRef.current, { role: 'user', content: transcript }];
+        getEvaResponse(transcript, updated);
       } else {
-        setMessages((prev) => {
-          const updated = [...prev];
-          const lastIdx = updated.length - 1;
-          if (updated[lastIdx]?.content === '[Transcribing voice...]') {
-            updated[lastIdx] = { ...updated[lastIdx], content: '[Could not transcribe - try again]' };
-          }
-          return updated;
-        });
+        toast.error?.('Could not transcribe audio. Try speaking louder or closer to mic.');
       }
     } else {
-      // Fallback: just note it was a voice message
-      addMessage('user', '[Voice message - enable Deepgram for transcription]');
+      toast.warning?.('Voice transcription needs Deepgram key. Using text input for now.');
     }
-  }, [stopRecording, settings, addMessage, getEvaResponse, messages]);
+  }, [stopRecording, settings, addMessage, getEvaResponse, toast]);
+
+  // --- Keyboard Shortcuts ---
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (showWelcome || showOnboarding || showSettings) return;
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        if (isRecording) handleStopRecording();
+        else handleStartRecording();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isRecording, handleStartRecording, handleStopRecording, showWelcome, showOnboarding, showSettings]);
 
   // --- Reactions ---
   const handleReaction = useCallback((msgId, emoji) => {
-    setMessages((prev) =>
-      prev.map((m) => (m.id === msgId ? { ...m, reaction: emoji } : m))
-    );
+    setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, reaction: emoji } : m)));
   }, []);
 
-  // --- Mode change ---
+  // --- Mode ---
   const handleModeChange = useCallback((mode) => {
     stopSpeaking();
     setCurrentMode(mode);
   }, [stopSpeaking]);
 
-  const handleSaveSettings = useCallback((newSettings) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }));
-  }, []);
+  // --- Settings ---
+  const handleSaveSettings = useCallback((s) => setSettings((prev) => ({ ...prev, ...s })), []);
 
-  // --- Profile management ---
+  // --- Profiles ---
   const handleCreateProfile = useCallback((name) => {
-    const newProfile = { id: crypto.randomUUID(), name };
-    const updated = saveProfile(newProfile);
+    const p = { id: crypto.randomUUID(), name };
+    const updated = saveProfile(p);
     setProfiles(updated);
-    const created = updated.find((p) => p.name === name);
-    setActiveProfile(created);
-    setActiveProfileId(created.id);
+    const created = updated.find((x) => x.name === name);
+    if (created) { setActiveProfile(created); setActiveProfileId(created.id); }
     setShowOnboarding(false);
   }, []);
 
-  const handleSelectProfile = useCallback((profile) => {
-    setActiveProfile(profile);
-    setActiveProfileId(profile.id);
-  }, []);
+  const handleSelectProfile = useCallback((p) => { setActiveProfile(p); setActiveProfileId(p.id); }, []);
 
-  const handleDeleteProfile = useCallback((profileId) => {
-    const updated = deleteProfile(profileId);
+  const handleDeleteProfile = useCallback((id) => {
+    const updated = deleteProfile(id);
     setProfiles(updated);
-    if (activeProfile?.id === profileId) {
+    if (activeProfile?.id === id) {
       const next = updated[0] || null;
       setActiveProfile(next);
       if (next) setActiveProfileId(next.id);
@@ -307,163 +286,103 @@ function App() {
   }, [activeProfile]);
 
   const handleClearChat = useCallback(() => {
-    if (activeProfile) {
-      clearChatHistory(activeProfile.id, currentMode.id);
-      setMessages([]);
-      messageId = 0;
-    }
-  }, [activeProfile, currentMode]);
+    if (!activeProfile) return;
+    clearChatHistory(activeProfile.id, currentMode.id);
+    setMessages([]);
+    toast.success?.('Chat cleared');
+  }, [activeProfile, currentMode, toast]);
 
   const handleExportChat = useCallback(() => {
-    if (messages.length > 0) {
-      exportChatAsText(messages, currentMode.name, activeProfile?.name);
-    }
-  }, [messages, currentMode, activeProfile]);
+    if (messages.length === 0) { toast.warning?.('No messages to export'); return; }
+    exportChatAsText(messages, currentMode.name, activeProfile?.name);
+    toast.success?.('Chat exported');
+  }, [messages, currentMode, activeProfile, toast]);
 
   const handleCreateCustomMode = useCallback((modeData) => {
-    const allModes = { ...customModes, [modeData.id]: modeData };
-    setCustomModes(allModes);
-    localStorage.setItem('eva-custom-modes', JSON.stringify(allModes));
-  }, [customModes]);
+    const updated = { ...customModes, [modeData.id]: modeData };
+    setCustomModes(updated);
+    localStorage.setItem('eva-custom-modes', JSON.stringify(updated));
+    toast.success?.(`${modeData.name} mode created!`);
+  }, [customModes, toast]);
 
-  // Merge built-in + custom modes for the mode selector
+  const handleVoiceCloned = useCallback((voiceId, name) => {
+    setSettings((prev) => ({ ...prev, clonedVoices: { ...(prev.clonedVoices || {}), [name]: voiceId } }));
+    toast.success?.(`Voice "${name}" cloned successfully!`);
+  }, [toast]);
+
+  // Merge modes
   const allModes = { ...MODES, ...customModes };
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (showWelcome || showOnboarding) return;
-
-      if (e.code === 'Space' && !e.repeat) {
-        e.preventDefault();
-        if (isRecording) handleStopRecording();
-        else handleStartRecording();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isRecording, handleStartRecording, handleStopRecording, showWelcome, showOnboarding]);
-
-  // --- Onboarding ---
+  // --- ONBOARDING ---
   if (showOnboarding) {
     return (
-      <div className="eva-app" style={{ background: MODES.calm.gradient }}>
+      <div className="eva-app" style={{ background: '#0d0d1a' }}>
         <div className="onboarding">
           <div className="onboarding-avatar">
-            <div className="avatar-core" style={{
-              background: MODES.calm.gradient,
-              boxShadow: `0 0 60px ${MODES.calm.glowColor}`,
-              width: 120, height: 120, animationDuration: '3s',
-            }}>
+            <div className="avatar-core" style={{ background: MODES.calm.gradient, boxShadow: `0 0 60px ${MODES.calm.glowColor}`, width: 120, height: 120, animationDuration: '3s' }}>
               <div className="avatar-face">
                 <div className="avatar-eyes">
-                  <div className="avatar-eye left" style={{ backgroundColor: MODES.calm.accentColor }}>
-                    <div className="avatar-pupil" />
-                  </div>
-                  <div className="avatar-eye right" style={{ backgroundColor: MODES.calm.accentColor }}>
-                    <div className="avatar-pupil" />
-                  </div>
+                  <div className="avatar-eye left" style={{ backgroundColor: MODES.calm.accentColor }}><div className="avatar-pupil" /></div>
+                  <div className="avatar-eye right" style={{ backgroundColor: MODES.calm.accentColor }}><div className="avatar-pupil" /></div>
                 </div>
                 <div className="avatar-mouth" style={{ borderColor: MODES.calm.accentColor }} />
               </div>
             </div>
           </div>
           <h1 className="onboarding-title">Hey, I'm Eva</h1>
-          <p className="onboarding-sub">Your personal voice companion. What should I call you?</p>
-          <form className="onboarding-form" onSubmit={(e) => {
-            e.preventDefault();
-            if (onboardingName.trim()) handleCreateProfile(onboardingName.trim());
-          }}>
-            <input type="text" className="onboarding-input" placeholder="Enter your name..."
-              value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)} autoFocus />
-            <button type="submit" className="onboarding-btn" disabled={!onboardingName.trim()}
-              style={{ backgroundColor: MODES.calm.accentColor }}>Let's Go</button>
+          <p className="onboarding-sub">Your personal companion. What should I call you?</p>
+          <form className="onboarding-form" onSubmit={(e) => { e.preventDefault(); if (onboardingName.trim()) handleCreateProfile(onboardingName.trim()); }}>
+            <input type="text" className="onboarding-input" placeholder="Enter your name..." value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)} autoFocus />
+            <button type="submit" className="onboarding-btn" disabled={!onboardingName.trim()} style={{ backgroundColor: '#6c5ce7' }}>Let's Go</button>
           </form>
         </div>
       </div>
     );
   }
 
-  // Show welcome screen
+  // --- WELCOME ---
   if (showWelcome) {
-    return (
-      <WelcomeScreen
-        userName={activeProfile?.name}
-        onSelectMode={(modeId) => {
-          setCurrentMode(MODES[modeId]);
-          setShowWelcome(false);
-        }}
-        onSelectFeeling={(modeId) => {
-          setCurrentMode(MODES[modeId]);
-          setShowWelcome(false);
-        }}
-      />
-    );
+    return <WelcomeScreen userName={activeProfile?.name}
+      onSelectMode={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }}
+      onSelectFeeling={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }} />;
   }
 
+  // --- MAIN CHAT ---
   return (
     <div className="eva-app" style={{ background: currentMode.gradient }}>
       <div className="bg-shapes">
-        {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="bg-shape" style={{
-            '--shape-color': currentMode.accentColor,
-            '--delay': `${i * 2}s`, '--size': `${100 + i * 60}px`,
-            '--x': `${10 + i * 15}%`, '--y': `${20 + (i % 3) * 25}%`,
-          }} />
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="bg-shape" style={{ '--shape-color': currentMode.accentColor, '--delay': `${i * 3}s`, '--size': `${120 + i * 60}px`, '--x': `${15 + i * 20}%`, '--y': `${20 + (i % 2) * 30}%` }} />
         ))}
       </div>
 
       <header className="eva-header">
         <div className="header-left">
-          <button className="home-btn" onClick={() => setShowWelcome(true)} title="Home"
-            style={{ color: currentMode.accentColor }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
+          <button className="home-btn" onClick={() => setShowWelcome(true)} title="Home" style={{ color: currentMode.accentColor }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </button>
           <h1 className="eva-title" style={{ color: currentMode.accentColor }}>Eva</h1>
-          <ProfileSelector profiles={profiles} activeProfile={activeProfile}
-            onSelectProfile={handleSelectProfile} onCreateProfile={handleCreateProfile}
-            onDeleteProfile={handleDeleteProfile} mode={currentMode} />
+          <ProfileSelector profiles={profiles} activeProfile={activeProfile} onSelectProfile={handleSelectProfile} onCreateProfile={handleCreateProfile} onDeleteProfile={handleDeleteProfile} mode={currentMode} />
         </div>
         <div className="header-right">
-          <button className="toolbar-btn" onClick={() => setShowBreathing(true)} title="Breathing exercise">
-            {'🫁'}
-          </button>
-          <button className="toolbar-btn" onClick={() => setShowMoodTracker(true)} title="Mood tracker">
-            {'📊'}
-          </button>
-          <button className="toolbar-btn" onClick={handleExportChat} title="Export chat">
-            {'📥'}
-          </button>
-          <button className="toolbar-btn" onClick={() => setShowCustomMode(true)} title="Create custom mode">
-            {'✏️'}
-          </button>
-          <button className="clear-chat-btn" onClick={handleClearChat} title="Clear chat"
-            style={{ color: currentMode.accentColor }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" />
-            </svg>
+          <button className="toolbar-btn" onClick={() => setShowBreathing(true)} title="Breathing">{'🫁'}</button>
+          <button className="toolbar-btn" onClick={() => setShowMoodTracker(true)} title="Mood">{'📊'}</button>
+          <button className="toolbar-btn" onClick={handleExportChat} title="Export">{'📥'}</button>
+          <button className="toolbar-btn" onClick={() => setShowCustomMode(true)} title="Custom mode">{'✏️'}</button>
+          <button className="clear-chat-btn" onClick={handleClearChat} title="Clear" style={{ color: currentMode.accentColor }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
           </button>
           <button className="settings-btn" onClick={() => setShowSettings(true)} title="Settings">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
           <ModeSelector currentMode={currentMode} onModeChange={handleModeChange} />
         </div>
       </header>
 
       {!settings.geminiApiKey && (
-        <div className="status-bar">
-          <span>Offline mode - </span>
-          <button className="status-link" onClick={() => setShowSettings(true)}
-            style={{ color: currentMode.accentColor }}>
-            Add free Gemini API key for real AI
-          </button>
+        <div className="status-bar warning">
+          <span>{'⚠️'} Offline mode - </span>
+          <button className="status-link" onClick={() => setShowSettings(true)} style={{ color: currentMode.accentColor }}>Add API key for real AI</button>
         </div>
       )}
 
@@ -472,11 +391,7 @@ function App() {
           <Avatar mode={currentMode} isListening={isRecording} isSpeaking={isSpeaking} volume={volume} />
         </div>
         <div className="chat-section">
-          {isRecording && (
-            <div className="interim-transcript" style={{ color: currentMode.accentColor }}>
-              Recording... speak now
-            </div>
-          )}
+          {isRecording && <div className="interim-transcript" style={{ color: currentMode.accentColor }}>{'🎙️'} Recording... speak now</div>}
           <ChatInterface messages={messages} mode={currentMode} isTyping={isTyping} onReact={handleReaction} />
         </div>
       </main>
@@ -487,23 +402,13 @@ function App() {
           onSendText={handleSendText} sttSupported={true} />
       </footer>
 
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)}
-        mode={currentMode} settings={settings} onSave={handleSaveSettings}
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} mode={currentMode} settings={settings} onSave={handleSaveSettings}
         voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice}
         onOpenCloneModal={() => { setShowSettings(false); setShowCloneModal(true); }} />
-
-      <VoiceCloneModal isOpen={showCloneModal} onClose={() => setShowCloneModal(false)}
-        mode={currentMode} apiKey={settings.elevenLabsApiKey}
-        onVoiceCloned={(voiceId, name) => console.log('Cloned:', name, voiceId)} />
-
-      <BreathingExercise isOpen={showBreathing} onClose={() => setShowBreathing(false)}
-        mode={currentMode} />
-
-      <MoodTracker isOpen={showMoodTracker} onClose={() => setShowMoodTracker(false)}
-        mode={currentMode} />
-
-      <CustomModeCreator isOpen={showCustomMode} onClose={() => setShowCustomMode(false)}
-        onCreateMode={handleCreateCustomMode} />
+      <VoiceCloneModal isOpen={showCloneModal} onClose={() => setShowCloneModal(false)} mode={currentMode} apiKey={settings.elevenLabsApiKey} onVoiceCloned={handleVoiceCloned} />
+      <BreathingExercise isOpen={showBreathing} onClose={() => setShowBreathing(false)} mode={currentMode} />
+      <MoodTracker isOpen={showMoodTracker} onClose={() => setShowMoodTracker(false)} mode={currentMode} />
+      <CustomModeCreator isOpen={showCustomMode} onClose={() => setShowCustomMode(false)} onCreateMode={handleCreateCustomMode} />
     </div>
   );
 }

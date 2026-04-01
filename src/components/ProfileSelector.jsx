@@ -31,7 +31,7 @@ export default function ProfileSelector({
           className="profile-avatar-small"
           style={{ background: mode.gradient }}
         >
-          {activeProfile ? activeProfile.name[0].toUpperCase() : '?'}
+          {activeProfile?.name?.[0]?.toUpperCase() || '?'}
         </div>
         <span className="profile-name">
           {activeProfile ? activeProfile.name : 'Select Profile'}
