@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { getRandomQuote, getRandomAdvice, getRandomJoke, getRandomFact, getRandomAffirmation, getHoroscope } from '../services/freeApis';
 import { ZODIAC_DATA, getSignFromDate, getLuckyNumbers, getLuckyColor } from '../utils/horoscope';
 
-// Web Audio ambient sounds
+// Web Audio ambient sounds (mobile-compatible)
 function createAmbientSound(type) {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  // Resume context on mobile (autoplay policy)
+  if (ctx.state === 'suspended') ctx.resume();
   const nodes = [];
   if (type === 'rain' || type === 'ocean') {
     const bufferSize = 2 * ctx.sampleRate;
