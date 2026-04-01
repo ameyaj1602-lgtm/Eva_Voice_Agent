@@ -672,6 +672,17 @@
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+.text-input.listening {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 12px rgba(78, 205, 196, 0.2);
+  animation: listeningPulse 2s ease-in-out infinite;
+}
+
+@keyframes listeningPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(78, 205, 196, 0.15); }
+  50% { box-shadow: 0 0 16px rgba(78, 205, 196, 0.3); }
+}
+
 .send-btn {
   width: 44px;
   height: 44px;

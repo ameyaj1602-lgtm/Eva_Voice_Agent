@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+
+// Use browser's built-in speech recognition for live transcription
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 export default function VoiceControl({
   mode,
@@ -9,7 +12,13 @@ export default function VoiceControl({
   onSendText,
   sttSupported = true,
 }) {
-  const [textInput, setTextInput] = React.useState('');
+  const [textInput, setTextInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [interimText, setInterimText] = useState('');
+  const recognitionRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const hasSpeechRecognition = !!SpeechRecognition;
 
   const formatDuration = (secs) => {
     const m = Math.floor(secs / 60);
@@ -19,25 +28,110 @@ export default function VoiceControl({
 
   const handleTextSubmit = (e) => {
     e.preventDefault();
-    if (textInput.trim()) {
-      onSendText(textInput.trim());
+    const finalText = (textInput + ' ' + interimText).trim();
+    if (finalText) {
+      stopListening();
+      onSendText(finalText);
       setTextInput('');
+      setInterimText('');
     }
   };
 
+  const startListening = useCallback(() => {
+    if (!hasSpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    let finalTranscript = textInput;
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += (finalTranscript ? ' ' : '') + transcript;
+          setTextInput(finalTranscript);
+          setInterimText('');
+        } else {
+          interim += transcript;
+        }
+      }
+      if (interim) setInterimText(interim);
+    };
+
+    recognition.onend = () => {
+      // Restart if still in listening mode (browser stops after silence)
+      if (recognitionRef.current && isListening) {
+        try { recognition.start(); } catch { }
+      }
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error !== 'no-speech' && e.error !== 'aborted') {
+        console.warn('Speech recognition error:', e.error);
+      }
+    };
+
+    try {
+      recognition.start();
+      setIsListening(true);
+      // Focus the input so user can see text appearing
+      inputRef.current?.focus();
+    } catch { }
+  }, [hasSpeechRecognition, textInput, isListening]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null; // prevent restart
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    // Move any interim text to final
+    if (interimText) {
+      setTextInput((prev) => (prev + ' ' + interimText).trim());
+      setInterimText('');
+    }
+    setIsListening(false);
+  }, [interimText]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  const handleMicClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  const displayValue = interimText ? textInput + (textInput ? ' ' : '') + interimText : textInput;
+
   return (
     <div className="voice-control">
-      {/* Text input */}
+      {/* Text input with live transcription */}
       <form className="text-input-form" onSubmit={handleTextSubmit}>
         <input
+          ref={inputRef}
           type="text"
-          className="text-input"
-          placeholder={`Message Eva (${mode.name} mode)...`}
-          value={textInput}
-          onChange={(e) => setTextInput(e.target.value)}
-          style={{ borderColor: `${mode.accentColor}33` }}
+          className={`text-input ${isListening ? 'listening' : ''}`}
+          placeholder={isListening ? 'Listening... speak now' : `Message Eva (${mode.name} mode)...`}
+          value={displayValue}
+          onChange={(e) => { setTextInput(e.target.value); setInterimText(''); }}
+          style={{ borderColor: isListening ? mode.accentColor : `${mode.accentColor}33` }}
         />
-        {textInput.trim() && (
+        {displayValue.trim() && (
           <button
             type="submit"
             className="send-btn"
@@ -50,26 +144,26 @@ export default function VoiceControl({
         )}
       </form>
 
-      {/* Mic button */}
+      {/* Mic button - now uses live transcription */}
       <div className="mic-section">
-        {isRecording && (
+        {isListening && (
           <div className="recording-timer" style={{ color: mode.accentColor }}>
             <span className="recording-dot" />
-            {formatDuration(duration)}
+            Listening...
           </div>
         )}
 
         <button
-          className={`mic-btn ${isRecording ? 'recording' : ''} ${!sttSupported ? 'disabled' : ''}`}
-          onClick={sttSupported ? (isRecording ? onStopRecording : onStartRecording) : undefined}
-          disabled={!sttSupported}
+          className={`mic-btn ${isListening ? 'recording' : ''} ${!hasSpeechRecognition ? 'disabled' : ''}`}
+          onClick={hasSpeechRecognition ? handleMicClick : undefined}
+          disabled={!hasSpeechRecognition}
           style={{
             '--mic-color': mode.accentColor,
             '--mic-glow': mode.glowColor,
           }}
-          title={sttSupported ? '' : 'Speech recognition not supported in this browser. Use Chrome for best results.'}
+          title={hasSpeechRecognition ? (isListening ? 'Stop listening' : 'Speak - text appears in input') : 'Speech recognition not supported'}
         >
-          {isRecording ? (
+          {isListening ? (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
               <rect x="6" y="6" width="12" height="12" rx="2" />
             </svg>
@@ -84,10 +178,10 @@ export default function VoiceControl({
         </button>
 
         <span className="mic-hint">
-          {!sttSupported
+          {!hasSpeechRecognition
             ? 'Use Chrome for voice'
-            : isRecording
-            ? 'Listening... tap to stop'
+            : isListening
+            ? 'Tap to stop, edit text, then send'
             : 'Tap to speak'}
         </span>
       </div>
