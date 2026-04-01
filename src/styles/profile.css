@@ -344,6 +344,38 @@
 
 .pf-cloned-id { font-size: 11px; color: rgba(255,255,255,0.25); font-family: monospace; }
 
+/* Voice selection grid */
+.pf-voice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.pf-voice-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-size: 13px;
+}
+.pf-voice-card:hover { background: rgba(255,255,255,0.08); }
+.pf-voice-card.selected { border-width: 2px; }
+.pf-voice-icon { font-size: 18px; }
+.pf-voice-label { flex: 1; }
+.pf-voice-check { font-size: 16px; font-weight: 700; }
+
+@media (max-width: 480px) {
+  .pf-voice-grid { grid-template-columns: 1fr; }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .pf-header { padding: 20px 20px 32px; }

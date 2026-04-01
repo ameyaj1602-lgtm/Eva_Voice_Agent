@@ -11,6 +11,6 @@ license: mit
 python_version: 3.11
 ---
 
-# Eva Voice Cloner
+# Eva Voice Engine
 
-Upload a voice sample and Eva will speak in that voice using XTTS-v2.
+High-quality neural text-to-speech with 16+ voices across 10 languages. Free, fast, unlimited. Powered by Microsoft Edge TTS.
