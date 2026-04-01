@@ -1,12 +1,91 @@
 import React, { useState, useEffect } from 'react';
 import { getRandomQuote, getRandomAdvice, getRandomJoke, getRandomFact, getRandomAffirmation, getWeather, getHoroscope, HOROSCOPE_SIGNS } from '../services/freeApis';
 
+// Web Audio API generated ambient sounds (always works, no CORS issues)
+function createAmbientSound(type) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const nodes = [];
+
+  if (type === 'rain' || type === 'ocean') {
+    // White/brown noise
+    const bufferSize = 2 * ctx.sampleRate;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = type === 'rain' ? 'highpass' : 'lowpass';
+    filter.frequency.value = type === 'rain' ? 800 : 300;
+    const gain = ctx.createGain();
+    gain.gain.value = type === 'rain' ? 0.15 : 0.2;
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    source.start();
+    nodes.push(source);
+  } else if (type === 'fire') {
+    // Crackling noise
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (Math.random() > 0.97 ? 1 : 0.1);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer; source.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass'; filter.frequency.value = 600; filter.Q.value = 0.5;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.25;
+    source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    source.start();
+    nodes.push(source);
+  } else if (type === 'birds') {
+    // Chirping oscillators
+    const chirp = () => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 2000 + Math.random() * 2000;
+      gain.gain.value = 0;
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start();
+      const loop = () => {
+        const now = ctx.currentTime;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+        gain.gain.linearRampToValueAtTime(0, now + 0.15);
+        osc.frequency.setValueAtTime(2000 + Math.random() * 2000, now);
+        setTimeout(loop, 500 + Math.random() * 2000);
+      };
+      loop();
+      nodes.push(osc);
+    };
+    chirp(); chirp(); chirp();
+  } else if (type === 'lofi') {
+    // Simple chord progression
+    const freqs = [261.6, 329.6, 392.0]; // C major
+    freqs.forEach((f) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = f;
+      gain.gain.value = 0.06;
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start();
+      nodes.push(osc);
+    });
+  }
+
+  return { ctx, nodes, stop: () => { nodes.forEach(n => { try { n.stop(); } catch {} }); ctx.close(); } };
+}
+
 const AMBIENT_SOUNDS = [
-  { id: 'rain', name: 'Rain', emoji: '\u{1F327}\uFE0F', url: 'https://cdn.pixabay.com/audio/2022/10/30/audio_93a4d7aa82.mp3' },
-  { id: 'ocean', name: 'Ocean Waves', emoji: '\u{1F30A}', url: 'https://cdn.pixabay.com/audio/2024/11/04/audio_4956b20543.mp3' },
-  { id: 'fire', name: 'Fireplace', emoji: '\u{1F525}', url: 'https://cdn.pixabay.com/audio/2024/06/12/audio_81e0a05188.mp3' },
-  { id: 'birds', name: 'Birds', emoji: '\u{1F426}', url: 'https://cdn.pixabay.com/audio/2022/03/09/audio_c610e1599c.mp3' },
-  { id: 'lofi', name: 'Lo-Fi Beats', emoji: '\u{1F3B5}', url: 'https://cdn.pixabay.com/audio/2024/09/26/audio_24af1e4195.mp3' },
+  { id: 'rain', name: 'Rain', emoji: '\u{1F327}\uFE0F' },
+  { id: 'ocean', name: 'Ocean Waves', emoji: '\u{1F30A}' },
+  { id: 'fire', name: 'Fireplace', emoji: '\u{1F525}' },
+  { id: 'birds', name: 'Birds', emoji: '\u{1F426}' },
+  { id: 'lofi', name: 'Lo-Fi Beats', emoji: '\u{1F3B5}' },
 ];
 
 export default function Sidebar({ isOpen, onClose, mode, settings }) {
@@ -54,17 +133,14 @@ export default function Sidebar({ isOpen, onClose, mode, settings }) {
   };
 
   const toggleSound = (sound) => {
-    if (audioEl) { audioEl.pause(); setAudioEl(null); }
+    if (audioEl) { audioEl.stop(); setAudioEl(null); }
     if (playingSound === sound.id) { setPlayingSound(null); return; }
-    const audio = new Audio(sound.url);
-    audio.loop = true;
-    audio.volume = 0.4;
-    audio.play().catch(() => {});
-    setAudioEl(audio);
+    const amb = createAmbientSound(sound.id);
+    setAudioEl(amb);
     setPlayingSound(sound.id);
   };
 
-  useEffect(() => { return () => { if (audioEl) audioEl.pause(); }; }, [audioEl]);
+  useEffect(() => { return () => { if (audioEl) audioEl.stop(); }; }, [audioEl]);
 
   if (!isOpen) return null;
 

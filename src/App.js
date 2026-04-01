@@ -457,7 +457,8 @@ function App() {
         <WelcomeScreen userName={activeProfile?.name}
           onSelectMode={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }}
           onSelectFeeling={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }}
-          onOpenSidebar={() => setShowSidebar(true)} />
+          onOpenSidebar={() => setShowSidebar(true)}
+          onOpenProfile={() => setShowProfile(true)} />
         <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings} />
       </>
     );

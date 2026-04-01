@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MODES } from '../utils/modes';
 import { getDailyAffirmation } from '../utils/affirmations';
 
-// Better curated Unsplash images - aesthetic, high quality
 const MODE_IMAGES = {
   calm: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop&q=80',
   motivation: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&h=400&fit=crop&q=80',
@@ -15,8 +14,7 @@ const MODE_IMAGES = {
   philosopher: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&h=400&fit=crop&q=80',
 };
 
-// Calm ambient video background
-const HERO_VIDEO = 'https://assets.mixkit.co/videos/preview/mixkit-clouds-and-blue-sky-2408-large.mp4';
+const HERO_BG = 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1200&h=400&fit=crop&q=80';
 
 const FEELINGS = [
   { emoji: '\u{1F614}', label: 'Stressed', suggestedMode: 'calm' },
@@ -40,12 +38,27 @@ function getDateStr() {
   return new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 }
 
-export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling, onOpenSidebar }) {
+function getStreakCount() {
+  try {
+    const data = JSON.parse(localStorage.getItem('eva-streak'));
+    return data?.current || 0;
+  } catch { return 0; }
+}
+
+export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling, onOpenSidebar, onOpenProfile }) {
   const [selectedFeeling, setSelectedFeeling] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [lightMode, setLightMode] = useState(() => localStorage.getItem('eva-theme') === 'light');
   const modes = Object.values(MODES);
   const topModes = modes.slice(0, 3);
   const restModes = modes.slice(3);
+  const streak = getStreakCount();
+
+  const toggleTheme = () => {
+    const next = !lightMode;
+    setLightMode(next);
+    localStorage.setItem('eva-theme', next ? 'light' : 'dark');
+  };
 
   const handleFeelingClick = (feeling) => {
     setSelectedFeeling(feeling);
@@ -53,8 +66,8 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
   };
 
   return (
-    <div className="ws">
-      {/* Header - Name left aligned */}
+    <div className={`ws ${lightMode ? 'light' : ''}`}>
+      {/* Header */}
       <div className="ws-header">
         <div className="ws-header-left">
           <span className="ws-date">{getDateStr()}</span>
@@ -62,17 +75,33 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
         </div>
         <div className="ws-header-right">
           <button className="ws-discover-btn" onClick={onOpenSidebar}>
-            {'✨'} Discover
+            {'\u2728'} Discover
+          </button>
+          <button className="ws-theme-toggle" onClick={toggleTheme} title={lightMode ? 'Dark mode' : 'Light mode'}>
+            {lightMode ? '\u{1F319}' : '\u2600\uFE0F'}
           </button>
           <span className="ws-brand">Eva</span>
         </div>
       </div>
 
-      {/* Hero Card with video background */}
+      {/* Profile Card */}
+      <button className="ws-profile-card" onClick={onOpenProfile} style={{ width: '100%', border: 'none', textAlign: 'left' }}>
+        <div className="ws-profile-avatar">
+          {userName?.[0]?.toUpperCase() || '?'}
+        </div>
+        <div className="ws-profile-info">
+          <div className="ws-profile-name">{userName || 'Guest'}</div>
+          <div className="ws-profile-meta">Tap to view your profile, mood history & memories</div>
+        </div>
+        <div className="ws-profile-streak">
+          <span className="ws-profile-streak-num">{streak}</span>
+          <span className="ws-profile-streak-label">{'\uD83D\uDD25'} day streak</span>
+        </div>
+      </button>
+
+      {/* Hero Card with background image */}
       <div className="ws-hero-card">
-        <video className="ws-hero-video" autoPlay muted loop playsInline>
-          <source src={HERO_VIDEO} type="video/mp4" />
-        </video>
+        <img className="ws-hero-video" src={HERO_BG} alt="" style={{ objectFit: 'cover' }} />
         <div className="ws-hero-overlay" />
         <div className="ws-hero-content">
           <p className="ws-hero-label">Today's thought</p>
@@ -83,7 +112,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
         </div>
       </div>
 
-      {/* How are you feeling */}
+      {/* Feelings */}
       <div className="ws-section">
         <h2 className="ws-section-title">How are you feeling?</h2>
         <p className="ws-section-sub">Tap your mood and Eva will adapt to you</p>
@@ -138,7 +167,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
                 backgroundColor: `${mode.accentColor}33`,
               }}>
                 <div className={`ws-rec-img-overlay ${hoveredCard === mode.id ? 'hovered' : ''}`}
-                  style={{ background: `linear-gradient(to top, #0d0d1aee, ${mode.accentColor}44, transparent)` }} />
+                  style={{ background: `linear-gradient(to top, #1a1520ee, ${mode.accentColor}44, transparent)` }} />
                 <span className="ws-rec-emoji">{mode.emoji}</span>
               </div>
               <div className="ws-rec-info">
@@ -158,9 +187,8 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
         </p>
       </div>
 
-      {/* Privacy */}
       <div className="ws-privacy">
-        <span>{'🔒'} Your chats are private and stored on your device only</span>
+        <span>{'\uD83D\uDD12'} Your chats are private and stored on your device only</span>
       </div>
     </div>
   );
