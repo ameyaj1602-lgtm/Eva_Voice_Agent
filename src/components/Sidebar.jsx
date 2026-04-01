@@ -201,6 +201,8 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
   const [trivia, setTrivia] = useState(null);
   const [triviaAnswer, setTriviaAnswer] = useState(null);
   const [kanyeQuote, setKanyeQuote] = useState(null);
+  const [sideTab, setSideTab] = useState('music');
+  const [showMoreSpotify, setShowMoreSpotify] = useState(false);
   const [playingSound, setPlayingSound] = useState(null);
   const [audioEl, setAudioEl] = useState(null);
   const [journalEntry, setJournalEntry] = useState('');
@@ -284,167 +286,248 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
           <button className="sb-close" onClick={onClose}>&times;</button>
         </div>
 
-        <div className="sb-body">
-          {/* SOUNDS */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Ambient Sounds</span>
-            <div className="sb-sounds">
-              {SOUNDS.map((s) => (
-                <button key={s.id} className={`sb-sound-chip ${playingSound === s.id ? 'playing' : ''}`}
-                  onClick={() => toggleSound(s)}
-                  style={playingSound === s.id ? { borderColor: mode.accentColor, color: mode.accentColor } : {}}>
-                  <span>{s.icon}</span> {s.name}
-                  {playingSound === s.id && <span className="sb-playing-dot" style={{ backgroundColor: mode.accentColor }} />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* MEME SOUNDBOARD */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Meme Sounds 😂</span>
-            <div className="sb-sounds">
-              {MEME_SOUNDS.map((s) => (
-                <button key={s.id} className="sb-sound-chip sb-meme-btn"
-                  onClick={() => playMemeSound(s.id)}>
-                  <span>{s.icon}</span> {s.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* SPOTIFY PLAYLISTS */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Spotify Playlists</span>
-            <div className="sb-spotify-grid">
-              {[
-                { name: 'Calm & Peaceful', id: '37i9dQZF1DWZd79rJ6a7lp', emoji: '🌿' },
-                { name: 'Deep Sleep', id: '37i9dQZF1DWZd79rJ6a7lp', emoji: '🌙' },
-                { name: 'Focus Flow', id: '37i9dQZF1DX4sWSpwq3LiO', emoji: '🎯' },
-                { name: 'Motivation Boost', id: '37i9dQZF1DXdxcBWuJkbcy', emoji: '🔥' },
-              ].map((pl) => (
-                <div key={pl.name} className="sb-spotify-card">
-                  <div className="sb-spotify-header">
-                    <span>{pl.emoji}</span>
-                    <span className="sb-spotify-name">{pl.name}</span>
-                  </div>
-                  <iframe
-                    title={pl.name}
-                    src={`https://open.spotify.com/embed/playlist/${pl.id}?utm_source=generator&theme=0`}
-                    width="100%" height="80" frameBorder="0"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    style={{ borderRadius: 8 }}
-                  />
-                </div>
-              ))}
-            </div>
-            <p className="sb-spotify-note">Open in Spotify for full playlists</p>
-          </div>
-
-          {/* YOUTUBE MUSIC */}
-          <div className="sb-category">
-            <span className="sb-cat-label">YouTube Music</span>
-            <div className="sb-spotify-grid">
-              {[
-                { name: 'Lo-Fi Beats', id: 'jfKfPfyJRdk', emoji: '🎵' },
-                { name: 'Relaxing Piano', id: '4xDzrJKXOOY', emoji: '🎹' },
-              ].map((yt) => (
-                <div key={yt.name} className="sb-spotify-card">
-                  <div className="sb-spotify-header"><span>{yt.emoji}</span><span className="sb-spotify-name">{yt.name}</span></div>
-                  <iframe title={yt.name} width="100%" height="80"
-                    src={`https://www.youtube.com/embed/${yt.id}?autoplay=0`}
-                    frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media"
-                    loading="lazy" style={{ borderRadius: 8 }} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* CUTE ANIMALS - Mood Boost */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Mood Boost</span>
-            <div className="sb-mood-boost">
-              {cutePic && <img src={cutePic} alt="cute" className="sb-cute-img" />}
-              <div className="sb-cute-btns">
-                <button className="sb-api-btn" onClick={async () => setCutePic(await getRandomCat())}
-                  style={{ borderColor: `${mode.accentColor}33` }}>🐱 Cute Cat</button>
-                <button className="sb-api-btn" onClick={async () => setCutePic(await getRandomDog())}
-                  style={{ borderColor: `${mode.accentColor}33` }}>🐶 Good Boy</button>
-              </div>
-            </div>
-          </div>
-
-          {/* BORED? Activity Suggestions */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Feeling Bored?</span>
-            {boredActivity ? (
-              <div className="sb-bored-card" style={{ borderColor: `${mode.accentColor}22` }}>
-                <p className="sb-bored-activity">{boredActivity.activity}</p>
-                <span className="sb-bored-type">{boredActivity.type} · {boredActivity.participants} person(s)</span>
-              </div>
-            ) : null}
-            <button className="sb-api-btn" onClick={async () => setBoredActivity(await getBoredActivity())}
-              style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: 8 }}>
-              🎲 Suggest Something
+        {/* SIDEBAR TABS */}
+        <div className="sb-tabs">
+          {[
+            { id: 'music', emoji: '🎵', label: 'Music' },
+            { id: 'vibes', emoji: '🌈', label: 'Vibes' },
+            { id: 'fun', emoji: '🎮', label: 'Fun' },
+            { id: 'journal', emoji: '📝', label: 'Journal' },
+            { id: 'stars', emoji: '🔮', label: 'Stars' },
+          ].map(t => (
+            <button key={t.id} className={`sb-tab ${sideTab === t.id ? 'active' : ''}`}
+              onClick={() => setSideTab(t.id)}
+              style={sideTab === t.id ? { color: mode.accentColor, borderBottomColor: mode.accentColor } : {}}>
+              <span>{t.emoji}</span>
+              <span>{t.label}</span>
             </button>
-          </div>
+          ))}
+        </div>
 
-          {/* TRIVIA */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Trivia Challenge</span>
-            {trivia ? (
-              <div className="sb-trivia-card">
-                <p className="sb-trivia-q">{trivia.question}</p>
-                <span className="sb-trivia-cat">{trivia.category} · {trivia.difficulty}</span>
-                <div className="sb-trivia-answers">
-                  {trivia.answers.map((a, i) => (
-                    <button key={i} className={`sb-trivia-ans ${triviaAnswer === a ? (a === trivia.correct ? 'correct' : 'wrong') : ''} ${triviaAnswer && a === trivia.correct ? 'correct' : ''}`}
-                      onClick={() => setTriviaAnswer(a)} disabled={!!triviaAnswer}
-                      style={triviaAnswer === a && a === trivia.correct ? { borderColor: '#38ef7d' } : {}}>
-                      {a}
-                    </button>
+        <div className="sb-body">
+
+          {/* ===== MUSIC TAB ===== */}
+          {sideTab === 'music' && (<>
+            {/* Spotify - 1 playlist shown, rest in dropdown */}
+            <div className="sb-category">
+              <span className="sb-cat-label">Spotify</span>
+              <div className="sb-spotify-card">
+                <div className="sb-spotify-header"><span>🌿</span><span className="sb-spotify-name">Calm & Peaceful</span></div>
+                <iframe title="Calm" src="https://open.spotify.com/embed/playlist/37i9dQZF1DWZd79rJ6a7lp?utm_source=generator&theme=0"
+                  width="100%" height="152" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy" style={{ borderRadius: 8 }} />
+              </div>
+              <button className="sb-show-more-btn" onClick={() => setShowMoreSpotify(!showMoreSpotify)}
+                style={{ color: mode.accentColor }}>
+                {showMoreSpotify ? 'Hide playlists ▲' : 'More playlists ▼'}
+              </button>
+              {showMoreSpotify && (
+                <div className="sb-spotify-grid" style={{ marginTop: 8 }}>
+                  {[
+                    { name: 'Deep Sleep', id: '37i9dQZF1DWZd79rJ6a7lp', emoji: '🌙' },
+                    { name: 'Focus Flow', id: '37i9dQZF1DX4sWSpwq3LiO', emoji: '🎯' },
+                    { name: 'Motivation Boost', id: '37i9dQZF1DXdxcBWuJkbcy', emoji: '🔥' },
+                  ].map((pl) => (
+                    <div key={pl.name} className="sb-spotify-card">
+                      <div className="sb-spotify-header"><span>{pl.emoji}</span><span className="sb-spotify-name">{pl.name}</span></div>
+                      <iframe title={pl.name} src={`https://open.spotify.com/embed/playlist/${pl.id}?utm_source=generator&theme=0`}
+                        width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy" style={{ borderRadius: 8 }} />
+                    </div>
                   ))}
                 </div>
-                {triviaAnswer && (
-                  <p className="sb-trivia-result" style={{ color: triviaAnswer === trivia.correct ? '#38ef7d' : '#ff6b6b' }}>
-                    {triviaAnswer === trivia.correct ? '✅ Correct!' : `❌ It was: ${trivia.correct}`}
-                  </p>
-                )}
-              </div>
-            ) : null}
-            <button className="sb-api-btn" onClick={async () => { setTriviaAnswer(null); setTrivia(await getTriviaQuestion()); }}
-              style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: 8 }}>
-              🧠 New Question
-            </button>
-          </div>
+              )}
+            </div>
 
-          {/* NASA APOD */}
-          <div className="sb-category">
-            <span className="sb-cat-label">NASA Picture of the Day</span>
-            {nasaAPOD ? (
-              <div className="sb-nasa-card">
-                {nasaAPOD.mediaType === 'image' && <img src={nasaAPOD.url} alt={nasaAPOD.title} className="sb-nasa-img" />}
-                <h4 className="sb-nasa-title">{nasaAPOD.title}</h4>
-                <p className="sb-nasa-desc">{nasaAPOD.explanation}...</p>
+            {/* YouTube */}
+            <div className="sb-category">
+              <span className="sb-cat-label">YouTube</span>
+              <div className="sb-spotify-grid">
+                {[
+                  { name: 'Lo-Fi Beats', id: 'jfKfPfyJRdk', emoji: '🎵' },
+                  { name: 'Relaxing Piano', id: '4xDzrJKXOOY', emoji: '🎹' },
+                ].map((yt) => (
+                  <div key={yt.name} className="sb-spotify-card">
+                    <div className="sb-spotify-header"><span>{yt.emoji}</span><span className="sb-spotify-name">{yt.name}</span></div>
+                    <iframe title={yt.name} width="100%" height="80" src={`https://www.youtube.com/embed/${yt.id}?autoplay=0`}
+                      frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media"
+                      loading="lazy" style={{ borderRadius: 8 }} />
+                  </div>
+                ))}
               </div>
-            ) : (
-              <button className="sb-api-btn" onClick={async () => setNasaAPOD(await getNasaAPOD())}
-                style={{ borderColor: `${mode.accentColor}33`, width: '100%' }}>
-                🚀 Load Today's Photo
+            </div>
+
+            {/* Ambient Sounds */}
+            <div className="sb-category">
+              <span className="sb-cat-label">Ambient Sounds</span>
+              <div className="sb-sounds">
+                {SOUNDS.map((s) => (
+                  <button key={s.id} className={`sb-sound-chip ${playingSound === s.id ? 'playing' : ''}`}
+                    onClick={() => toggleSound(s)}
+                    style={playingSound === s.id ? { borderColor: mode.accentColor, color: mode.accentColor } : {}}>
+                    <span>{s.icon}</span> {s.name}
+                    {playingSound === s.id && <span className="sb-playing-dot" style={{ backgroundColor: mode.accentColor }} />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Meme Sounds */}
+            <div className="sb-category">
+              <span className="sb-cat-label">Meme Sounds</span>
+              <div className="sb-sounds">
+                {MEME_SOUNDS.map((s) => (
+                  <button key={s.id} className="sb-sound-chip sb-meme-btn" onClick={() => playMemeSound(s.id)}>
+                    <span>{s.icon}</span> {s.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>)}
+
+          {/* ===== VIBES TAB ===== */}
+          {sideTab === 'vibes' && (<>
+            {/* Inspiration */}
+            <div className="sb-category">
+              <span className="sb-cat-label">Inspiration</span>
+              <Item icon="💡" label="Random Quote" active={activePanel === 'quote'}
+                onClick={() => { setActivePanel(activePanel === 'quote' ? null : 'quote'); fetchQuote(); }} />
+              {activePanel === 'quote' && quote && (
+                <div className="sb-panel">
+                  <p className="sb-panel-text">"{quote.text}"</p>
+                  <p className="sb-panel-author">— {quote.author}</p>
+                  <button className="sb-panel-btn" onClick={fetchQuote} style={{ color: mode.accentColor }}>New Quote</button>
+                </div>
+              )}
+              <Item icon="🎯" label="Life Advice" active={activePanel === 'advice'}
+                onClick={() => { setActivePanel(activePanel === 'advice' ? null : 'advice'); fetchAdvice(); }} />
+              {activePanel === 'advice' && advice && (
+                <div className="sb-panel">
+                  <p className="sb-panel-text">{advice}</p>
+                  <button className="sb-panel-btn" onClick={fetchAdvice} style={{ color: mode.accentColor }}>New Advice</button>
+                </div>
+              )}
+              <Item icon="✨" label="Affirmation" active={activePanel === 'affirm'}
+                onClick={() => { setActivePanel(activePanel === 'affirm' ? null : 'affirm'); fetchAffirmation(); }} />
+              {activePanel === 'affirm' && affirmation && (
+                <div className="sb-panel">
+                  <p className="sb-panel-text">{affirmation}</p>
+                  <button className="sb-panel-btn" onClick={fetchAffirmation} style={{ color: mode.accentColor }}>New Affirmation</button>
+                </div>
+              )}
+            </div>
+
+            {/* Mood Boost */}
+            <div className="sb-category">
+              <span className="sb-cat-label">Mood Boost</span>
+              <div className="sb-mood-boost">
+                {cutePic && <img src={cutePic} alt="cute" className="sb-cute-img" />}
+                <div className="sb-cute-btns">
+                  <button className="sb-api-btn" onClick={async () => setCutePic(await getRandomCat())}
+                    style={{ borderColor: `${mode.accentColor}33` }}>🐱 Cute Cat</button>
+                  <button className="sb-api-btn" onClick={async () => setCutePic(await getRandomDog())}
+                    style={{ borderColor: `${mode.accentColor}33` }}>🐶 Good Boy</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Kanye */}
+            <div className="sb-category">
+              <span className="sb-cat-label">Kanye Says</span>
+              {kanyeQuote && <p className="sb-kanye-quote">"{kanyeQuote}"<span> — Kanye West</span></p>}
+              <button className="sb-api-btn" onClick={async () => setKanyeQuote(await getKanyeQuote())}
+                style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: kanyeQuote ? 8 : 0 }}>
+                🎤 Random Kanye Quote
               </button>
-            )}
-          </div>
+            </div>
 
-          {/* KANYE QUOTES */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Kanye Says</span>
-            {kanyeQuote && <p className="sb-kanye-quote">"{kanyeQuote}"<span> — Kanye West</span></p>}
-            <button className="sb-api-btn" onClick={async () => setKanyeQuote(await getKanyeQuote())}
-              style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: kanyeQuote ? 8 : 0 }}>
-              🎤 Random Kanye Quote
-            </button>
-          </div>
+            {/* NASA */}
+            <div className="sb-category">
+              <span className="sb-cat-label">NASA Picture of the Day</span>
+              {nasaAPOD ? (
+                <div className="sb-nasa-card">
+                  {nasaAPOD.mediaType === 'image' && <img src={nasaAPOD.url} alt={nasaAPOD.title} className="sb-nasa-img" />}
+                  <h4 className="sb-nasa-title">{nasaAPOD.title}</h4>
+                  <p className="sb-nasa-desc">{nasaAPOD.explanation}...</p>
+                </div>
+              ) : (
+                <button className="sb-api-btn" onClick={async () => setNasaAPOD(await getNasaAPOD())}
+                  style={{ borderColor: `${mode.accentColor}33`, width: '100%' }}>
+                  🚀 Load Today's Photo
+                </button>
+              )}
+            </div>
+          </>)}
+
+          {/* ===== FUN TAB ===== */}
+          {sideTab === 'fun' && (<>
+            <div className="sb-category">
+              <span className="sb-cat-label">Jokes & Facts</span>
+              <Item icon="😂" label="Random Joke" active={activePanel === 'joke'}
+                onClick={() => { setActivePanel(activePanel === 'joke' ? null : 'joke'); fetchJoke(); }} />
+              {activePanel === 'joke' && joke && (
+                <div className="sb-panel">
+                  <p className="sb-panel-text">{joke}</p>
+                  <button className="sb-panel-btn" onClick={fetchJoke} style={{ color: mode.accentColor }}>Another One</button>
+                </div>
+              )}
+              <Item icon="🧪" label="Fun Fact" active={activePanel === 'fact'}
+                onClick={() => { setActivePanel(activePanel === 'fact' ? null : 'fact'); fetchFact(); }} />
+              {activePanel === 'fact' && fact && (
+                <div className="sb-panel">
+                  <p className="sb-panel-text">{fact}</p>
+                  <button className="sb-panel-btn" onClick={fetchFact} style={{ color: mode.accentColor }}>New Fact</button>
+                </div>
+              )}
+            </div>
+
+            {/* Trivia */}
+            <div className="sb-category">
+              <span className="sb-cat-label">Trivia Challenge</span>
+              {trivia ? (
+                <div className="sb-trivia-card">
+                  <p className="sb-trivia-q">{trivia.question}</p>
+                  <span className="sb-trivia-cat">{trivia.category} · {trivia.difficulty}</span>
+                  <div className="sb-trivia-answers">
+                    {trivia.answers.map((a, i) => (
+                      <button key={i} className={`sb-trivia-ans ${triviaAnswer === a ? (a === trivia.correct ? 'correct' : 'wrong') : ''} ${triviaAnswer && a === trivia.correct ? 'correct' : ''}`}
+                        onClick={() => setTriviaAnswer(a)} disabled={!!triviaAnswer}>
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                  {triviaAnswer && (
+                    <p className="sb-trivia-result" style={{ color: triviaAnswer === trivia.correct ? '#38ef7d' : '#ff6b6b' }}>
+                      {triviaAnswer === trivia.correct ? '✅ Correct!' : `❌ It was: ${trivia.correct}`}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+              <button className="sb-api-btn" onClick={async () => { setTriviaAnswer(null); setTrivia(await getTriviaQuestion()); }}
+                style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: 8 }}>
+                🧠 New Question
+              </button>
+            </div>
+
+            {/* Bored */}
+            <div className="sb-category">
+              <span className="sb-cat-label">Feeling Bored?</span>
+              {boredActivity ? (
+                <div className="sb-bored-card" style={{ borderColor: `${mode.accentColor}22` }}>
+                  <p className="sb-bored-activity">{boredActivity.activity}</p>
+                  <span className="sb-bored-type">{boredActivity.type} · {boredActivity.participants} person(s)</span>
+                </div>
+              ) : null}
+              <button className="sb-api-btn" onClick={async () => setBoredActivity(await getBoredActivity())}
+                style={{ borderColor: `${mode.accentColor}33`, width: '100%', marginTop: 8 }}>
+                🎲 Suggest Something
+              </button>
+            </div>
+          </>)}
+
+          {/* ===== JOURNAL TAB ===== */}
+          {sideTab === 'journal' && (<>
+
 
           {/* JOURNAL - Enhanced */}
           <div className="sb-category">
@@ -483,162 +566,111 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode }) 
             )}
           </div>
 
-          {/* INSPIRATION */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Inspiration</span>
-            <Item icon="💡" label="Random Quote" active={activePanel === 'quote'}
-              onClick={() => { setActivePanel(activePanel === 'quote' ? null : 'quote'); fetchQuote(); }} />
-            {activePanel === 'quote' && quote && (
-              <div className="sb-panel">
-                <p className="sb-panel-text">"{quote.text}"</p>
-                <p className="sb-panel-author">— {quote.author}</p>
-                <button className="sb-panel-btn" onClick={fetchQuote} style={{ color: mode.accentColor }}>New Quote</button>
-              </div>
-            )}
-            <Item icon="🎯" label="Life Advice" active={activePanel === 'advice'}
-              onClick={() => { setActivePanel(activePanel === 'advice' ? null : 'advice'); fetchAdvice(); }} />
-            {activePanel === 'advice' && advice && (
-              <div className="sb-panel">
-                <p className="sb-panel-text">{advice}</p>
-                <button className="sb-panel-btn" onClick={fetchAdvice} style={{ color: mode.accentColor }}>New Advice</button>
-              </div>
-            )}
-            <Item icon="✨" label="Affirmation" active={activePanel === 'affirm'}
-              onClick={() => { setActivePanel(activePanel === 'affirm' ? null : 'affirm'); fetchAffirmation(); }} />
-            {activePanel === 'affirm' && affirmation && (
-              <div className="sb-panel">
-                <p className="sb-panel-text">{affirmation}</p>
-                <button className="sb-panel-btn" onClick={fetchAffirmation} style={{ color: mode.accentColor }}>New Affirmation</button>
-              </div>
-            )}
-          </div>
+          </>)}
 
-          {/* FUN */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Fun</span>
-            <Item icon="😂" label="Random Joke" active={activePanel === 'joke'}
-              onClick={() => { setActivePanel(activePanel === 'joke' ? null : 'joke'); fetchJoke(); }} />
-            {activePanel === 'joke' && joke && (
-              <div className="sb-panel">
-                <p className="sb-panel-text">{joke}</p>
-                <button className="sb-panel-btn" onClick={fetchJoke} style={{ color: mode.accentColor }}>Another One</button>
-              </div>
-            )}
-            <Item icon="🧪" label="Fun Fact" active={activePanel === 'fact'}
-              onClick={() => { setActivePanel(activePanel === 'fact' ? null : 'fact'); fetchFact(); }} />
-            {activePanel === 'fact' && fact && (
-              <div className="sb-panel">
-                <p className="sb-panel-text">{fact}</p>
-                <button className="sb-panel-btn" onClick={fetchFact} style={{ color: mode.accentColor }}>New Fact</button>
-              </div>
-            )}
-          </div>
+          {/* ===== STARS TAB ===== */}
+          {sideTab === 'stars' && (<>
+            <div className="sb-category">
+              <span className="sb-cat-label">Horoscope</span>
 
-          {/* HOROSCOPE - Full Birth Chart */}
-          <div className="sb-category">
-            <span className="sb-cat-label">Horoscope</span>
-
-            {/* If no sign saved, show birth date form prompt */}
-            {!selectedSign && !showBirthForm && (
-              <button className="sb-birth-prompt" onClick={() => setShowBirthForm(true)}
-                style={{ borderColor: `${mode.accentColor}33` }}>
-                <span style={{ fontSize: 24 }}>{'🌟'}</span>
-                <div>
-                  <strong>Discover your sign</strong>
-                  <span>Enter your birth details for personalized readings</span>
-                </div>
-              </button>
-            )}
-
-            {/* Edit birth details button (when sign already saved) */}
-            {selectedSign && !showBirthForm && (
-              <button className="sb-edit-birth" onClick={() => setShowBirthForm(true)}
-                style={{ color: mode.accentColor }}>
-                Edit birth details
-              </button>
-            )}
-
-            {showBirthForm && (
-              <div className="sb-birth-form">
-                <label>Date of Birth</label>
-                <input type="date" className="sb-birth-input" value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)} />
-                <label>Time of Birth (optional)</label>
-                <input type="time" className="sb-birth-input" value={birthTime}
-                  onChange={(e) => setBirthTime(e.target.value)} />
-                <label>Place of Birth (optional)</label>
-                <input type="text" className="sb-birth-input" placeholder="e.g., Mumbai, India"
-                  value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
-                <button className="sb-birth-submit" onClick={() => {
-                  if (birthDate) {
-                    const [y, m, d] = birthDate.split('-').map(Number);
-                    const sign = getSignFromDate(m, d);
-                    setSelectedSign(sign);
-                    localStorage.setItem('eva-zodiac-sign', sign);
-                    localStorage.setItem('eva-birth-date', birthDate);
-                    if (birthTime) localStorage.setItem('eva-birth-time', birthTime);
-                    if (birthPlace) localStorage.setItem('eva-birth-place', birthPlace);
-                    setShowBirthForm(false);
-                    fetchHoroscope(sign);
-                  }
-                }} style={{ backgroundColor: mode.accentColor }}>
-                  Reveal My Sign
-                </button>
-              </div>
-            )}
-
-            {/* Sign selector grid */}
-            {(selectedSign || showBirthForm) && (
-              <div className="sb-zodiac-grid">
-                {Object.entries(ZODIAC_DATA).map(([key, z]) => (
-                  <button key={key} className={`sb-zodiac-card ${selectedSign === key ? 'active' : ''}`}
-                    onClick={() => { setSelectedSign(key); localStorage.setItem('eva-zodiac-sign', key); fetchHoroscope(key); }}
-                    style={selectedSign === key ? { borderColor: z.color, boxShadow: `0 0 12px ${z.color}33` } : {}}>
-                    <div className="sb-zodiac-img" style={{ backgroundImage: `url(${z.image})` }}>
-                      <div className="sb-zodiac-img-overlay" style={{ background: `linear-gradient(to top, ${z.color}cc, ${z.color}44)` }} />
-                      <span className="sb-zodiac-symbol">{z.symbol}</span>
-                    </div>
-                    <span className="sb-zodiac-name">{z.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Selected sign detail card */}
-            {selectedSign && ZODIAC_DATA[selectedSign] && (
-              <div className="sb-zodiac-detail">
-                <div className="sb-zodiac-detail-header" style={{ borderLeftColor: ZODIAC_DATA[selectedSign].color }}>
-                  <span style={{ fontSize: 28 }}>{ZODIAC_DATA[selectedSign].symbol}</span>
+              {!selectedSign && !showBirthForm && (
+                <button className="sb-birth-prompt" onClick={() => setShowBirthForm(true)}
+                  style={{ borderColor: `${mode.accentColor}33` }}>
+                  <span style={{ fontSize: 24 }}>{'🌟'}</span>
                   <div>
-                    <h4>{ZODIAC_DATA[selectedSign].name}</h4>
-                    <span className="sb-zodiac-dates">{ZODIAC_DATA[selectedSign].dates}</span>
+                    <strong>Discover your sign</strong>
+                    <span>Enter your birth details for personalized readings</span>
                   </div>
+                </button>
+              )}
+
+              {selectedSign && !showBirthForm && (
+                <button className="sb-edit-birth" onClick={() => setShowBirthForm(true)}
+                  style={{ color: mode.accentColor }}>
+                  Edit birth details
+                </button>
+              )}
+
+              {showBirthForm && (
+                <div className="sb-birth-form">
+                  <label>Date of Birth</label>
+                  <input type="date" className="sb-birth-input" value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)} />
+                  <label>Time of Birth (optional)</label>
+                  <input type="time" className="sb-birth-input" value={birthTime}
+                    onChange={(e) => setBirthTime(e.target.value)} />
+                  <label>Place of Birth (optional)</label>
+                  <input type="text" className="sb-birth-input" placeholder="e.g., Mumbai, India"
+                    value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} />
+                  <button className="sb-birth-submit" onClick={() => {
+                    if (birthDate) {
+                      const [y, m, d] = birthDate.split('-').map(Number);
+                      const sign = getSignFromDate(m, d);
+                      setSelectedSign(sign);
+                      localStorage.setItem('eva-zodiac-sign', sign);
+                      localStorage.setItem('eva-birth-date', birthDate);
+                      if (birthTime) localStorage.setItem('eva-birth-time', birthTime);
+                      if (birthPlace) localStorage.setItem('eva-birth-place', birthPlace);
+                      setShowBirthForm(false);
+                      fetchHoroscope(sign);
+                    }
+                  }} style={{ backgroundColor: mode.accentColor }}>
+                    Reveal My Sign
+                  </button>
                 </div>
-                <div className="sb-zodiac-meta">
-                  <div><strong>Element:</strong> {ZODIAC_DATA[selectedSign].element}</div>
-                  <div><strong>Ruler:</strong> {ZODIAC_DATA[selectedSign].ruler}</div>
-                  <div><strong>Lucky Color:</strong> {getLuckyColor(selectedSign)}</div>
-                  <div><strong>Lucky Numbers:</strong> {getLuckyNumbers().join(', ')}</div>
-                </div>
-                <div className="sb-zodiac-traits">
-                  {ZODIAC_DATA[selectedSign].traits.map((t) => (
-                    <span key={t} className="sb-trait-chip" style={{ borderColor: `${ZODIAC_DATA[selectedSign].color}44` }}>{t}</span>
+              )}
+
+              {(selectedSign || showBirthForm) && (
+                <div className="sb-zodiac-grid">
+                  {Object.entries(ZODIAC_DATA).map(([key, z]) => (
+                    <button key={key} className={`sb-zodiac-card ${selectedSign === key ? 'active' : ''}`}
+                      onClick={() => { setSelectedSign(key); localStorage.setItem('eva-zodiac-sign', key); fetchHoroscope(key); }}
+                      style={selectedSign === key ? { borderColor: z.color, boxShadow: `0 0 12px ${z.color}33` } : {}}>
+                      <div className="sb-zodiac-img" style={{ backgroundImage: `url(${z.image})` }}>
+                        <div className="sb-zodiac-img-overlay" style={{ background: `linear-gradient(to top, ${z.color}cc, ${z.color}44)` }} />
+                        <span className="sb-zodiac-symbol">{z.symbol}</span>
+                      </div>
+                      <span className="sb-zodiac-name">{z.name}</span>
+                    </button>
                   ))}
                 </div>
-                <div className="sb-zodiac-compat">
-                  <strong>Compatible with:</strong> {ZODIAC_DATA[selectedSign].compatible.join(', ')}
-                </div>
-              </div>
-            )}
+              )}
 
-            {horoscopeLoading && <p className="sb-horoscope-loading">{'🔮'} Reading the stars...</p>}
-            {horoscope && !horoscopeLoading && (
-              <div className="sb-horoscope-result">
-                <span className="sb-horoscope-label">Today's Reading</span>
-                <p>{horoscope}</p>
-              </div>
-            )}
-          </div>
+              {selectedSign && ZODIAC_DATA[selectedSign] && (
+                <div className="sb-zodiac-detail">
+                  <div className="sb-zodiac-detail-header" style={{ borderLeftColor: ZODIAC_DATA[selectedSign].color }}>
+                    <span style={{ fontSize: 28 }}>{ZODIAC_DATA[selectedSign].symbol}</span>
+                    <div>
+                      <h4>{ZODIAC_DATA[selectedSign].name}</h4>
+                      <span className="sb-zodiac-dates">{ZODIAC_DATA[selectedSign].dates}</span>
+                    </div>
+                  </div>
+                  <div className="sb-zodiac-meta">
+                    <div><strong>Element:</strong> {ZODIAC_DATA[selectedSign].element}</div>
+                    <div><strong>Ruler:</strong> {ZODIAC_DATA[selectedSign].ruler}</div>
+                    <div><strong>Lucky Color:</strong> {getLuckyColor(selectedSign)}</div>
+                    <div><strong>Lucky Numbers:</strong> {getLuckyNumbers().join(', ')}</div>
+                  </div>
+                  <div className="sb-zodiac-traits">
+                    {ZODIAC_DATA[selectedSign].traits.map((t) => (
+                      <span key={t} className="sb-trait-chip" style={{ borderColor: `${ZODIAC_DATA[selectedSign].color}44` }}>{t}</span>
+                    ))}
+                  </div>
+                  <div className="sb-zodiac-compat">
+                    <strong>Compatible with:</strong> {ZODIAC_DATA[selectedSign].compatible.join(', ')}
+                  </div>
+                </div>
+              )}
+
+              {horoscopeLoading && <p className="sb-horoscope-loading">{'🔮'} Reading the stars...</p>}
+              {horoscope && !horoscopeLoading && (
+                <div className="sb-horoscope-result">
+                  <span className="sb-horoscope-label">Today's Reading</span>
+                  <p>{horoscope}</p>
+                </div>
+              )}
+            </div>
+          </>)}
         </div>
       </div>
     </>
