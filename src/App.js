@@ -44,6 +44,7 @@ import {
   getMemory, addMemory,
 } from './services/storage';
 import { MODES, DEFAULT_MODE } from './utils/modes';
+import { fireConfetti } from './utils/confetti';
 import { exportChatAsText } from './utils/exportChat';
 import './App.css';
 import './styles/welcome.css';
@@ -123,7 +124,13 @@ function App() {
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Record streak visit
-  useEffect(() => { recordVisit(); }, []);
+  useEffect(() => {
+    const streak = recordVisit();
+    // Celebrate milestone streaks
+    if (streak && (streak === 3 || streak === 7 || streak === 14 || streak === 30 || streak % 50 === 0)) {
+      setTimeout(() => fireConfetti(), 1000);
+    }
+  }, []);
 
   // Subscribe to credit changes
   useEffect(() => {

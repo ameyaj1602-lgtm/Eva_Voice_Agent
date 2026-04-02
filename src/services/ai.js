@@ -55,14 +55,42 @@ const FALLBACK_RESPONSES = {
   ],
 };
 
+// Import therapy knowledge
+let buildTherapyPrompt;
+try {
+  const therapy = require('../utils/therapyKnowledge');
+  buildTherapyPrompt = therapy.buildTherapyPrompt;
+} catch { buildTherapyPrompt = null; }
+
 function buildSystemPrompt(mode, userName, memories) {
-  let prompt = (mode?.systemPrompt || 'You are Eva, a friendly companion.') + '\n\n';
-  if (userName) prompt += `The user's name is ${userName}. Use their name naturally sometimes.\n`;
+  const modePrompt = mode?.systemPrompt || 'You are Eva, a friendly companion.';
+  // Inject real therapy frameworks into the prompt
+  let prompt = buildTherapyPrompt ? buildTherapyPrompt(modePrompt, mode?.id) : modePrompt + '\n\n';
+
+  if (userName) prompt += `The user's name is ${userName}. Use their name naturally — don't overuse it.\n`;
   if (memories?.length > 0) {
-    prompt += 'Things you remember about this user:\n';
+    prompt += '\nThings you remember about this user (USE these to personalize responses):\n';
     memories.forEach((m) => { if (m?.fact) prompt += `- ${m.fact}\n`; });
+    prompt += 'Reference these memories when relevant — it makes the user feel deeply understood.\n';
   }
-  prompt += '\nKeep responses conversational and under 3 sentences.';
+
+  // Response guidelines based on mode
+  const isTherapeutic = ['calm', 'therapist', 'silence', 'crisis'].includes(mode?.id);
+  const isCreative = ['storyteller', 'dream', 'lullaby'].includes(mode?.id);
+  const isCasual = ['companion', 'comedian'].includes(mode?.id);
+
+  if (mode?.id === 'silence') {
+    prompt += '\nMAX 1-2 sentences. Often just one word. Less is everything.';
+  } else if (isCreative) {
+    prompt += '\nWrite 3-4 rich paragraphs. Be vivid and immersive. This is about the experience.';
+  } else if (isTherapeutic) {
+    prompt += '\nRespond in 2-4 sentences. Quality over quantity. End with ONE reflective question.';
+  } else if (isCasual) {
+    prompt += '\nKeep it conversational. 2-3 sentences usually. Be natural and real.';
+  } else {
+    prompt += '\nKeep responses focused. 2-4 sentences. Match the energy of the mode.';
+  }
+
   return prompt;
 }
 
@@ -94,7 +122,7 @@ async function callGemini(messages, systemPrompt, apiKey) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents,
-      generationConfig: { temperature: 0.9, topP: 0.95, maxOutputTokens: 200 },
+      generationConfig: { temperature: 0.9, topP: 0.95, maxOutputTokens: 500 },
     }),
   });
 
