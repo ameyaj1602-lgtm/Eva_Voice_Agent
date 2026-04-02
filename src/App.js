@@ -29,6 +29,9 @@ import AdminDashboard from './components/AdminDashboard';
 import ProfileFullPage from './components/ProfileFullPage';
 import FeedbackForm from './components/FeedbackForm';
 import JourneyModal from './components/JourneyModal';
+import PomodoroTimer from './components/PomodoroTimer';
+import HabitTracker from './components/HabitTracker';
+import AmbientMode from './components/AmbientMode';
 import './styles/profile.css';
 import VoicePicker from './components/VoicePicker';
 import Sidebar from './components/Sidebar';
@@ -73,6 +76,9 @@ function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showJourney, setShowJourney] = useState(false);
+  const [showPomodoro, setShowPomodoro] = useState(false);
+  const [showHabits, setShowHabits] = useState(false);
+  const [showAmbient, setShowAmbient] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showCreditPopup, setShowCreditPopup] = useState(false);
   const [creditLimitType, setCreditLimitType] = useState('ai');
@@ -555,6 +561,15 @@ function App() {
           <button className="toolbar-labeled" onClick={() => setShowJourney(true)}>
             <span>{'🧭'}</span><span className="toolbar-text">Journey</span>
           </button>
+          <button className="toolbar-labeled" onClick={() => setShowPomodoro(true)}>
+            <span>{'🍅'}</span><span className="toolbar-text">Focus</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => setShowHabits(true)}>
+            <span>{'📋'}</span><span className="toolbar-text">Habits</span>
+          </button>
+          <button className="toolbar-labeled" onClick={() => setShowAmbient(true)}>
+            <span>{'🌙'}</span><span className="toolbar-text">Ambient</span>
+          </button>
           <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
             <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
           </button>
@@ -619,6 +634,9 @@ function App() {
         onOpenSettings={() => setShowSettings(true)}
         onExportChat={handleExportChat}
       />
+      <PomodoroTimer isOpen={showPomodoro} onClose={() => setShowPomodoro(false)} mode={currentMode} />
+      <HabitTracker isOpen={showHabits} onClose={() => setShowHabits(false)} mode={currentMode} />
+      <AmbientMode isOpen={showAmbient} onClose={() => setShowAmbient(false)} mode={currentMode} />
       <JourneyModal isOpen={showJourney} onClose={() => setShowJourney(false)} mode={currentMode}
         onOpenBreathing={() => { setShowJourney(false); setShowBreathing(true); }}
         onOpenTimer={() => { setShowJourney(false); setTimerType('meditation'); setShowTimer(true); }} />
