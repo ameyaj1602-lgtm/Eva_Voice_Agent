@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "eva-dev",
-      "runtimeExecutable": "npx",
+      "runtimeExecutable": "/usr/local/bin/npx",
       "runtimeArgs": ["react-scripts", "start"],
       "port": 3000,
       "env": {

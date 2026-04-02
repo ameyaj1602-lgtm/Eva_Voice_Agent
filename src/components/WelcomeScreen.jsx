@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MODES } from '../utils/modes';
 import { getDailyAffirmation } from '../utils/affirmations';
 import { getWeather } from '../services/freeApis';
+import { getSmartGreeting, QUICK_MOODS } from '../utils/smartGreeting';
 
 const MODE_IMAGES = {
   calm: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop&q=80',
@@ -51,6 +52,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
   const [hoveredCard, setHoveredCard] = useState(null);
   const [lightMode, setLightMode] = useState(() => localStorage.getItem('eva-theme') === 'light');
   const [weather, setWeather] = useState(null);
+  const [greeting] = useState(() => getSmartGreeting(userName));
 
   // Fetch weather on mount
   useEffect(() => {
@@ -76,7 +78,13 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
 
   const handleFeelingClick = (feeling) => {
     setSelectedFeeling(feeling);
-    setTimeout(() => onSelectFeeling(feeling.suggestedMode), 600);
+    // Also log mood
+    try {
+      const log = JSON.parse(localStorage.getItem('eva-mood-log') || '[]');
+      log.push({ emoji: feeling.emoji, label: feeling.label, value: feeling.value || 3, date: Date.now() });
+      localStorage.setItem('eva-mood-log', JSON.stringify(log.slice(-30)));
+    } catch {}
+    setTimeout(() => onSelectFeeling(feeling.suggestion || feeling.suggestedMode), 600);
   };
 
   return (
@@ -85,7 +93,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
       <div className="ws-header">
         <div className="ws-header-left">
           <span className="ws-date">{getDateStr()}</span>
-          <h1 className="ws-greeting">{getGreeting()}, {userName || 'there'}</h1>
+          <h1 className="ws-greeting">{greeting.text}</h1>
         </div>
         <div className="ws-header-right">
           <button className="ws-discover-btn" onClick={onOpenSidebar}>
@@ -138,10 +146,11 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
         <h2 className="ws-section-title">How are you feeling?</h2>
         <p className="ws-section-sub">Tap your mood and Eva will adapt to you</p>
         <div className="ws-feelings">
-          {FEELINGS.map((f) => (
+          {QUICK_MOODS.map((f) => (
             <button key={f.label}
               className={`ws-feeling ${selectedFeeling?.label === f.label ? 'active' : ''}`}
-              onClick={() => handleFeelingClick(f)}>
+              onClick={() => handleFeelingClick({ ...f, suggestedMode: f.suggestion })}
+              style={selectedFeeling?.label === f.label ? { borderColor: f.color, background: `${f.color}22` } : {}}>
               <span className="ws-feeling-emoji">{f.emoji}</span>
               <span className="ws-feeling-label">{f.label}</span>
             </button>

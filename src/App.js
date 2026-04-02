@@ -483,15 +483,20 @@ function App() {
             </div>
           </div>
           <h1 className="onboarding-title">Hey, I'm Eva</h1>
-          <p className="onboarding-sub">Your personal companion. Tell me a bit about yourself.</p>
+          <p className="onboarding-sub">I'm here to listen, support, and grow with you. No judgment. Just warmth.</p>
           <form className="onboarding-form" onSubmit={(e) => {
             e.preventDefault();
             if (onboardingName.trim()) handleCreateProfile(onboardingName.trim(), onboardingEmail.trim(), onboardingCompany.trim());
           }}>
-            <input type="text" className="onboarding-input" placeholder="Your name *" value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)} autoFocus />
-            <input type="email" className="onboarding-input" placeholder="Email (optional)" value={onboardingEmail} onChange={(e) => setOnboardingEmail(e.target.value)} />
-            <input type="text" className="onboarding-input" placeholder="Company / Work (optional)" value={onboardingCompany} onChange={(e) => setOnboardingCompany(e.target.value)} />
-            <button type="submit" className="onboarding-btn" disabled={!onboardingName.trim()} style={{ backgroundColor: '#6c5ce7' }}>Let's Go</button>
+            <input type="text" className="onboarding-input" placeholder="What should I call you?" value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)} autoFocus />
+            <input type="email" className="onboarding-input" placeholder="Email (so I remember you)" value={onboardingEmail} onChange={(e) => setOnboardingEmail(e.target.value)} />
+            <input type="text" className="onboarding-input" placeholder="What do you do? (optional)" value={onboardingCompany} onChange={(e) => setOnboardingCompany(e.target.value)} />
+            <button type="submit" className="onboarding-btn" disabled={!onboardingName.trim()} style={{ backgroundColor: '#6c5ce7' }}>
+              {onboardingName.trim() ? `Let's begin, ${onboardingName.trim()}` : 'Tell me your name first'}
+            </button>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 8, textAlign: 'center' }}>
+              Everything stays on your device. Private. Always.
+            </p>
           </form>
         </div>
       </div>
