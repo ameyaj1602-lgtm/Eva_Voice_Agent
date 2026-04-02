@@ -21,6 +21,7 @@ import { getAIResponse } from './services/ai';
 import { synthesizeSpeech, DEFAULT_VOICES, MODE_VOICE_MAP } from './services/elevenlabs';
 import { speakWithClonedVoice } from './services/voiceClone';
 import { fishTTS } from './services/fishAudio';
+import { generateSinging, wantsSinging } from './services/singing';
 import { transcribeAudio } from './services/deepgram';
 import { detectEmotionLocal } from './services/hume';
 import creditManager from './services/creditManager';
@@ -288,7 +289,24 @@ function App() {
         }
       }
 
-      if (settings.autoSpeak) speakResponse(response);
+      if (settings.autoSpeak) {
+        // If user asked for singing and we're in lullaby/dream mode, try singing
+        if (wantsSinging(userText) && (currentMode.id === 'lullaby' || currentMode.id === 'dream')) {
+          toast?.('Generating singing... this may take 30-60 seconds');
+          generateSinging(response.slice(0, 200), 'English Female', 'Singing').then(audioUrl => {
+            if (audioUrl) {
+              const audio = new Audio(audioUrl);
+              setIsSpeakingState(true);
+              audio.onended = () => setIsSpeakingState(false);
+              audio.play().catch(() => setIsSpeakingState(false));
+            } else {
+              speakResponse(response); // Fallback to speech
+            }
+          }).catch(() => speakResponse(response));
+        } else {
+          speakResponse(response);
+        }
+      }
     } catch (err) {
       addMessage('assistant', "I'm having trouble thinking right now. Try again?");
       toast.error?.('AI response failed');
