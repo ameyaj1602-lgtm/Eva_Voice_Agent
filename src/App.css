@@ -1736,7 +1736,110 @@
 .vp-save-btn:hover { opacity: 0.85; }
 .vp-save-btn.saved { transform: scale(1.02); }
 
-/* ---- Responsive ---- */
+/* ============================================
+   RESPONSIVE - Mobile First
+   ============================================ */
+
+/* MOBILE (default - under 768px) */
+@media (max-width: 767px) {
+  /* Hide avatar on mobile - more space for chat */
+  .avatar-section { display: none; }
+
+  /* Compact header */
+  .eva-header {
+    padding: 8px 12px;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .eva-title { font-size: 20px; }
+
+  /* Toolbar: horizontal scroll, no wrapping */
+  .header-right {
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .header-right::-webkit-scrollbar { display: none; }
+
+  /* Hide toolbar text labels on mobile - emoji only */
+  .toolbar-text { display: none; }
+  .toolbar-labeled {
+    padding: 6px 8px;
+    min-width: 36px;
+    font-size: 16px;
+  }
+
+  /* Compact credit bar */
+  .credit-bar { padding: 4px 8px; font-size: 11px; }
+
+  /* Profile selector compact */
+  .profile-name { max-width: 60px; }
+  .profile-toggle { padding: 3px 8px 3px 3px; font-size: 11px; }
+
+  /* Mode selector compact */
+  .mode-toggle-btn { padding: 6px 10px; font-size: 12px; }
+  .mode-toggle-name { max-width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mode-options { width: 260px; right: -8px; }
+
+  /* Banner smaller */
+  .mode-banner { height: 70px; }
+  .mode-banner-emoji { font-size: 24px; }
+  .mode-banner-name { font-size: 14px; }
+  .mode-banner-desc { font-size: 10px; }
+
+  /* Chat section - full width, full height */
+  .chat-section { padding: 0 12px 12px; }
+  .chat-message { max-width: 92%; }
+  .chat-bubble p { font-size: 14px; }
+
+  /* Footer compact */
+  .eva-footer { padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 4px)); }
+  .text-input { padding: 10px 14px; font-size: 15px; }
+  .mic-btn { width: 48px; height: 48px; }
+  .mic-hint { font-size: 10px; }
+  .stop-speaking-btn { font-size: 12px; padding: 8px 12px; }
+
+  /* Voice picker - full screen on mobile */
+  .voice-picker-dropdown {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 75vh;
+    border-radius: 20px 20px 0 0;
+    animation: slideUpMobile 0.3s ease;
+  }
+
+  /* Modals - full width on mobile */
+  .settings-modal {
+    width: 95%;
+    max-width: none;
+    max-height: 90vh;
+  }
+
+  /* Reduce animations on mobile for performance */
+  .bg-shape { display: none; }
+  .avatar-particle { display: none; }
+  .avatar-ring { display: none; }
+
+  /* Onboarding mobile */
+  .onboarding { padding: 24px 16px; }
+  .onboarding-title { font-size: 28px; }
+  .onboarding-form { max-width: 100%; }
+}
+
+@keyframes slideUpMobile {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* TABLET (768px+) */
 @media (min-width: 768px) {
   .eva-main {
     flex-direction: row;
@@ -1763,6 +1866,7 @@
   }
 }
 
+/* DESKTOP (1024px+) */
 @media (min-width: 1024px) {
   .eva-header {
     padding: 20px 40px;

@@ -33,6 +33,23 @@ function chunkText(text) {
   return chunks.length > 0 ? chunks : [text];
 }
 
+// iOS Safari fix: must trigger speech from user gesture first
+let speechUnlocked = false;
+function unlockSpeech() {
+  if (speechUnlocked) return;
+  const u = new SpeechSynthesisUtterance('');
+  u.volume = 0;
+  window.speechSynthesis.speak(u);
+  window.speechSynthesis.cancel();
+  speechUnlocked = true;
+}
+// Unlock on first user interaction
+if (typeof window !== 'undefined') {
+  ['touchstart', 'click', 'keydown'].forEach(evt => {
+    window.addEventListener(evt, unlockSpeech, { once: true, passive: true });
+  });
+}
+
 export function useSpeechSynthesis() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
