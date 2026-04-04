@@ -661,6 +661,12 @@ function App() {
         onOpenCustomMode={() => setShowCustomMode(true)}
         onOpenSettings={() => setShowSettings(true)}
         onExportChat={handleExportChat}
+        onOpenJourney={() => setShowJourney(true)}
+        onOpenPomodoro={() => setShowPomodoro(true)}
+        onOpenHabits={() => setShowHabits(true)}
+        onOpenAmbient={() => setShowAmbient(true)}
+        onOpenSoundMixer={() => setShowSoundMixer(true)}
+        onOpenMultiAgent={() => setShowMultiAgent(true)}
       />
       <PomodoroTimer isOpen={showPomodoro} onClose={() => setShowPomodoro(false)} mode={currentMode} />
       <HabitTracker isOpen={showHabits} onClose={() => setShowHabits(false)} mode={currentMode} />

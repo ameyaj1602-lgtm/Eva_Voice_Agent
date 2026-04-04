@@ -180,7 +180,8 @@ const JOURNAL_PROMPTS = [
 
 export default function Sidebar({ isOpen, onClose, mode, settings, lightMode,
   onOpenBreathing, onOpenTimer, onOpenMoodTracker, onOpenGratitude, onOpenStreak,
-  onOpenSearch, onOpenProfile, onOpenFeedback, onOpenCustomMode, onOpenSettings, onExportChat }) {
+  onOpenSearch, onOpenProfile, onOpenFeedback, onOpenCustomMode, onOpenSettings, onExportChat,
+  onOpenJourney, onOpenPomodoro, onOpenHabits, onOpenAmbient, onOpenSoundMixer, onOpenMultiAgent }) {
   const [activePanel, setActivePanel] = useState(null);
   const [quote, setQuote] = useState(null);
   const [advice, setAdvice] = useState(null);
@@ -315,15 +316,15 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode,
               {[
                 { emoji: '🫁', label: 'Breathe', action: () => { onClose(); onOpenBreathing?.(); } },
                 { emoji: '⏱️', label: 'Timer', action: () => { onClose(); onOpenTimer?.(); } },
-                { emoji: '🧭', label: 'Journey', action: () => { onClose(); /* journey opens from App */ } },
-                { emoji: '🍅', label: 'Focus', action: () => { onClose(); } },
-                { emoji: '📋', label: 'Habits', action: () => { onClose(); } },
-                { emoji: '🌙', label: 'Ambient', action: () => { onClose(); } },
-                { emoji: '🎧', label: 'Mix Sounds', action: () => { onClose(); } },
+                { emoji: '🧭', label: 'Journey', action: () => { onClose(); onOpenJourney?.(); } },
+                { emoji: '🍅', label: 'Focus', action: () => { onClose(); onOpenPomodoro?.(); } },
+                { emoji: '📋', label: 'Habits', action: () => { onClose(); onOpenHabits?.(); } },
+                { emoji: '🌙', label: 'Ambient', action: () => { onClose(); onOpenAmbient?.(); } },
+                { emoji: '🎧', label: 'Mix Sounds', action: () => { onClose(); onOpenSoundMixer?.(); } },
                 { emoji: '🔥', label: 'Streak', action: () => { onClose(); onOpenStreak?.(); } },
                 { emoji: '🔍', label: 'Search', action: () => { onClose(); onOpenSearch?.(); } },
                 { emoji: '📊', label: 'Mood', action: () => { onClose(); onOpenMoodTracker?.(); } },
-                { emoji: '🧠', label: '3 Perspectives', action: () => { onClose(); } },
+                { emoji: '🧠', label: '3 Perspectives', action: () => { onClose(); onOpenMultiAgent?.(); } },
                 { emoji: '🙏', label: 'Gratitude', action: () => { onClose(); onOpenGratitude?.(); } },
                 { emoji: '👤', label: 'Profile', action: () => { onClose(); onOpenProfile?.(); } },
                 { emoji: '📄', label: 'PDF Report', action: () => { onClose(); onExportChat?.(); } },
