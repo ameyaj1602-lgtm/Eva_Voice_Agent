@@ -3,6 +3,7 @@ import { MODES } from '../utils/modes';
 import { getDailyAffirmation } from '../utils/affirmations';
 import { getWeather } from '../services/freeApis';
 import { getSmartGreeting, QUICK_MOODS } from '../utils/smartGreeting';
+import { getPlayerStats } from '../services/gamification';
 
 const MODE_IMAGES = {
   calm: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop&q=80',
@@ -69,6 +70,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
   const topModes = modes.slice(0, 3);
   const restModes = modes.slice(3);
   const streak = getStreakCount();
+  const playerStats = getPlayerStats();
 
   const toggleTheme = () => {
     const next = !lightMode;
@@ -117,7 +119,13 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
         </div>
         <div className="ws-profile-streak">
           <span className="ws-profile-streak-num">{streak}</span>
-          <span className="ws-profile-streak-label">🔥 day streak</span>
+          <span className="ws-profile-streak-label">🔥 streak</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{playerStats.level.emoji} Lv.{playerStats.level.level}</span>
+            <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+              <div style={{ height: '100%', width: `${playerStats.level.progress}%`, background: '#4ecdc4', borderRadius: 2 }} />
+            </div>
+          </div>
         </div>
       </button>
 

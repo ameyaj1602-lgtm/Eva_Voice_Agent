@@ -31,6 +31,10 @@ import ProfileFullPage from './components/ProfileFullPage';
 import FeedbackForm from './components/FeedbackForm';
 import JourneyModal from './components/JourneyModal';
 import { KnowledgeNote, ExitFeedback } from './components/KnowledgeNote';
+import SoundMixer from './components/SoundMixer';
+import MultiAgentPanel from './components/MultiAgentPanel';
+import { awardXP, trackModeUsed, unlockAchievement, getPlayerStats } from './services/gamification';
+import { generateDailyDigest } from './utils/sharing';
 import PomodoroTimer from './components/PomodoroTimer';
 import HabitTracker from './components/HabitTracker';
 import AmbientMode from './components/AmbientMode';
@@ -83,6 +87,8 @@ function App() {
   const [showHabits, setShowHabits] = useState(false);
   const [showAmbient, setShowAmbient] = useState(false);
   const [showExitFeedback, setShowExitFeedback] = useState(false);
+  const [showSoundMixer, setShowSoundMixer] = useState(false);
+  const [showMultiAgent, setShowMultiAgent] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showCreditPopup, setShowCreditPopup] = useState(false);
   const [creditLimitType, setCreditLimitType] = useState('ai');
@@ -273,6 +279,16 @@ function App() {
       );
 
       addMessage('assistant', response);
+
+      // Award XP for chatting
+      awardXP('chat_message');
+      trackModeUsed(currentMode.id);
+      // First chat achievement
+      if (messages.length === 0) unlockAchievement('first_chat');
+      // Night owl / early bird
+      const hour = new Date().getHours();
+      if (hour >= 0 && hour < 5) unlockAchievement('night_owl');
+      if (hour >= 4 && hour < 6) unlockAchievement('early_bird');
 
       // Log conversation for admin dashboard
       logConversation(activeProfile?.id, activeProfile?.name, currentMode.id, userText, response, source);
@@ -653,6 +669,9 @@ function App() {
         onOpenBreathing={() => { setShowJourney(false); setShowBreathing(true); }}
         onOpenTimer={() => { setShowJourney(false); setTimerType('meditation'); setShowTimer(true); }} />
       <FeedbackForm isOpen={showFeedback} onClose={() => setShowFeedback(false)} profile={activeProfile} mode={currentMode} />
+      <SoundMixer isOpen={showSoundMixer} onClose={() => setShowSoundMixer(false)} mode={currentMode} />
+      <MultiAgentPanel isOpen={showMultiAgent} onClose={() => setShowMultiAgent(false)} mode={currentMode}
+        settings={settings} userName={activeProfile?.name} />
       <ExitFeedback isOpen={showExitFeedback} onClose={() => { setShowExitFeedback(false); setShowWelcome(true); }}
         onSubmit={() => {}} mode={currentMode} />
       <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)}
