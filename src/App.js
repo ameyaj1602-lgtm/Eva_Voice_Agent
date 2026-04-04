@@ -30,6 +30,7 @@ import AdminDashboard from './components/AdminDashboard';
 import ProfileFullPage from './components/ProfileFullPage';
 import FeedbackForm from './components/FeedbackForm';
 import JourneyModal from './components/JourneyModal';
+import { KnowledgeNote, ExitFeedback } from './components/KnowledgeNote';
 import PomodoroTimer from './components/PomodoroTimer';
 import HabitTracker from './components/HabitTracker';
 import AmbientMode from './components/AmbientMode';
@@ -81,6 +82,7 @@ function App() {
   const [showPomodoro, setShowPomodoro] = useState(false);
   const [showHabits, setShowHabits] = useState(false);
   const [showAmbient, setShowAmbient] = useState(false);
+  const [showExitFeedback, setShowExitFeedback] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showCreditPopup, setShowCreditPopup] = useState(false);
   const [creditLimitType, setCreditLimitType] = useState('ai');
@@ -125,6 +127,9 @@ function App() {
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Record streak visit
+  // Record session start for feedback timing
+  useEffect(() => { localStorage.setItem('eva-session-start', Date.now().toString()); }, []);
+
   useEffect(() => {
     const streak = recordVisit();
     // Celebrate milestone streaks
@@ -567,7 +572,7 @@ function App() {
 
       <header className="eva-header">
         <div className="header-left">
-          <button className="home-btn" onClick={() => setShowWelcome(true)} title="Home" style={{ color: currentMode.accentColor }}>
+          <button className="home-btn" onClick={() => { if (messages.length >= 3) { setShowExitFeedback(true); } else { setShowWelcome(true); } }} title="Home" style={{ color: currentMode.accentColor }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </button>
           <h1 className="eva-title" style={{ color: currentMode.accentColor }}>Eva</h1>
@@ -623,6 +628,7 @@ function App() {
           <Avatar mode={currentMode} isListening={isRecording} isSpeaking={isSpeaking} volume={volume} />
         </div>
         <div className="chat-section">
+          <KnowledgeNote mode={currentMode} />
           {isRecording && <div className="interim-transcript" style={{ color: currentMode.accentColor }}>{'🎙️'} Recording... speak now</div>}
           <ChatInterface messages={messages} mode={currentMode} isTyping={isTyping} onReact={handleReaction} onSendStarter={handleSendText} />
         </div>
@@ -671,6 +677,8 @@ function App() {
         onOpenBreathing={() => { setShowJourney(false); setShowBreathing(true); }}
         onOpenTimer={() => { setShowJourney(false); setTimerType('meditation'); setShowTimer(true); }} />
       <FeedbackForm isOpen={showFeedback} onClose={() => setShowFeedback(false)} profile={activeProfile} mode={currentMode} />
+      <ExitFeedback isOpen={showExitFeedback} onClose={() => { setShowExitFeedback(false); setShowWelcome(true); }}
+        onSubmit={() => {}} mode={currentMode} />
       <AdminDashboard isOpen={showAdmin} onClose={() => setShowAdmin(false)}
         settings={settings} onSaveSettings={handleSaveSettings}
         onAddMemory={(profileId, fact) => { addMemory(profileId, fact); }}
