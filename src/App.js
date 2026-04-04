@@ -584,30 +584,6 @@ function App() {
             <span className={`credit-bar-dot ${creditStatus.unlocked ? 'green' : creditStatus.remaining.total > 10 ? 'green' : creditStatus.remaining.total > 3 ? 'yellow' : 'red'}`} />
             <span>{creditStatus.unlocked ? '\u221E' : creditStatus.remaining.total}</span>
           </div>
-          <button className="toolbar-labeled" onClick={() => setShowSearch(true)}>
-            <span>{'🔍'}</span><span className="toolbar-text">Search</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowBreathing(true)}>
-            <span>{'🫁'}</span><span className="toolbar-text">Breathe</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => { setTimerType('meditation'); setShowTimer(true); }}>
-            <span>{'⏱️'}</span><span className="toolbar-text">Timer</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowJourney(true)}>
-            <span>{'🧭'}</span><span className="toolbar-text">Journey</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowPomodoro(true)}>
-            <span>{'🍅'}</span><span className="toolbar-text">Focus</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowHabits(true)}>
-            <span>{'📋'}</span><span className="toolbar-text">Habits</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowAmbient(true)}>
-            <span>{'🌙'}</span><span className="toolbar-text">Ambient</span>
-          </button>
-          <button className="toolbar-labeled" onClick={() => setShowStreak(true)}>
-            <span>{'🔥'}</span><span className="toolbar-text">Streak</span>
-          </button>
           <VoicePicker voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice} mode={currentMode} clonedVoices={settings.clonedVoices} />
           <button className="toolbar-labeled" onClick={() => setShowSidebar(true)}>
             <span>{'✨'}</span><span className="toolbar-text">Discover</span>

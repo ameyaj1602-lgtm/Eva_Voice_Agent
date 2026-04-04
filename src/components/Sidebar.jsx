@@ -203,7 +203,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode,
   const [trivia, setTrivia] = useState(null);
   const [triviaAnswer, setTriviaAnswer] = useState(null);
   const [kanyeQuote, setKanyeQuote] = useState(null);
-  const [sideTab, setSideTab] = useState('music');
+  const [sideTab, setSideTab] = useState('tools');
   const [showMoreSpotify, setShowMoreSpotify] = useState(false);
   const [playingSound, setPlayingSound] = useState(null);
   const [audioEl, setAudioEl] = useState(null);
@@ -291,6 +291,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode,
         {/* SIDEBAR TABS */}
         <div className="sb-tabs">
           {[
+            { id: 'tools', emoji: '🧰', label: 'Tools' },
             { id: 'music', emoji: '🎵', label: 'Music' },
             { id: 'vibes', emoji: '🌈', label: 'Vibes' },
             { id: 'fun', emoji: '🎮', label: 'Fun' },
@@ -307,6 +308,31 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode,
         </div>
 
         <div className="sb-body">
+
+          {/* ===== TOOLS TAB ===== */}
+          {sideTab === 'tools' && (<>
+            <div className="sb-tools-grid">
+              {[
+                { emoji: '🫁', label: 'Breathe', action: () => { onClose(); onOpenBreathing?.(); } },
+                { emoji: '⏱️', label: 'Timer', action: () => { onClose(); onOpenTimer?.(); } },
+                { emoji: '🧭', label: 'Journey', action: () => { onClose(); /* journey opens from App */ } },
+                { emoji: '🍅', label: 'Focus', action: () => { onClose(); } },
+                { emoji: '📋', label: 'Habits', action: () => { onClose(); } },
+                { emoji: '🌙', label: 'Ambient', action: () => { onClose(); } },
+                { emoji: '🔥', label: 'Streak', action: () => { onClose(); onOpenStreak?.(); } },
+                { emoji: '🔍', label: 'Search', action: () => { onClose(); onOpenSearch?.(); } },
+                { emoji: '📊', label: 'Mood', action: () => { onClose(); onOpenMoodTracker?.(); } },
+                { emoji: '🙏', label: 'Gratitude', action: () => { onClose(); onOpenGratitude?.(); } },
+                { emoji: '👤', label: 'Profile', action: () => { onClose(); onOpenProfile?.(); } },
+                { emoji: '⚙️', label: 'Settings', action: () => { onClose(); onOpenSettings?.(); } },
+              ].map(tool => (
+                <button key={tool.label} className="sb-tool-btn" onClick={tool.action}>
+                  <span className="sb-tool-emoji">{tool.emoji}</span>
+                  <span className="sb-tool-label">{tool.label}</span>
+                </button>
+              ))}
+            </div>
+          </>)}
 
           {/* ===== MUSIC TAB ===== */}
           {sideTab === 'music' && (<>
@@ -351,7 +377,7 @@ export default function Sidebar({ isOpen, onClose, mode, settings, lightMode,
                 ].map((yt) => (
                   <div key={yt.name} className="sb-spotify-card">
                     <div className="sb-spotify-header"><span>{yt.emoji}</span><span className="sb-spotify-name">{yt.name}</span></div>
-                    <iframe title={yt.name} width="100%" height="80" src={`https://www.youtube.com/embed/${yt.id}?autoplay=0`}
+                    <iframe title={yt.name} width="100%" height="152" src={`https://www.youtube.com/embed/${yt.id}?autoplay=0`}
                       frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media"
                       loading="lazy" style={{ borderRadius: 8 }} />
                   </div>
