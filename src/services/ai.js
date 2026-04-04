@@ -5,6 +5,10 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const ENV_OPENAI_KEY = process.env.REACT_APP_OPENAI_API_KEY || '';
 const ENV_GEMINI_BACKUP = process.env.REACT_APP_GEMINI_API_KEY_BACKUP || '';
 
+// API monitoring
+let trackAPICall;
+try { trackAPICall = require('./apiMonitor').trackAPICall; } catch { trackAPICall = null; }
+
 const API_TIMEOUT = 15000; // 15 seconds
 
 const FALLBACK_RESPONSES = {
@@ -55,22 +59,25 @@ const FALLBACK_RESPONSES = {
   ],
 };
 
-// Import therapy knowledge
-let buildTherapyPrompt;
-let getTherapyContext;
-try {
-  const therapy = require('../utils/therapyKnowledge');
-  buildTherapyPrompt = therapy.buildTherapyPrompt;
-} catch { buildTherapyPrompt = null; }
-try {
-  const kb = require('../utils/therapyKnowledgeBase');
-  getTherapyContext = kb.getTherapyContext;
-} catch { getTherapyContext = null; }
+// Import therapy knowledge + personality
+let buildTherapyPrompt, getTherapyContext, buildEvaPrompt;
+try { buildTherapyPrompt = require('../utils/therapyKnowledge').buildTherapyPrompt; } catch { buildTherapyPrompt = null; }
+try { getTherapyContext = require('../utils/therapyKnowledgeBase').getTherapyContext; } catch { getTherapyContext = null; }
+try { buildEvaPrompt = require('../utils/evaPersonality').buildEvaPrompt; } catch { buildEvaPrompt = null; }
 
 function buildSystemPrompt(mode, userName, memories) {
   const modePrompt = mode?.systemPrompt || 'You are Eva, a friendly companion.';
-  // Inject real therapy frameworks into the prompt
-  let prompt = buildTherapyPrompt ? buildTherapyPrompt(modePrompt, mode?.id) : modePrompt + '\n\n';
+
+  // Layer 1: Eva's core personality (warm, human, perceptive)
+  // Layer 2: Mode-specific behavior
+  // Layer 3: Therapy frameworks (CBT/DBT/ACT/MI)
+  let prompt = buildEvaPrompt ? buildEvaPrompt(modePrompt, mode?.id) : modePrompt + '\n\n';
+
+  // Add therapy frameworks on top
+  if (buildTherapyPrompt) {
+    const therapyLayer = buildTherapyPrompt('', mode?.id);
+    prompt += therapyLayer;
+  }
 
   if (userName) prompt += `The user's name is ${userName}. Use their name naturally — don't overuse it.\n`;
   if (memories?.length > 0) {
@@ -180,36 +187,38 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
     }
   }
 
-  // Try Gemini primary
+  // Try Gemini primary (seamless failover chain)
   if (apiKey) {
     try {
       const result = await callGemini(messages, systemPrompt, apiKey);
-      if (result) return { text: result, source: 'gemini' };
+      if (result) { trackAPICall?.('gemini', true); return { text: result, source: 'gemini' }; }
     } catch (err) {
-      console.warn('Gemini primary failed:', err.message);
+      trackAPICall?.('gemini', false, err.message);
+      // Silent failover - no lag, no notification to user
     }
   }
 
-  // Try Gemini backup
+  // Gemini backup (instant switch)
   if (ENV_GEMINI_BACKUP && ENV_GEMINI_BACKUP !== apiKey) {
     try {
       const result = await callGemini(messages, systemPrompt, ENV_GEMINI_BACKUP);
-      if (result) return { text: result, source: 'gemini-backup' };
+      if (result) { trackAPICall?.('gemini-backup', true); return { text: result, source: 'gemini-backup' }; }
     } catch (err) {
-      console.warn('Gemini backup failed:', err.message);
+      trackAPICall?.('gemini-backup', false, err.message);
     }
   }
 
-  // Try OpenAI
+  // OpenAI fallback (instant switch)
   if (ENV_OPENAI_KEY) {
     try {
       const result = await callOpenAI(messages, systemPrompt, ENV_OPENAI_KEY);
-      if (result) return { text: result, source: 'openai' };
+      if (result) { trackAPICall?.('openai', true); return { text: result, source: 'openai' }; }
     } catch (err) {
-      console.warn('OpenAI failed:', err.message);
+      trackAPICall?.('openai', false, err.message);
     }
   }
 
+  trackAPICall?.('offline', true);
   return { text: getFallbackResponse(mode?.id), source: 'offline' };
 }
 
