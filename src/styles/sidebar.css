@@ -366,3 +366,8 @@
 .sb-tool-btn:hover { background: rgba(255,255,255,0.08); transform: scale(1.03); }
 .sb-tool-emoji { font-size: 24px; }
 .sb-tool-label { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; }
+
+/* Light mode fixes for tools */
+.sb.sb-light .sb-tool-btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); color: #333; }
+.sb.sb-light .sb-tool-btn:hover { background: rgba(0,0,0,0.08); }
+.sb.sb-light .sb-tool-label { color: #555; }
