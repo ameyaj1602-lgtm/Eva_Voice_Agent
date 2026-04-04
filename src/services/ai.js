@@ -57,10 +57,15 @@ const FALLBACK_RESPONSES = {
 
 // Import therapy knowledge
 let buildTherapyPrompt;
+let getTherapyContext;
 try {
   const therapy = require('../utils/therapyKnowledge');
   buildTherapyPrompt = therapy.buildTherapyPrompt;
 } catch { buildTherapyPrompt = null; }
+try {
+  const kb = require('../utils/therapyKnowledgeBase');
+  getTherapyContext = kb.getTherapyContext;
+} catch { getTherapyContext = null; }
 
 function buildSystemPrompt(mode, userName, memories) {
   const modePrompt = mode?.systemPrompt || 'You are Eva, a friendly companion.';
@@ -149,7 +154,7 @@ async function callOpenAI(messages, systemPrompt, apiKey) {
       model: 'gpt-4o-mini',
       messages: chatMessages,
       temperature: 0.9,
-      max_tokens: 200,
+      max_tokens: 500,
     }),
   });
 
@@ -164,7 +169,16 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
     return { text: getFallbackResponse(mode?.id), source: 'offline' };
   }
 
-  const systemPrompt = buildSystemPrompt(mode, userName, memories);
+  let systemPrompt = buildSystemPrompt(mode, userName, memories);
+
+  // Inject relevant therapy techniques based on user's latest message
+  if (getTherapyContext && messages?.length > 0) {
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    if (lastUserMsg?.content) {
+      const therapyContext = getTherapyContext(lastUserMsg.content);
+      if (therapyContext) systemPrompt += therapyContext;
+    }
+  }
 
   // Try Gemini primary
   if (apiKey) {
