@@ -90,6 +90,7 @@ function App() {
   const [showHabits, setShowHabits] = useState(false);
   const [showAmbient, setShowAmbient] = useState(false);
   const [showExitFeedback, setShowExitFeedback] = useState(false);
+  const [thinkingStatus, setThinkingStatus] = useState(null); // null | string
   const [feedbackGiven, setFeedbackGiven] = useState(false);
   const [evaMuted, setEvaMuted] = useState(false);
   const [showSoundMixer, setShowSoundMixer] = useState(false);
@@ -244,17 +245,41 @@ function App() {
     setIsProcessing(true);
     setIsTyping(true);
     creditManager.use('ai');
+    const startTime = Date.now();
 
     try {
+      // Stage 1: Analyzing
+      setThinkingStatus('Reading your message...');
+
       const memories = activeProfile ? getMemory(activeProfile.id) : [];
+
+      // Stage 2: Retrieving knowledge
+      if (memories.length > 0) {
+        setThinkingStatus('Remembering what I know about you...');
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      // Stage 3: Consulting therapy knowledge
+      setThinkingStatus('Consulting therapy knowledge base...');
+      await new Promise(r => setTimeout(r, 400));
+
+      // Stage 4: Forming response
+      setThinkingStatus('Forming a thoughtful response...');
+
       const { text: response, source } = await getAIResponse(
         currentMessages, currentMode, settings.geminiApiKey,
         { userName: activeProfile?.name, memories }
       );
 
+      const responseTime = ((Date.now() - startTime) / 1000).toFixed(1);
+      setThinkingStatus(null);
+
       addMessage('assistant', response);
 
-      // Start speaking IMMEDIATELY — at the same time as typing animation
+      // Show response time as a subtle toast
+      toast?.(`Eva responded in ${responseTime}s via ${source}`);
+
+      // Start speaking IMMEDIATELY
       if (settings.autoSpeak && !evaMuted) {
         speakResponse(response);
       }
@@ -291,6 +316,7 @@ function App() {
 
       // Singing handled separately — speech already started above
     } catch (err) {
+      setThinkingStatus(null);
       addMessage('assistant', "Oops, my mind went blank for a second. Say that again, love?");
       toast.error?.('Eva got confused — try again');
       logError(err, `getEvaResponse - mode: ${currentMode.id}`);
@@ -642,6 +668,12 @@ function App() {
         <div className="chat-section">
           <KnowledgeNote mode={currentMode} />
           {isRecording && <div className="interim-transcript" style={{ color: currentMode.accentColor }}>{'🎙️'} Recording... speak now</div>}
+          {thinkingStatus && (
+            <div className="thinking-status" style={{ color: currentMode.accentColor }}>
+              <span className="thinking-dot" style={{ backgroundColor: currentMode.accentColor }} />
+              {thinkingStatus}
+            </div>
+          )}
           <ChatInterface messages={messages} mode={currentMode} isTyping={isTyping} onReact={handleReaction} onSendStarter={handleSendText}
             onSpeakAgain={(text) => speakResponse(text)} onDelete={handleDeleteMessage} />
         </div>
