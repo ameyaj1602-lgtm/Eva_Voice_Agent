@@ -25,6 +25,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
   const [configDeepgramKey, setConfigDeepgramKey] = useState('');
   const [configWeatherKey, setConfigWeatherKey] = useState('');
   const [configFishAudioKey, setConfigFishAudioKey] = useState('');
+  const [configSarvamKey, setConfigSarvamKey] = useState('');
   const [configAutoSpeak, setConfigAutoSpeak] = useState(true);
   const [configUseElevenLabs, setConfigUseElevenLabs] = useState(false);
   const [configUseDeepgram, setConfigUseDeepgram] = useState(false);
@@ -44,6 +45,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
     setConfigDeepgramKey(settings.deepgramApiKey || '');
     setConfigWeatherKey(settings.openWeatherKey || process.env.REACT_APP_OPENWEATHER_API_KEY || '');
     setConfigFishAudioKey(settings.fishAudioApiKey || '');
+    setConfigSarvamKey(settings.sarvamApiKey || '');
     setConfigAutoSpeak(settings.autoSpeak ?? true);
     setConfigUseElevenLabs(settings.useElevenLabs ?? false);
     setConfigUseDeepgram(settings.useDeepgram ?? false);
@@ -90,6 +92,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
       deepgramApiKey: configDeepgramKey,
       openWeatherKey: configWeatherKey,
       fishAudioApiKey: configFishAudioKey,
+      sarvamApiKey: configSarvamKey,
       autoSpeak: configAutoSpeak,
       useElevenLabs: configUseElevenLabs,
       useDeepgram: configUseDeepgram,
@@ -244,6 +247,11 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
                     <label className="admin-key-label">Fish Audio (Voice Clone)</label>
                     <input type="password" className="settings-input" value={configFishAudioKey}
                       onChange={(e) => setConfigFishAudioKey(e.target.value)} placeholder="Fish Audio API key..." />
+                  </div>
+                  <div>
+                    <label className="admin-key-label">Sarvam AI (Hindi/Indian TTS)</label>
+                    <input type="password" className="settings-input" value={configSarvamKey}
+                      onChange={(e) => setConfigSarvamKey(e.target.value)} placeholder="Sarvam API key..." />
                   </div>
                 </div>
               </div>

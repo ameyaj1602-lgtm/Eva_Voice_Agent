@@ -21,6 +21,7 @@ import { getAIResponse } from './services/ai';
 import { synthesizeSpeech, DEFAULT_VOICES, MODE_VOICE_MAP } from './services/elevenlabs';
 import { speakWithClonedVoice } from './services/voiceClone';
 import { fishTTS } from './services/fishAudio';
+import { sarvamTTS } from './services/sarvam';
 import { generateSinging, wantsSinging } from './services/singing';
 import { transcribeAudio } from './services/deepgram';
 import { detectEmotionLocal } from './services/hume';
@@ -60,6 +61,7 @@ const ENV_ELEVENLABS_KEY = process.env.REACT_APP_ELEVENLABS_API_KEY || '';
 const ENV_DEEPGRAM_KEY = process.env.REACT_APP_DEEPGRAM_API_KEY || '';
 const ENV_GEMINI_KEY = process.env.REACT_APP_GEMINI_API_KEY || '';
 const ENV_FISH_AUDIO_KEY = process.env.REACT_APP_FISH_AUDIO_API_KEY || '';
+const ENV_SARVAM_KEY = process.env.REACT_APP_SARVAM_API_KEY || '';
 
 let messageId = Date.now(); // unique seed to avoid collisions
 
@@ -118,6 +120,7 @@ function App() {
         useElevenLabs: saved.useElevenLabs ?? !!ENV_ELEVENLABS_KEY,
         useDeepgram: saved.useDeepgram ?? !!ENV_DEEPGRAM_KEY,
         fishAudioApiKey: saved.fishAudioApiKey || ENV_FISH_AUDIO_KEY,
+        sarvamApiKey: saved.sarvamApiKey || ENV_SARVAM_KEY,
         autoSpeak: saved.autoSpeak ?? true,
         ...saved,
       };
@@ -198,13 +201,34 @@ function App() {
     setIsProcessing(false);
   }, [stopBrowserSpeaking]);
 
-  // --- TTS (Cascading: Fish Audio → Nymbo XTTS → ElevenLabs → Browser) ---
+  // --- TTS (Cascading: Sarvam → Fish Audio → Nymbo XTTS → ElevenLabs → Browser) ---
   const speakResponse = useCallback(async (text) => {
+    const sarvamKey = settings.sarvamApiKey;
     const fishKey = settings.fishAudioApiKey;
     const fishModelId = settings.fishAudioModelId;
     const elKey = settings.elevenLabsApiKey;
     const voices = settings.clonedVoices || {};
     const clonedData = voices[currentMode.name] || voices['default'] || Object.values(voices).find(v => v?.type === 'hf');
+
+    // 0. Sarvam AI (best for Hindi/Indian languages)
+    // Detect Hindi/Hinglish text
+    const hasHindi = /[\u0900-\u097F]/.test(text) || /\b(hai|hoon|kya|kaise|mein|toh|yeh|aur|nahi|haan|accha|theek|karo)\b/i.test(text);
+    if (sarvamKey && (hasHindi || settings.sarvamDefault)) {
+      setIsSpeakingState(true);
+      try {
+        const lang = hasHindi ? 'hi-IN' : 'en-IN';
+        const audioUrl = await sarvamTTS(sarvamKey, text, settings.sarvamVoice || 'anushka', lang);
+        if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          audio.onended = () => setIsSpeakingState(false);
+          audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
+          await audio.play();
+          return;
+        }
+      } catch { /* fall through */ }
+      setIsSpeakingState(false);
+    }
 
     // 1. Fish Audio (best quality, has credits?)
     if (fishKey && fishModelId) {
