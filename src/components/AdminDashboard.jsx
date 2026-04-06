@@ -102,7 +102,13 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
       sessionCreditLimit: configCreditLimit,
     });
     setConfigSaved(true);
-    setTimeout(() => setConfigSaved(false), 2000);
+    setTimeout(() => setConfigSaved(false), 3000);
+    // Force save to localStorage immediately
+    try {
+      const current = JSON.parse(localStorage.getItem('eva-settings') || '{}');
+      const merged = { ...current, mayaUrl: configMayaUrl, sarvamApiKey: configSarvamKey, fishAudioApiKey: configFishAudioKey };
+      localStorage.setItem('eva-settings', JSON.stringify(merged));
+    } catch {};
   };
 
   const handleAddMemory = () => {

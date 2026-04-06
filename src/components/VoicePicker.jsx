@@ -207,6 +207,9 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
               <button className={`vp-tab ${tab === 'voices' ? 'active' : ''}`}
                 style={tab === 'voices' ? { color: mode.accentColor, borderColor: mode.accentColor } : {}}
                 onClick={() => setTab('voices')}>Voices</button>
+              <button className={`vp-tab ${tab === 'engine' ? 'active' : ''}`}
+                style={tab === 'engine' ? { color: mode.accentColor, borderColor: mode.accentColor } : {}}
+                onClick={() => setTab('engine')}>Engine</button>
               <button className={`vp-tab ${tab === 'tune' ? 'active' : ''}`}
                 style={tab === 'tune' ? { color: mode.accentColor, borderColor: mode.accentColor } : {}}
                 onClick={() => setTab('tune')}>Tune Voice</button>
@@ -361,6 +364,76 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                   )}
                 </div>
               </>
+            )}
+
+            {/* ENGINE TAB */}
+            {tab === 'engine' && (
+              <div className="vp-tune">
+                <div className="vp-presets-label">Voice Engine</div>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 12 }}>
+                  Choose which voice engine Eva uses. Higher = better quality.
+                </p>
+
+                {[
+                  { id: 'sarvam', name: 'Sarvam AI', desc: 'Hindi/Indian neural voices (34 voices)', emoji: '🇮🇳', active: !!settings?.sarvamApiKey },
+                  { id: 'maya1', name: 'Maya1 (Kaggle)', desc: '20+ emotions, voice design, best quality', emoji: '🎭', active: !!settings?.mayaUrl },
+                  { id: 'browser', name: 'Browser TTS', desc: 'Free, instant, 160+ voices', emoji: '🔊', active: true },
+                  { id: 'elevenlabs', name: 'ElevenLabs', desc: 'Premium quality ($5/mo)', emoji: '💎', active: !!settings?.elevenLabsApiKey && settings?.useElevenLabs },
+                ].map(engine => (
+                  <div key={engine.id} style={{
+                    padding: 12, marginBottom: 8, borderRadius: 12,
+                    background: engine.active ? 'rgba(56,239,125,0.06)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${engine.active ? 'rgba(56,239,125,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>{engine.emoji}</span>
+                      <div style={{ flex: 1 }}>
+                        <strong style={{ fontSize: 13 }}>{engine.name}</strong>
+                        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{engine.desc}</p>
+                      </div>
+                      <span style={{ fontSize: 11, color: engine.active ? '#38ef7d' : '#ff6b6b', fontWeight: 600 }}>
+                        {engine.active ? '● ON' : '○ OFF'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Maya1 URL input */}
+                <div style={{ marginTop: 12 }}>
+                  <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Maya1 Kaggle URL</label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input className="settings-input" placeholder="https://xxxxx.gradio.live"
+                      value={settings?.mayaUrl || ''}
+                      onChange={(e) => onSaveSettings?.({ mayaUrl: e.target.value })}
+                      style={{ flex: 1, fontSize: 12 }} />
+                  </div>
+                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>
+                    Paste from Kaggle notebook. Changes save automatically.
+                  </p>
+                </div>
+
+                {/* Sarvam voice selector */}
+                {settings?.sarvamApiKey && (
+                  <div style={{ marginTop: 12 }}>
+                    <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Sarvam Default Voice</label>
+                    <select className="settings-select"
+                      value={settings?.sarvamVoice || 'anushka'}
+                      onChange={(e) => onSaveSettings?.({ sarvamVoice: e.target.value })}
+                      style={{ fontSize: 12 }}>
+                      <optgroup label="Female">
+                        {SARVAM_VOICES.female.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                      </optgroup>
+                      <optgroup label="Male">
+                        {SARVAM_VOICES.male.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                      </optgroup>
+                    </select>
+                  </div>
+                )}
+
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 16 }}>
+                  Eva tries engines top-to-bottom. First working one wins.
+                </p>
+              </div>
             )}
 
             {tab === 'tune' && (
