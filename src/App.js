@@ -90,6 +90,7 @@ function App() {
   const [showHabits, setShowHabits] = useState(false);
   const [showAmbient, setShowAmbient] = useState(false);
   const [showExitFeedback, setShowExitFeedback] = useState(false);
+  const [feedbackGiven, setFeedbackGiven] = useState(false);
   const [showSoundMixer, setShowSoundMixer] = useState(false);
   const [showMultiAgent, setShowMultiAgent] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
@@ -602,24 +603,43 @@ function App() {
           onOpenSidebar={() => setShowSidebar(true)}
           onOpenProfile={() => setShowProfile(true)} />
         <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings} lightMode={localStorage.getItem('eva-theme') === 'light'}
-          onOpenBreathing={() => { setShowWelcome(false); setTimeout(() => setShowBreathing(true), 100); }}
-          onOpenTimer={() => { setShowWelcome(false); setTimeout(() => { setTimerType('meditation'); setShowTimer(true); }, 100); }}
-          onOpenMoodTracker={() => { setShowWelcome(false); setTimeout(() => setShowMoodTracker(true), 100); }}
-          onOpenGratitude={() => { setShowWelcome(false); setTimeout(() => setShowGratitude(true), 100); }}
-          onOpenStreak={() => { setShowWelcome(false); setTimeout(() => setShowStreak(true), 100); }}
-          onOpenSearch={() => { setShowWelcome(false); setTimeout(() => setShowSearch(true), 100); }}
+          onOpenBreathing={() => setShowBreathing(true)}
+          onOpenTimer={() => { setTimerType('meditation'); setShowTimer(true); }}
+          onOpenMoodTracker={() => setShowMoodTracker(true)}
+          onOpenGratitude={() => setShowGratitude(true)}
+          onOpenStreak={() => setShowStreak(true)}
+          onOpenSearch={() => setShowSearch(true)}
           onOpenProfile={() => setShowProfile(true)}
-          onOpenFeedback={() => { setShowWelcome(false); setTimeout(() => setShowFeedback(true), 100); }}
-          onOpenCustomMode={() => { setShowWelcome(false); setTimeout(() => setShowCustomMode(true), 100); }}
-          onOpenSettings={() => { setShowWelcome(false); setTimeout(() => setShowSettings(true), 100); }}
+          onOpenFeedback={() => setShowFeedback(true)}
+          onOpenCustomMode={() => setShowCustomMode(true)}
+          onOpenSettings={() => setShowSettings(true)}
           onExportChat={handleExportChat}
-          onOpenJourney={() => { setShowWelcome(false); setTimeout(() => setShowJourney(true), 100); }}
-          onOpenPomodoro={() => { setShowWelcome(false); setTimeout(() => setShowPomodoro(true), 100); }}
-          onOpenHabits={() => { setShowWelcome(false); setTimeout(() => setShowHabits(true), 100); }}
-          onOpenAmbient={() => { setShowWelcome(false); setTimeout(() => setShowAmbient(true), 100); }}
-          onOpenSoundMixer={() => { setShowWelcome(false); setTimeout(() => setShowSoundMixer(true), 100); }}
-          onOpenMultiAgent={() => { setShowWelcome(false); setTimeout(() => setShowMultiAgent(true), 100); }}
+          onOpenJourney={() => setShowJourney(true)}
+          onOpenPomodoro={() => setShowPomodoro(true)}
+          onOpenHabits={() => setShowHabits(true)}
+          onOpenAmbient={() => setShowAmbient(true)}
+          onOpenSoundMixer={() => setShowSoundMixer(true)}
+          onOpenMultiAgent={() => setShowMultiAgent(true)}
         />
+        {/* Modals that can open from Welcome screen */}
+        <BreathingExercise isOpen={showBreathing} onClose={() => setShowBreathing(false)} mode={currentMode} />
+        <MoodTracker isOpen={showMoodTracker} onClose={() => setShowMoodTracker(false)} mode={currentMode} />
+        <GratitudeJournal isOpen={showGratitude} onClose={() => setShowGratitude(false)} mode={currentMode} />
+        <TimerModal isOpen={showTimer} onClose={() => setShowTimer(false)} mode={currentMode} timerType={timerType} />
+        <StreakTracker isOpen={showStreak} onClose={() => setShowStreak(false)} mode={currentMode} />
+        <PomodoroTimer isOpen={showPomodoro} onClose={() => setShowPomodoro(false)} mode={currentMode} />
+        <HabitTracker isOpen={showHabits} onClose={() => setShowHabits(false)} mode={currentMode} />
+        <AmbientMode isOpen={showAmbient} onClose={() => setShowAmbient(false)} mode={currentMode} />
+        <SoundMixer isOpen={showSoundMixer} onClose={() => setShowSoundMixer(false)} mode={currentMode} />
+        <JourneyModal isOpen={showJourney} onClose={() => setShowJourney(false)} mode={currentMode}
+          onOpenBreathing={() => { setShowJourney(false); setShowBreathing(true); }}
+          onOpenTimer={() => { setShowJourney(false); setTimerType('meditation'); setShowTimer(true); }} />
+        <MultiAgentPanel isOpen={showMultiAgent} onClose={() => setShowMultiAgent(false)} mode={currentMode}
+          settings={settings} userName={activeProfile?.name} />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} mode={currentMode} settings={settings} onSave={handleSaveSettings}
+          voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice}
+          onOpenCloneModal={() => { setShowSettings(false); setShowCloneModal(true); }} />
+        <FeedbackForm isOpen={showFeedback} onClose={() => setShowFeedback(false)} profile={activeProfile} mode={currentMode} />
       </>
     );
   }
@@ -649,7 +669,7 @@ function App() {
 
       <header className="eva-header">
         <div className="header-left">
-          <button className="home-btn" onClick={() => { if (messages.length >= 3) { setShowExitFeedback(true); } else { setShowWelcome(true); } }} title="Home" style={{ color: currentMode.accentColor }}>
+          <button className="home-btn" onClick={() => { if (messages.length >= 3 && !feedbackGiven) { setShowExitFeedback(true); setFeedbackGiven(true); } else { setShowWelcome(true); } }} title="Home" style={{ color: currentMode.accentColor }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </button>
           <h1 className="eva-title" style={{ color: currentMode.accentColor }}>Eva</h1>
