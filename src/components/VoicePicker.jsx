@@ -70,17 +70,21 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
 
   const stopTest = () => {
     window.speechSynthesis.cancel();
+    if (sarvamAudioRef.current) { sarvamAudioRef.current.pause(); sarvamAudioRef.current = null; }
     setTesting(null);
   };
 
   const testVoice = (voice, customRate, customPitch) => {
+    // STOP everything first - no overlapping audio
     window.speechSynthesis.cancel();
+    if (sarvamAudioRef.current) { sarvamAudioRef.current.pause(); sarvamAudioRef.current = null; }
+
     setTesting(voice?.name || 'preview');
-    const u = new SpeechSynthesisUtterance('Hello, I am Eva, your personal voice companion. I am here to help you feel calm and supported.');
+    const u = new SpeechSynthesisUtterance('Hello, I am Eva. I am here to help you feel calm and supported.');
     if (voice) u.voice = voice;
     u.rate = customRate ?? rate;
     u.pitch = customPitch ?? pitch;
-    u.volume = volume;
+    u.volume = Math.min(volume, 0.7); // Cap test volume
     u.onend = () => setTesting(null);
     u.onerror = () => setTesting(null);
     window.speechSynthesis.speak(u);

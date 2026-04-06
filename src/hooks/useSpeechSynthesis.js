@@ -120,9 +120,9 @@ export function useSpeechSynthesis() {
       cancelledRef.current = false;
       if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
 
-      const savedRate = parseFloat(localStorage.getItem('eva-voice-rate')) || 0.9;
-      const savedPitch = parseFloat(localStorage.getItem('eva-voice-pitch')) || 1.0;
-      const savedVolume = parseFloat(localStorage.getItem('eva-voice-volume')) || 0.85;
+      const savedRate = parseFloat(localStorage.getItem('eva-voice-rate')) || 0.85;
+      const savedPitch = parseFloat(localStorage.getItem('eva-voice-pitch')) || 0.95;
+      const savedVolume = parseFloat(localStorage.getItem('eva-voice-volume')) || 0.6;
 
       // Per-mode adjustments - calm modes are slower/softer
       const modeAdjust = {

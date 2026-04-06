@@ -370,22 +370,7 @@ function App() {
       }
 
       if (settings.autoSpeak && !evaMuted) {
-        // If user asked for singing and we're in lullaby/dream mode, try singing
-        if (wantsSinging(userText) && (currentMode.id === 'lullaby' || currentMode.id === 'dream')) {
-          toast?.('Generating singing... this may take 30-60 seconds');
-          generateSinging(response.slice(0, 200), 'English Female', 'Singing').then(audioUrl => {
-            if (audioUrl) {
-              const audio = new Audio(audioUrl);
-              setIsSpeakingState(true);
-              audio.onended = () => setIsSpeakingState(false);
-              audio.play().catch(() => setIsSpeakingState(false));
-            } else {
-              speakResponse(response); // Fallback to speech
-            }
-          }).catch(() => speakResponse(response));
-        } else {
-          speakResponse(response);
-        }
+        speakResponse(response);
       }
     } catch (err) {
       addMessage('assistant', "Oops, my mind went blank for a second. Say that again, love?");
