@@ -183,9 +183,11 @@ function App() {
     }
   }, []);
 
-  // Load chat history
+  // Load chat history — only when mode actually changes, not on re-render
+  const prevModeRef = useRef(null);
   useEffect(() => {
-    if (activeProfile) {
+    if (activeProfile && currentMode.id !== prevModeRef.current) {
+      prevModeRef.current = currentMode.id;
       const history = getChatHistory(activeProfile.id, currentMode.id);
       setMessages(history);
       messageId = Date.now();
@@ -293,6 +295,11 @@ function App() {
 
       addMessage('assistant', response);
 
+      // Start speaking IMMEDIATELY — at the same time as typing animation
+      if (settings.autoSpeak && !evaMuted) {
+        speakResponse(response);
+      }
+
       // Award XP for chatting
       awardXP('chat_message');
       trackModeUsed(currentMode.id);
@@ -323,28 +330,7 @@ function App() {
         }
       }
 
-      if (settings.autoSpeak && !evaMuted) {
-        // Try singing for lullaby/dream mode
-        if (wantsSinging(userText) && (currentMode.id === 'lullaby' || currentMode.id === 'dream')) {
-          // Stop any existing audio first
-          stopSpeaking();
-          generateSinging(response.slice(0, 200), 'English Female', 'Singing').then(audioUrl => {
-            if (audioUrl) {
-              const audio = new Audio(audioUrl);
-              audio.volume = 0.6;
-              audioRef.current = audio;
-              setIsSpeakingState(true);
-              audio.onended = () => setIsSpeakingState(false);
-              audio.onerror = () => { setIsSpeakingState(false); speakResponse(response); };
-              audio.play().catch(() => speakResponse(response));
-            } else {
-              speakResponse(response);
-            }
-          }).catch(() => speakResponse(response));
-        } else {
-          speakResponse(response);
-        }
-      }
+      // Singing handled separately — speech already started above
     } catch (err) {
       addMessage('assistant', "Oops, my mind went blank for a second. Say that again, love?");
       toast.error?.('Eva got confused — try again');
