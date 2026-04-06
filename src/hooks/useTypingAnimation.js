@@ -15,6 +15,12 @@ export function useTypingAnimation(text, speed = 30, enabled = true) {
     setIsAnimating(true);
     indexRef.current = 0;
 
+    // Sync typing speed with voice speed
+    // Slower voice (rate 0.5) = slower typing (40ms/char)
+    // Faster voice (rate 1.5) = faster typing (10ms/char)
+    const voiceRate = parseFloat(localStorage.getItem('eva-voice-rate')) || 0.85;
+    const adjustedSpeed = Math.round(speed / voiceRate);
+
     const timer = setInterval(() => {
       indexRef.current += 1;
       if (indexRef.current >= text.length) {
@@ -24,7 +30,7 @@ export function useTypingAnimation(text, speed = 30, enabled = true) {
       } else {
         setDisplayText(text.slice(0, indexRef.current));
       }
-    }, speed);
+    }, adjustedSpeed);
 
     return () => clearInterval(timer);
   }, [text, speed, enabled]);

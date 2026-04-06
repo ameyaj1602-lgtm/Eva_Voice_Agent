@@ -1962,3 +1962,21 @@
 @media (max-width: 767px) {
   .volume-slider { width: 40px; }
 }
+
+/* Pace control bar */
+.pace-control {
+  display: flex; align-items: center; gap: 6px;
+  justify-content: center; padding: 2px 0 4px;
+}
+.pace-label { font-size: 12px; opacity: 0.4; }
+.pace-slider {
+  width: 120px; height: 3px; -webkit-appearance: none; appearance: none;
+  background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; cursor: pointer;
+}
+.pace-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(255,255,255,0.6); cursor: pointer;
+}
+@media (max-width: 767px) {
+  .pace-slider { width: 80px; }
+}
