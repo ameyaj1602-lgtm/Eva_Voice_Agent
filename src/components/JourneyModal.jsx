@@ -124,7 +124,7 @@ export default function JourneyModal({ isOpen, onClose, mode, onOpenBreathing, o
                   return (
                     <button key={task.id}
                       className={`journey-task ${isDone ? 'done' : ''}`}
-                      onClick={() => !isDone && handleTask(task.id, task.type)}
+                      onClick={() => handleTask(task.id, task.type)}
                       style={isDone ? { borderColor: journey.color } : {}}>
                       <span className="journey-task-check" style={isDone ? { backgroundColor: journey.color } : {}}>
                         {isDone ? '✓' : ''}

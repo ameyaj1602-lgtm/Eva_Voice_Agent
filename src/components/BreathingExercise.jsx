@@ -6,6 +6,23 @@ const PATTERNS = {
   sleep: { inhale: 4, hold: 7, exhale: 8, name: '4-7-8 Sleep' },
 };
 
+function playTone(freq, duration) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch {}
+}
+
 export default function BreathingExercise({ isOpen, onClose, mode }) {
   const [phase, setPhase] = useState('idle'); // idle, inhale, hold, exhale
   const [count, setCount] = useState(0);
@@ -32,11 +49,11 @@ export default function BreathingExercise({ isOpen, onClose, mode }) {
           phase === 'exhale' ? p.exhale : 0;
 
         if (prev >= maxCount) {
-          if (phase === 'inhale') setPhase('hold');
-          else if (phase === 'hold') setPhase('exhale');
+          if (phase === 'inhale') { setPhase('hold'); playTone(523, 0.3); }
+          else if (phase === 'hold') { setPhase('exhale'); playTone(330, 0.8); }
           else if (phase === 'exhale') {
             setCycles((c) => c + 1);
-            setPhase('inhale');
+            setPhase('inhale'); playTone(440, 0.5);
           }
           return 0;
         }
@@ -47,7 +64,7 @@ export default function BreathingExercise({ isOpen, onClose, mode }) {
   }, [isRunning, phase, p]);
 
   const startExercise = () => {
-    setPhase('inhale');
+    setPhase('inhale'); playTone(440, 0.5);
     setCount(0);
     setCycles(0);
     setIsRunning(true);

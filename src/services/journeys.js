@@ -187,7 +187,12 @@ export function completeTask(journeyId, taskId) {
   const progress = getJourneyProgress();
   if (!progress[journeyId]) return;
   if (!progress[journeyId].completedTasks) progress[journeyId].completedTasks = {};
-  progress[journeyId].completedTasks[taskId] = Date.now();
+  // Toggle: if already done, undo it
+  if (progress[journeyId].completedTasks[taskId]) {
+    delete progress[journeyId].completedTasks[taskId];
+  } else {
+    progress[journeyId].completedTasks[taskId] = Date.now();
+  }
   saveJourneyProgress(progress);
 }
 

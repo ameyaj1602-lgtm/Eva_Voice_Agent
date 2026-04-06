@@ -53,6 +53,13 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
   const [hoveredCard, setHoveredCard] = useState(null);
   const [lightMode, setLightMode] = useState(() => localStorage.getItem('eva-theme') === 'light');
   const [weather, setWeather] = useState(null);
+  const todayMood = (() => {
+    try {
+      const log = JSON.parse(localStorage.getItem('eva-mood-log') || '[]');
+      const today = new Date().toDateString();
+      return log.find(m => new Date(m.date).toDateString() === today);
+    } catch { return null; }
+  })();
   const [greeting] = useState(() => getSmartGreeting(userName));
 
   // Fetch weather on mount
@@ -158,7 +165,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
             <button key={f.label}
               className={`ws-feeling ${selectedFeeling?.label === f.label ? 'active' : ''}`}
               onClick={() => handleFeelingClick({ ...f, suggestedMode: f.suggestion })}
-              style={selectedFeeling?.label === f.label ? { borderColor: f.color, background: `${f.color}22` } : {}}>
+              style={selectedFeeling?.label === f.label ? { borderColor: f.color, background: `${f.color}22` } : todayMood?.label === f.label ? { borderColor: f.color, opacity: 0.6 } : {}}>
               <span className="ws-feeling-emoji">{f.emoji}</span>
               <span className="ws-feeling-label">{f.label}</span>
             </button>

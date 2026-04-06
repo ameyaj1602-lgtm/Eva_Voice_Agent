@@ -16,7 +16,7 @@ function relativeTime(ts) {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function ChatInterface({ messages, mode, isTyping, onReact, onSendStarter, onRetry, onSpeakAgain }) {
+export default function ChatInterface({ messages, mode, isTyping, onReact, onSendStarter, onRetry, onSpeakAgain, onDelete }) {
   const bottomRef = useRef(null);
   const [activeReaction, setActiveReaction] = useState(null);
   const [animatingId, setAnimatingId] = useState(null);

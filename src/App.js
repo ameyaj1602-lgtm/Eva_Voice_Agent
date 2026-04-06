@@ -139,6 +139,20 @@ function App() {
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Record streak visit
+  // Handle back button — go to welcome instead of closing app
+  useEffect(() => {
+    const handleBack = (e) => {
+      if (!showWelcome) {
+        e.preventDefault();
+        window.history.pushState(null, '', window.location.href);
+        setShowWelcome(true);
+      }
+    };
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handleBack);
+    return () => window.removeEventListener('popstate', handleBack);
+  }, [showWelcome]);
+
   // Record session start for feedback timing
   useEffect(() => { localStorage.setItem('eva-session-start', Date.now().toString()); }, []);
 
@@ -488,6 +502,10 @@ function App() {
     setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, reaction: emoji } : m)));
   }, []);
 
+  const handleDeleteMessage = useCallback((msgId) => {
+    setMessages((prev) => prev.filter((m) => m.id !== msgId));
+  }, []);
+
   // --- Mode ---
   const handleModeChange = useCallback((mode) => {
     stopSpeaking();
@@ -712,7 +730,7 @@ function App() {
           <KnowledgeNote mode={currentMode} />
           {isRecording && <div className="interim-transcript" style={{ color: currentMode.accentColor }}>{'🎙️'} Recording... speak now</div>}
           <ChatInterface messages={messages} mode={currentMode} isTyping={isTyping} onReact={handleReaction} onSendStarter={handleSendText}
-            onSpeakAgain={(text) => speakResponse(text)} />
+            onSpeakAgain={(text) => speakResponse(text)} onDelete={handleDeleteMessage} />
         </div>
       </main>
 

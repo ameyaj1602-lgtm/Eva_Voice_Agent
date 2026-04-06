@@ -6,6 +6,23 @@ const MODES = [
   { name: 'Long Break', minutes: 15, color: '#4ecdc4' },
 ];
 
+function playEndSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    [440, 554, 659].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq; osc.type = 'sine';
+      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.2 + 0.5);
+      osc.start(ctx.currentTime + i * 0.2);
+      osc.stop(ctx.currentTime + i * 0.2 + 0.5);
+    });
+  } catch {}
+}
+
 export default function PomodoroTimer({ isOpen, onClose, mode }) {
   const [pomMode, setPomMode] = useState(0);
   const [seconds, setSeconds] = useState(25 * 60);
@@ -19,7 +36,7 @@ export default function PomodoroTimer({ isOpen, onClose, mode }) {
     } else if (seconds === 0) {
       // Session complete
       setIsRunning(false);
-      if (pomMode === 0) setSessions(s => s + 1);
+      if (pomMode === 0) setSessions(s => s + 1); playEndSound();
       // Auto-switch to break
       const next = pomMode === 0 ? (sessions > 0 && sessions % 4 === 3 ? 2 : 1) : 0;
       setPomMode(next);
