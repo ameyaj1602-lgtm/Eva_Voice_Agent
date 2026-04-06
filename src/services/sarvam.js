@@ -63,6 +63,15 @@ export const SARVAM_LANGUAGES = {
 // Text to Speech
 export async function sarvamTTS(apiKey, text, speaker = 'anushka', language = 'hi-IN') {
   try {
+    // Read user's tuning settings
+    const savedRate = parseFloat(localStorage.getItem('eva-voice-rate')) || 0.9;
+    const savedVolume = parseFloat(localStorage.getItem('eva-voice-volume')) || 0.85;
+
+    // Map rate (0.5-1.5) to Sarvam pace (0.5-2.0)
+    const pace = Math.max(0.5, Math.min(2.0, savedRate * 1.1));
+    // Map volume (0.2-1.0) to loudness (0.3-3.0)
+    const loudness = Math.max(0.3, Math.min(3.0, savedVolume * 3));
+
     const res = await fetch(`${SARVAM_API}/text-to-speech`, {
       method: 'POST',
       headers: {
@@ -74,6 +83,8 @@ export async function sarvamTTS(apiKey, text, speaker = 'anushka', language = 'h
         target_language_code: language,
         speaker: speaker,
         model: 'bulbul:v2',
+        pace: pace,
+        loudness: loudness,
       }),
     });
 
