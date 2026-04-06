@@ -370,7 +370,26 @@ function App() {
       }
 
       if (settings.autoSpeak && !evaMuted) {
-        speakResponse(response);
+        // Try singing for lullaby/dream mode
+        if (wantsSinging(userText) && (currentMode.id === 'lullaby' || currentMode.id === 'dream')) {
+          // Stop any existing audio first
+          stopSpeaking();
+          generateSinging(response.slice(0, 200), 'English Female', 'Singing').then(audioUrl => {
+            if (audioUrl) {
+              const audio = new Audio(audioUrl);
+              audio.volume = 0.6;
+              audioRef.current = audio;
+              setIsSpeakingState(true);
+              audio.onended = () => setIsSpeakingState(false);
+              audio.onerror = () => { setIsSpeakingState(false); speakResponse(response); };
+              audio.play().catch(() => speakResponse(response));
+            } else {
+              speakResponse(response);
+            }
+          }).catch(() => speakResponse(response));
+        } else {
+          speakResponse(response);
+        }
       }
     } catch (err) {
       addMessage('assistant', "Oops, my mind went blank for a second. Say that again, love?");
