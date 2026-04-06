@@ -130,14 +130,50 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
   const secondaryLangs = Object.keys(filteredGrouped).filter(l => !PRIMARY_LANGS.includes(l)).sort();
   const visibleSecondary = search ? secondaryLangs : (showAllLangs ? secondaryLangs : []);
 
+  // Active engine: if sarvam voice is set, that's active. Otherwise browser voice.
+  const activeSarvamVoice = settings?.sarvamVoice || (settings?.sarvamApiKey ? 'anushka' : null);
+  const activeEngine = activeSarvamVoice ? 'sarvam' : 'browser';
+  const [showBrowserVoices, setShowBrowserVoices] = useState(false);
+
+  // Browser voice descriptions
+  const BROWSER_VOICE_DESCS = {
+    'Samantha': 'Warm, natural, American female',
+    'Karen': 'Clear, professional, Australian',
+    'Moira': 'Soothing, gentle, Irish accent',
+    'Daniel': 'Deep, calm, British male',
+    'Tessa': 'Warm, friendly, South African',
+    'Rishi': 'Clear, professional, Indian male',
+    'Flo': 'Bright, expressive, casual',
+    'Shelley': 'Soft, gentle, approachable',
+    'Sandy': 'Light, cheerful, friendly',
+    'Reed': 'Smooth, steady, narrator-like',
+    'Eddy': 'Casual, fun, energetic',
+    'Rocko': 'Deep, rough, character voice',
+  };
+
+  const getVoiceDesc = (name) => {
+    for (const [key, desc] of Object.entries(BROWSER_VOICE_DESCS)) {
+      if (name.includes(key)) return desc;
+    }
+    return '';
+  };
+
   const renderVoiceItem = (v) => {
-    const isActive = selectedVoice?.name === v.name;
+    const isActive = activeEngine === 'browser' && selectedVoice?.name === v.name;
     const isTesting = testing === v.name;
+    const desc = getVoiceDesc(v.name);
     return (
       <div key={v.name} className={`voice-picker-item ${isActive ? 'active' : ''}`}
         style={isActive ? { borderColor: mode.accentColor } : {}}>
-        <button className="voice-picker-select" onClick={() => selectAndDeploy(v)}>
-          <span className="voice-picker-name">{v.name}</span>
+        <button className="voice-picker-select" onClick={() => {
+          // Switch to browser engine
+          onSaveSettings?.({ sarvamVoice: null, sarvamDefault: false });
+          selectAndDeploy(v);
+        }}>
+          <div>
+            <span className="voice-picker-name" style={{ fontWeight: 600 }}>{v.name}</span>
+            {desc && <span className="voice-picker-desc">{desc}</span>}
+          </div>
           {isActive && <span className="voice-picker-check" style={{ color: mode.accentColor }}>&#10003;</span>}
         </button>
         <button className={`voice-picker-test ${isTesting ? 'playing' : ''}`}
@@ -269,8 +305,11 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                           onSaveSettings?.({ sarvamVoice: 'anushka', sarvamDefault: true });
                           setDeployed(true); setTimeout(() => setDeployed(false), 2000);
                         }}>
-                          <span className="voice-picker-name">🇮🇳 Anushka (Default)</span>
-                          {(!settings?.sarvamVoice || settings?.sarvamVoice === 'anushka') && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
+                          <div>
+                            <span className="voice-picker-name" style={{ fontWeight: 600 }}>🇮🇳 Anushka</span>
+                            <span className="voice-picker-desc">Warm, calm, soothing — ideal for therapy</span>
+                          </div>
+                          {activeEngine === 'sarvam' && (!settings?.sarvamVoice || settings?.sarvamVoice === 'anushka') && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
                         </button>
                         <button className={`voice-picker-test ${testing === 'sarvam-anushka' ? 'playing' : ''}`}
                           onClick={async () => {
@@ -301,8 +340,11 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                                 onSaveSettings?.({ sarvamVoice: v.id, sarvamDefault: true });
                                 setDeployed(true); setTimeout(() => setDeployed(false), 2000);
                               }}>
-                                <span className="voice-picker-name">🇮🇳 {v.name}</span>
-                                {settings?.sarvamVoice === v.id && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
+                                <div>
+                                  <span className="voice-picker-name" style={{ fontWeight: 600 }}>🇮🇳 {v.name}</span>
+                                  {v.desc && <span className="voice-picker-desc">{v.desc}</span>}
+                                </div>
+                                {activeEngine === 'sarvam' && settings?.sarvamVoice === v.id && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
                               </button>
                               <button className={`voice-picker-test ${testing === `sarvam-${v.id}` ? 'playing' : ''}`}
                                 onClick={async () => {
@@ -325,8 +367,11 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                                 onSaveSettings?.({ sarvamVoice: v.id, sarvamDefault: true });
                                 setDeployed(true); setTimeout(() => setDeployed(false), 2000);
                               }}>
-                                <span className="voice-picker-name">🇮🇳 {v.name}</span>
-                                {settings?.sarvamVoice === v.id && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
+                                <div>
+                                  <span className="voice-picker-name" style={{ fontWeight: 600 }}>🇮🇳 {v.name}</span>
+                                  {v.desc && <span className="voice-picker-desc">{v.desc}</span>}
+                                </div>
+                                {activeEngine === 'sarvam' && settings?.sarvamVoice === v.id && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
                               </button>
                               <button className={`voice-picker-test ${testing === `sarvam-${v.id}` ? 'playing' : ''}`}
                                 onClick={async () => {
@@ -346,8 +391,12 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                     </div>
                   )}
 
-                  {/* Primary languages (female first, male below) */}
-                  {primaryLangs.map(renderLangGroup)}
+                  {/* Browser voices (collapsed by default) */}
+                  <button className="vp-show-more" onClick={() => setShowBrowserVoices(!showBrowserVoices)}
+                    style={{ color: mode.accentColor }}>
+                    {showBrowserVoices ? 'Hide browser voices ▲' : 'Show browser voices ▼'}
+                  </button>
+                  {showBrowserVoices && primaryLangs.map(renderLangGroup)}
 
                   {/* Secondary languages */}
                   {visibleSecondary.map(renderLangGroup)}
