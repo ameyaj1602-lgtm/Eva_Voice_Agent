@@ -1945,3 +1945,20 @@
   font-size: 14px; cursor: pointer; transition: all 0.2s;
 }
 .mute-btn.muted { color: #ff4444; border-color: rgba(255,68,68,0.3); }
+
+/* Volume control in toolbar */
+.volume-control {
+  display: flex; align-items: center; gap: 4px;
+}
+.volume-slider {
+  width: 60px; height: 3px; -webkit-appearance: none; appearance: none;
+  background: rgba(255,255,255,0.15); border-radius: 2px; outline: none;
+  cursor: pointer;
+}
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+  background: #fff; cursor: pointer;
+}
+@media (max-width: 767px) {
+  .volume-slider { width: 40px; }
+}

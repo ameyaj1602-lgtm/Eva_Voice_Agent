@@ -1,7 +1,7 @@
 // Eva Singing Service - uses Bark on HuggingFace Space
+// WITH RETRY: tries up to 3 times before giving up
 const HF_SINGING_URL = 'https://Ameyabro-Eva-Singing-Engine.hf.space';
 
-// Check if the singing space is available
 export async function isSingingAvailable() {
   try {
     const controller = new AbortController();
@@ -11,77 +11,58 @@ export async function isSingingAvailable() {
   } catch { return false; }
 }
 
-// Generate singing audio
-export async function generateSinging(lyrics, voice = 'English Female', mode = 'Singing') {
-  try {
-    // Gradio queue API
-    const session = `eva_sing_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+// Single attempt to generate singing
+async function attemptSinging(lyrics, voice, mode) {
+  // Try Gradio 5.x API first (most reliable)
+  const submitRes = await fetch(`${HF_SINGING_URL}/gradio_api/call/predict`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [lyrics, voice, mode] }),
+  });
 
-    const joinRes = await fetch(`${HF_SINGING_URL}/queue/join`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        data: [lyrics, voice, mode],
-        fn_index: 0,
-        session_hash: session,
-      }),
-    });
+  if (!submitRes.ok) throw new Error(`Submit failed: ${submitRes.status}`);
+  const { event_id } = await submitRes.json();
+  if (!event_id) throw new Error('No event_id');
 
-    if (!joinRes.ok) {
-      // Try Gradio 5.x API
-      const submitRes = await fetch(`${HF_SINGING_URL}/gradio_api/call/predict`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: [lyrics, voice, mode] }),
-      });
-      if (!submitRes.ok) throw new Error('Failed to submit');
-      const { event_id } = await submitRes.json();
+  // Poll for result
+  const resultRes = await fetch(`${HF_SINGING_URL}/gradio_api/call/predict/${event_id}`);
+  const text = await resultRes.text();
+  const lines = text.split('\n');
 
-      const resultRes = await fetch(`${HF_SINGING_URL}/gradio_api/call/predict/${event_id}`);
-      const text = await resultRes.text();
-      const lines = text.split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith('event: complete') && i + 1 < lines.length) {
-          const data = JSON.parse(lines[i + 1].slice(6));
-          if (data?.[0]?.url) return data[0].url;
-          if (data?.[0]?.path) return `${HF_SINGING_URL}/gradio_api/file=${data[0].path}`;
-        }
-      }
-      throw new Error('No audio in response');
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith('event: complete') && i + 1 < lines.length) {
+      const data = JSON.parse(lines[i + 1].slice(6));
+      if (data?.[0]?.url) return data[0].url;
+      if (data?.[0]?.path) return `${HF_SINGING_URL}/gradio_api/file=${data[0].path}`;
     }
-
-    // Queue-based API
-    const { event_id } = await joinRes.json();
-
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Singing timeout')), 180000);
-      const evtSource = new EventSource(`${HF_SINGING_URL}/queue/data?session_hash=${session}`);
-
-      evtSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.msg === 'process_completed' && data.success) {
-            clearTimeout(timeout);
-            evtSource.close();
-            const output = data.output?.data?.[0];
-            if (output?.url) resolve(output.url);
-            else if (output?.path) resolve(`${HF_SINGING_URL}/file=${output.path}`);
-            else reject(new Error('No audio'));
-          }
-          if (data.msg === 'process_completed' && !data.success) {
-            clearTimeout(timeout);
-            evtSource.close();
-            reject(new Error('Singing failed on server'));
-          }
-        } catch {}
-      };
-
-      evtSource.onerror = () => { clearTimeout(timeout); evtSource.close(); reject(new Error('Connection lost')); };
-    });
-  } catch (err) {
-    console.warn('Singing failed:', err.message);
-    return null;
+    if (lines[i].startsWith('event: error')) {
+      throw new Error('Server error during singing');
+    }
   }
+
+  throw new Error('No audio in response');
+}
+
+// Generate singing with RETRY (up to 3 attempts)
+export async function generateSinging(lyrics, voice = 'English Female', mode = 'Singing') {
+  const maxRetries = 3;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Singing attempt ${attempt}/${maxRetries}...`);
+      const url = await attemptSinging(lyrics, voice, mode);
+      if (url) return url;
+    } catch (err) {
+      console.warn(`Singing attempt ${attempt} failed:`, err.message);
+      if (attempt < maxRetries) {
+        // Wait 2 seconds before retrying
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+  }
+
+  console.warn('All singing attempts failed');
+  return null;
 }
 
 // Detect if user wants Eva to sing
@@ -89,5 +70,5 @@ export function wantsSinging(text) {
   const lower = text.toLowerCase();
   return lower.includes('sing') || lower.includes('gaa') || lower.includes('gaana') ||
     lower.includes('song') || lower.includes('lullaby') || lower.includes('melody') ||
-    lower.includes('music') || lower.includes('lyrics');
+    lower.includes('lyrics');
 }
