@@ -22,6 +22,7 @@ import { synthesizeSpeech, DEFAULT_VOICES, MODE_VOICE_MAP } from './services/ele
 import { speakWithClonedVoice } from './services/voiceClone';
 import { fishTTS } from './services/fishAudio';
 import { sarvamTTS } from './services/sarvam';
+import { maya1TTS, MODE_TO_MAYA } from './services/maya1';
 import { generateSinging, wantsSinging } from './services/singing';
 import { transcribeAudio } from './services/deepgram';
 import { detectEmotionLocal } from './services/hume';
@@ -217,6 +218,25 @@ function App() {
       try {
         const lang = hasHindi ? 'hi-IN' : (settings.sarvamLanguage || 'en-IN');
         const audioUrl = await sarvamTTS(sarvamKey, text, settings.sarvamVoice || 'anushka', lang);
+        if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          audio.onended = () => setIsSpeakingState(false);
+          audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
+          await audio.play();
+          return;
+        }
+      } catch { /* fall through */ }
+      setIsSpeakingState(false);
+    }
+
+    // 0.5. Maya1 (Kaggle/Colab — best quality voice with emotions)
+    const mayaUrl = settings.mayaUrl;
+    if (mayaUrl) {
+      setIsSpeakingState(true);
+      try {
+        const voicePreset = MODE_TO_MAYA[currentMode.id] || 'Eva Calm';
+        const audioUrl = await maya1TTS(mayaUrl, text, voicePreset);
         if (audioUrl) {
           const audio = new Audio(audioUrl);
           audioRef.current = audio;

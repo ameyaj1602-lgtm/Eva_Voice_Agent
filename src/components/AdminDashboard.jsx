@@ -26,6 +26,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
   const [configWeatherKey, setConfigWeatherKey] = useState('');
   const [configFishAudioKey, setConfigFishAudioKey] = useState('');
   const [configSarvamKey, setConfigSarvamKey] = useState('');
+  const [configMayaUrl, setConfigMayaUrl] = useState('');
   const [configAutoSpeak, setConfigAutoSpeak] = useState(true);
   const [configUseElevenLabs, setConfigUseElevenLabs] = useState(false);
   const [configUseDeepgram, setConfigUseDeepgram] = useState(false);
@@ -46,6 +47,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
     setConfigWeatherKey(settings.openWeatherKey || process.env.REACT_APP_OPENWEATHER_API_KEY || '');
     setConfigFishAudioKey(settings.fishAudioApiKey || '');
     setConfigSarvamKey(settings.sarvamApiKey || '');
+    setConfigMayaUrl(settings.mayaUrl || '');
     setConfigAutoSpeak(settings.autoSpeak ?? true);
     setConfigUseElevenLabs(settings.useElevenLabs ?? false);
     setConfigUseDeepgram(settings.useDeepgram ?? false);
@@ -93,6 +95,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
       openWeatherKey: configWeatherKey,
       fishAudioApiKey: configFishAudioKey,
       sarvamApiKey: configSarvamKey,
+      mayaUrl: configMayaUrl,
       autoSpeak: configAutoSpeak,
       useElevenLabs: configUseElevenLabs,
       useDeepgram: configUseDeepgram,
@@ -252,6 +255,14 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
                     <label className="admin-key-label">Sarvam AI (Hindi/Indian TTS)</label>
                     <input type="password" className="settings-input" value={configSarvamKey}
                       onChange={(e) => setConfigSarvamKey(e.target.value)} placeholder="Sarvam API key..." />
+                  </div>
+                  <div>
+                    <label className="admin-key-label">Maya1 URL (Kaggle/Colab)</label>
+                    <input type="text" className="settings-input" value={configMayaUrl}
+                      onChange={(e) => setConfigMayaUrl(e.target.value)} placeholder="https://xxxxx.gradio.live" />
+                    <span className="settings-status" style={{ color: configMayaUrl ? '#4ecdc4' : '' }}>
+                      {configMayaUrl ? 'Paste URL from Kaggle notebook' : 'Run Maya1 notebook → paste public URL here'}
+                    </span>
                   </div>
                 </div>
               </div>
