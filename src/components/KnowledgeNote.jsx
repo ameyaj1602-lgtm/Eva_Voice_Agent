@@ -45,7 +45,7 @@ export function KnowledgeNote({ mode, onClose }) {
         Eva is your supportive companion, not a replacement for professional therapy. She'll always be honest — if she's unsure about something, she'll tell you.
       </p>
       <p className="kn-disclaimer" style={{ marginTop: 6 }}>
-        Everything stays on your device. We don't store your personal information on any server.
+        Your conversations are encrypted and stored under protected files to help Eva understand you better over time. No one outside the system can access your data. Your privacy is our priority.
       </p>
       <button className="kn-got-it" onClick={dismiss} style={{ backgroundColor: mode.accentColor }}>
         Got it, let's talk
