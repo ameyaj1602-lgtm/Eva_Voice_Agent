@@ -91,6 +91,7 @@ function App() {
   const [showAmbient, setShowAmbient] = useState(false);
   const [showExitFeedback, setShowExitFeedback] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const [evaMuted, setEvaMuted] = useState(false);
   const [showSoundMixer, setShowSoundMixer] = useState(false);
   const [showMultiAgent, setShowMultiAgent] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
@@ -354,7 +355,7 @@ function App() {
         }
       }
 
-      if (settings.autoSpeak) {
+      if (settings.autoSpeak && !evaMuted) {
         // If user asked for singing and we're in lullaby/dream mode, try singing
         if (wantsSinging(userText) && (currentMode.id === 'lullaby' || currentMode.id === 'dream')) {
           toast?.('Generating singing... this may take 30-60 seconds');
@@ -682,6 +683,9 @@ function App() {
             <span className={`credit-bar-dot ${creditStatus.unlocked ? 'green' : creditStatus.remaining.total > 10 ? 'green' : creditStatus.remaining.total > 3 ? 'yellow' : 'red'}`} />
             <span>{creditStatus.unlocked ? '\u221E' : creditStatus.remaining.total}</span>
           </div>
+          <button className={`mute-btn ${evaMuted ? 'muted' : ''}`} onClick={() => setEvaMuted(!evaMuted)} title={evaMuted ? 'Unmute' : 'Mute'}>
+            {evaMuted ? '🔇' : '🔈'}
+          </button>
           <button className="new-chat-btn" onClick={handleClearChat} title="New chat">
             + New
           </button>

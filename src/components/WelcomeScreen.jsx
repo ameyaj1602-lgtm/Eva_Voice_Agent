@@ -121,7 +121,7 @@ export default function WelcomeScreen({ userName, onSelectMode, onSelectFeeling,
           <span className="ws-profile-streak-num">{streak}</span>
           <span className="ws-profile-streak-label">🔥 streak</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{playerStats.level.emoji} Lv.{playerStats.level.level}</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{playerStats.level.emoji} {playerStats.level.name}</span>
             <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
               <div style={{ height: '100%', width: `${playerStats.level.progress}%`, background: '#4ecdc4', borderRadius: 2 }} />
             </div>

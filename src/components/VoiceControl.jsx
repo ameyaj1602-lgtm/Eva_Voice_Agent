@@ -143,6 +143,7 @@ export default function VoiceControl({
           </button>
         )}
       </form>
+        {textInput.length > 0 && <span className="char-count">{textInput.length}</span>}
 
       {/* Mic button - now uses live transcription */}
       <div className="mic-section">
