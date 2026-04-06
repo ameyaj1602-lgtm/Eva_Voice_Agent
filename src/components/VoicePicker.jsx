@@ -315,7 +315,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                           onClick={async () => {
                             if (testing === 'sarvam-anushka') { sarvamAudioRef.current?.pause(); setTesting(null); return; }
                             setTesting('sarvam-anushka');
-                            const url = await sarvamTTS(settings.sarvamApiKey, 'Namaste! Main Eva hoon, aapki personal voice companion.', 'anushka', 'hi-IN');
+                            const url = await sarvamTTS(settings.sarvamApiKey, 'Namaste! Main Eva hoon, aapki personal voice companion. Aap kaise feel kar rahe ho aaj? Mujhe batao, main sun rahi hoon.', 'anushka', 'hi-IN');
                             if (url) { const a = new Audio(url); sarvamAudioRef.current = a; a.onended = () => setTesting(null); a.play(); }
                             else setTesting(null);
                           }}
@@ -350,7 +350,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                                 onClick={async () => {
                                   if (testing === `sarvam-${v.id}`) { sarvamAudioRef.current?.pause(); setTesting(null); return; }
                                   setTesting(`sarvam-${v.id}`);
-                                  const url = await sarvamTTS(settings.sarvamApiKey, 'Hello! Main Eva hoon. Kaise ho aap?', v.id, 'hi-IN');
+                                  const url = await sarvamTTS(settings.sarvamApiKey, 'Namaste! Main Eva hoon, aapki personal voice companion. Aap kaise feel kar rahe ho aaj? Mujhe batao, main sun rahi hoon.', v.id, 'hi-IN');
                                   if (url) { const a = new Audio(url); sarvamAudioRef.current = a; a.onended = () => setTesting(null); a.play(); }
                                   else setTesting(null);
                                 }}
@@ -377,7 +377,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                                 onClick={async () => {
                                   if (testing === `sarvam-${v.id}`) { sarvamAudioRef.current?.pause(); setTesting(null); return; }
                                   setTesting(`sarvam-${v.id}`);
-                                  const url = await sarvamTTS(settings.sarvamApiKey, 'Hello! Main Eva hoon. Kaise ho aap?', v.id, 'hi-IN');
+                                  const url = await sarvamTTS(settings.sarvamApiKey, 'Namaste! Main Eva hoon, aapki personal voice companion. Aap kaise feel kar rahe ho aaj? Mujhe batao, main sun rahi hoon.', v.id, 'hi-IN');
                                   if (url) { const a = new Audio(url); sarvamAudioRef.current = a; a.onended = () => setTesting(null); a.play(); }
                                   else setTesting(null);
                                 }}
