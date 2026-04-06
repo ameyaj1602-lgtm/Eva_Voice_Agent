@@ -44,6 +44,9 @@ export function KnowledgeNote({ mode, onClose }) {
       <p className="kn-disclaimer">
         Eva is your supportive companion, not a replacement for professional therapy. She'll always be honest — if she's unsure about something, she'll tell you.
       </p>
+      <p className="kn-disclaimer" style={{ marginTop: 6 }}>
+        Everything stays on your device. We don't store your personal information on any server.
+      </p>
       <button className="kn-got-it" onClick={dismiss} style={{ backgroundColor: mode.accentColor }}>
         Got it, let's talk
       </button>
