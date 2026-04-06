@@ -601,7 +601,25 @@ function App() {
           onSelectFeeling={(id) => { setCurrentMode(allModes[id] || MODES[DEFAULT_MODE]); setShowWelcome(false); }}
           onOpenSidebar={() => setShowSidebar(true)}
           onOpenProfile={() => setShowProfile(true)} />
-        <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings} lightMode={localStorage.getItem('eva-theme') === 'light'} />
+        <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} mode={currentMode} settings={settings} lightMode={localStorage.getItem('eva-theme') === 'light'}
+          onOpenBreathing={() => { setShowWelcome(false); setTimeout(() => setShowBreathing(true), 100); }}
+          onOpenTimer={() => { setShowWelcome(false); setTimeout(() => { setTimerType('meditation'); setShowTimer(true); }, 100); }}
+          onOpenMoodTracker={() => { setShowWelcome(false); setTimeout(() => setShowMoodTracker(true), 100); }}
+          onOpenGratitude={() => { setShowWelcome(false); setTimeout(() => setShowGratitude(true), 100); }}
+          onOpenStreak={() => { setShowWelcome(false); setTimeout(() => setShowStreak(true), 100); }}
+          onOpenSearch={() => { setShowWelcome(false); setTimeout(() => setShowSearch(true), 100); }}
+          onOpenProfile={() => setShowProfile(true)}
+          onOpenFeedback={() => { setShowWelcome(false); setTimeout(() => setShowFeedback(true), 100); }}
+          onOpenCustomMode={() => { setShowWelcome(false); setTimeout(() => setShowCustomMode(true), 100); }}
+          onOpenSettings={() => { setShowWelcome(false); setTimeout(() => setShowSettings(true), 100); }}
+          onExportChat={handleExportChat}
+          onOpenJourney={() => { setShowWelcome(false); setTimeout(() => setShowJourney(true), 100); }}
+          onOpenPomodoro={() => { setShowWelcome(false); setTimeout(() => setShowPomodoro(true), 100); }}
+          onOpenHabits={() => { setShowWelcome(false); setTimeout(() => setShowHabits(true), 100); }}
+          onOpenAmbient={() => { setShowWelcome(false); setTimeout(() => setShowAmbient(true), 100); }}
+          onOpenSoundMixer={() => { setShowWelcome(false); setTimeout(() => setShowSoundMixer(true), 100); }}
+          onOpenMultiAgent={() => { setShowWelcome(false); setTimeout(() => setShowMultiAgent(true), 100); }}
+        />
       </>
     );
   }
