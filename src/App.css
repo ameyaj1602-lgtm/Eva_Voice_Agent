@@ -1995,3 +1995,21 @@
   0%, 100% { opacity: 0.3; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.2); }
 }
+
+/* Voice bar: mode toggle + pace */
+.voice-bar {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 4px 0;
+}
+.voice-mode-toggle { display: flex; gap: 4px; }
+.vmt-btn {
+  padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.1); background: none;
+  color: rgba(255,255,255,0.35); cursor: pointer; transition: all 0.2s;
+}
+.vmt-btn.active { background: rgba(255,255,255,0.06); }
+.vmt-btn:hover { color: rgba(255,255,255,0.6); }
+@media (max-width: 767px) {
+  .voice-bar { gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .vmt-btn { font-size: 10px; padding: 2px 8px; }
+}

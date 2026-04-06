@@ -221,15 +221,34 @@ function App() {
     setIsProcessing(false);
   }, [stopBrowserSpeaking]);
 
-  // --- TTS: Simple and reliable. No overlap. No delay. ---
+  // --- TTS: User chooses Instant (browser) or Premium (Sarvam) ---
   const speakResponse = useCallback(async (text) => {
-    // STOP everything first — no overlapping audio ever
     stopSpeaking();
 
-    // Use browser TTS immediately — it's instant and always works
-    // Premium engines (Sarvam, Maya1) are too slow for real-time chat
+    const voiceMode = localStorage.getItem('eva-voice-mode') || 'instant';
+
+    if (voiceMode === 'premium' && settings.sarvamApiKey) {
+      // Premium: Sarvam (3-5s delay, better quality)
+      try {
+        const hasHindi = /[\u0900-\u097F]/.test(text) || /\b(hai|hoon|kya|kaise|mein|toh|yeh|aur|nahi|haan|accha|theek|karo)\b/i.test(text);
+        const lang = hasHindi ? 'hi-IN' : (settings.sarvamLanguage || 'en-IN');
+        const audioUrl = await sarvamTTS(settings.sarvamApiKey, text, settings.sarvamVoice || 'anushka', lang);
+        if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audio.volume = parseFloat(localStorage.getItem('eva-voice-volume')) || 0.6;
+          audioRef.current = audio;
+          setIsSpeakingState(true);
+          audio.onended = () => setIsSpeakingState(false);
+          audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
+          await audio.play();
+          return;
+        }
+      } catch { /* fall through to browser */ }
+    }
+
+    // Instant: Browser TTS (0 delay, always works)
     browserSpeak(text, currentMode.id);
-  }, [currentMode, browserSpeak, stopSpeaking]);
+  }, [settings, currentMode, browserSpeak, stopSpeaking]);
 
   // --- AI Response ---
   const getEvaResponse = useCallback(async (userText, currentMessages) => {
@@ -686,14 +705,28 @@ function App() {
             &#9724; Stop Speaking
           </button>
         )}
-        {/* Real-time pace control */}
-        <div className="pace-control">
-          <span className="pace-label">🐢</span>
-          <input type="range" className="pace-slider" min="50" max="150"
-            defaultValue={Math.round((parseFloat(localStorage.getItem('eva-voice-rate')) || 0.85) * 100)}
-            onChange={(e) => localStorage.setItem('eva-voice-rate', (parseInt(e.target.value) / 100).toString())}
-            style={{ accentColor: currentMode.accentColor }} />
-          <span className="pace-label">🐇</span>
+        {/* Voice mode toggle + pace control */}
+        <div className="voice-bar">
+          <div className="voice-mode-toggle">
+            <button className={`vmt-btn ${(localStorage.getItem('eva-voice-mode') || 'instant') === 'instant' ? 'active' : ''}`}
+              onClick={() => { localStorage.setItem('eva-voice-mode', 'instant'); window.dispatchEvent(new Event('storage')); }}
+              style={(localStorage.getItem('eva-voice-mode') || 'instant') === 'instant' ? { borderColor: currentMode.accentColor, color: currentMode.accentColor } : {}}>
+              ⚡ Instant
+            </button>
+            <button className={`vmt-btn ${localStorage.getItem('eva-voice-mode') === 'premium' ? 'active' : ''}`}
+              onClick={() => { localStorage.setItem('eva-voice-mode', 'premium'); window.dispatchEvent(new Event('storage')); }}
+              style={localStorage.getItem('eva-voice-mode') === 'premium' ? { borderColor: currentMode.accentColor, color: currentMode.accentColor } : {}}>
+              ✨ Premium
+            </button>
+          </div>
+          <div className="pace-control">
+            <span className="pace-label">🐢</span>
+            <input type="range" className="pace-slider" min="50" max="150"
+              defaultValue={Math.round((parseFloat(localStorage.getItem('eva-voice-rate')) || 0.85) * 100)}
+              onChange={(e) => localStorage.setItem('eva-voice-rate', (parseInt(e.target.value) / 100).toString())}
+              style={{ accentColor: currentMode.accentColor }} />
+            <span className="pace-label">🐇</span>
+          </div>
         </div>
         <VoiceControl mode={currentMode} isRecording={isRecording} duration={duration}
           onStartRecording={handleStartRecording} onStopRecording={handleStopRecording}
