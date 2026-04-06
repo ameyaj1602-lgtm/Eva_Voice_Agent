@@ -218,100 +218,54 @@ function App() {
     setIsProcessing(false);
   }, [stopBrowserSpeaking]);
 
-  // --- TTS (Cascading: Sarvam → Fish Audio → Nymbo XTTS → ElevenLabs → Browser) ---
+  // --- TTS (Cascading: Sarvam → Maya1 → ElevenLabs → Browser) ---
+  // RULE: Browser TTS is the GUARANTEED fallback. Eva ALWAYS speaks.
   const speakResponse = useCallback(async (text) => {
     const sarvamKey = settings.sarvamApiKey;
-    const fishKey = settings.fishAudioApiKey;
-    const fishModelId = settings.fishAudioModelId;
     const elKey = settings.elevenLabsApiKey;
-    const voices = settings.clonedVoices || {};
-    const clonedData = voices[currentMode.name] || voices['default'] || Object.values(voices).find(v => v?.type === 'hf');
 
-    // 0. Sarvam AI (DEFAULT — best for Hindi/Indian + English-Indian)
-    const hasHindi = /[\u0900-\u097F]/.test(text) || /\b(hai|hoon|kya|kaise|mein|toh|yeh|aur|nahi|haan|accha|theek|karo)\b/i.test(text);
-    if (sarvamKey) {
+    // Helper: play audio URL with fallback to browser TTS
+    const playAudioUrl = async (audioUrl) => {
+      const audio = new Audio(audioUrl);
+      audio.volume = parseFloat(localStorage.getItem('eva-voice-volume')) || 0.6;
+      audioRef.current = audio;
       setIsSpeakingState(true);
+      audio.onended = () => setIsSpeakingState(false);
+      audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
+      await audio.play();
+    };
+
+    // 1. Sarvam AI
+    if (sarvamKey) {
       try {
+        const hasHindi = /[\u0900-\u097F]/.test(text) || /\b(hai|hoon|kya|kaise|mein|toh|yeh|aur|nahi|haan|accha|theek|karo)\b/i.test(text);
         const lang = hasHindi ? 'hi-IN' : (settings.sarvamLanguage || 'en-IN');
         const audioUrl = await sarvamTTS(sarvamKey, text, settings.sarvamVoice || 'anushka', lang);
-        if (audioUrl) {
-          const audio = new Audio(audioUrl);
-          audioRef.current = audio;
-          audio.onended = () => setIsSpeakingState(false);
-          audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
-          await audio.play();
-          return;
-        }
-      } catch { /* fall through */ }
-      setIsSpeakingState(false);
+        if (audioUrl) { await playAudioUrl(audioUrl); return; }
+      } catch (e) { console.warn('Sarvam failed:', e.message); }
     }
 
-    // 0.5. Maya1 (Kaggle/Colab — best quality voice with emotions)
-    const mayaUrl = settings.mayaUrl;
-    if (mayaUrl) {
-      setIsSpeakingState(true);
+    // 2. Maya1 (Kaggle — if running)
+    if (settings.mayaUrl) {
       try {
-        const voicePreset = MODE_TO_MAYA[currentMode.id] || 'Eva Calm';
-        const audioUrl = await maya1TTS(mayaUrl, text, voicePreset);
-        if (audioUrl) {
-          const audio = new Audio(audioUrl);
-          audioRef.current = audio;
-          audio.onended = () => setIsSpeakingState(false);
-          audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
-          await audio.play();
-          return;
-        }
-      } catch { /* fall through */ }
-      setIsSpeakingState(false);
+        const audioUrl = await maya1TTS(settings.mayaUrl, text, MODE_TO_MAYA[currentMode.id] || 'Eva Calm');
+        if (audioUrl) { await playAudioUrl(audioUrl); return; }
+      } catch (e) { console.warn('Maya1 failed:', e.message); }
     }
 
-    // 1. Fish Audio (best quality, has credits?)
-    if (fishKey && fishModelId) {
-      setIsSpeakingState(true);
-      try {
-        const audioUrl = await fishTTS(fishKey, text, fishModelId);
-        if (audioUrl) {
-          const audio = new Audio(audioUrl);
-          audioRef.current = audio;
-          audio.onended = () => setIsSpeakingState(false);
-          audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
-          await audio.play();
-          return;
-        }
-      } catch { /* fall through */ }
-      setIsSpeakingState(false);
-    }
-
-    // 2. Nymbo XTTS voice clone (free, slow ~60s, needs saved voice sample)
-    if (clonedData && typeof clonedData === 'object' && clonedData.type === 'hf') {
-      // Don't block chat - try in background, use browser TTS immediately
-      browserSpeak(text, currentMode.id);
-      return;
-    }
-
-    // 3. ElevenLabs (paid, uses credits)
+    // 3. ElevenLabs (paid)
     if (settings.useElevenLabs && elKey && creditManager.canUse('tts')) {
-      creditManager.use('tts');
-      const voiceKey = MODE_VOICE_MAP[currentMode.id] || 'bella';
-      const voiceId = DEFAULT_VOICES[voiceKey]?.id;
-      if (voiceId) {
-        setIsSpeakingState(true);
-        try {
+      try {
+        creditManager.use('tts');
+        const voiceId = DEFAULT_VOICES[MODE_VOICE_MAP[currentMode.id] || 'bella']?.id;
+        if (voiceId) {
           const audioUrl = await synthesizeSpeech(text, elKey, voiceId);
-          if (audioUrl) {
-            const audio = new Audio(audioUrl);
-            audioRef.current = audio;
-            audio.onended = () => setIsSpeakingState(false);
-            audio.onerror = () => { setIsSpeakingState(false); browserSpeak(text, currentMode.id); };
-            await audio.play();
-            return;
-          }
-        } catch { /* fall through */ }
-        setIsSpeakingState(false);
-      }
+          if (audioUrl) { await playAudioUrl(audioUrl); return; }
+        }
+      } catch (e) { console.warn('ElevenLabs failed:', e.message); }
     }
 
-    // 4. Browser TTS (always works, free, instant)
+    // 4. Browser TTS — GUARANTEED FALLBACK. Eva ALWAYS speaks.
     browserSpeak(text, currentMode.id);
   }, [settings, currentMode, browserSpeak]);
 
