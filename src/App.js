@@ -373,8 +373,8 @@ function App() {
         }
       }
     } catch (err) {
-      addMessage('assistant', "I'm having trouble thinking right now. Try again?");
-      toast.error?.('AI response failed');
+      addMessage('assistant', "Oops, my mind went blank for a second. Say that again, love?");
+      toast.error?.('Eva got confused — try again');
       logError(err, `getEvaResponse - mode: ${currentMode.id}`);
     } finally {
       setIsTyping(false);
@@ -523,10 +523,11 @@ function App() {
 
   const handleClearChat = useCallback(() => {
     if (!activeProfile) return;
+    if (messages.length > 0 && !window.confirm('Start a new chat? Current messages will be cleared.')) return;
     clearChatHistory(activeProfile.id, currentMode.id);
     setMessages([]);
-    toast.success?.('Chat cleared');
-  }, [activeProfile, currentMode, toast]);
+    toast.success?.('New chat started');
+  }, [activeProfile, currentMode, toast, messages]);
 
   const handleExportChat = useCallback(() => {
     if (messages.length === 0) { toast.warning?.('No messages to export'); return; }
@@ -681,6 +682,9 @@ function App() {
             <span className={`credit-bar-dot ${creditStatus.unlocked ? 'green' : creditStatus.remaining.total > 10 ? 'green' : creditStatus.remaining.total > 3 ? 'yellow' : 'red'}`} />
             <span>{creditStatus.unlocked ? '\u221E' : creditStatus.remaining.total}</span>
           </div>
+          <button className="new-chat-btn" onClick={handleClearChat} title="New chat">
+            + New
+          </button>
           <VoicePicker voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice} mode={currentMode} clonedVoices={settings.clonedVoices} settings={settings} onSaveSettings={handleSaveSettings} />
           <button className="toolbar-labeled" onClick={() => setShowSidebar(true)}>
             <span>{'✨'}</span><span className="toolbar-text">Discover</span>
@@ -703,7 +707,8 @@ function App() {
         <div className="chat-section">
           <KnowledgeNote mode={currentMode} />
           {isRecording && <div className="interim-transcript" style={{ color: currentMode.accentColor }}>{'🎙️'} Recording... speak now</div>}
-          <ChatInterface messages={messages} mode={currentMode} isTyping={isTyping} onReact={handleReaction} onSendStarter={handleSendText} />
+          <ChatInterface messages={messages} mode={currentMode} isTyping={isTyping} onReact={handleReaction} onSendStarter={handleSendText}
+            onSpeakAgain={(text) => speakResponse(text)} />
         </div>
       </main>
 

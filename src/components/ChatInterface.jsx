@@ -9,7 +9,14 @@ function TypingMessage({ content, mode }) {
   return <p>{displayText}<span className="typing-cursor" style={{ backgroundColor: mode.accentColor }}>|</span></p>;
 }
 
-export default function ChatInterface({ messages, mode, isTyping, onReact, onSendStarter }) {
+function relativeTime(ts) {
+  const diff = (Date.now() - ts) / 1000;
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+export default function ChatInterface({ messages, mode, isTyping, onReact, onSendStarter, onRetry, onSpeakAgain }) {
   const bottomRef = useRef(null);
   const [activeReaction, setActiveReaction] = useState(null);
   const [animatingId, setAnimatingId] = useState(null);
@@ -76,9 +83,21 @@ export default function ChatInterface({ messages, mode, isTyping, onReact, onSen
               ) : (
                 <p>{msg.content}</p>
               )}
-              <span className="chat-time">
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+              <div className="chat-meta">
+                <span className="chat-time">{relativeTime(msg.timestamp)}</span>
+                {msg.role === 'assistant' && (
+                  <div className="chat-actions">
+                    <button className="chat-action-btn" title="Copy"
+                      onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(msg.content); }}>
+                      📋
+                    </button>
+                    <button className="chat-action-btn" title="Speak again"
+                      onClick={(e) => { e.stopPropagation(); onSpeakAgain?.(msg.content); }}>
+                      🔊
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {msg.reaction && <div className="chat-reaction-badge">{msg.reaction}</div>}

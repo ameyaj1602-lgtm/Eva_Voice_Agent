@@ -1887,3 +1887,40 @@
 
 /* Sarvam voice in picker */
 .vp-sarvam-voice { background: rgba(255,153,0,0.06); border: 1px solid rgba(255,153,0,0.15) !important; }
+
+/* Chat message actions */
+.chat-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.chat-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.2s; }
+.chat-bubble-wrapper:hover .chat-actions { opacity: 1; }
+.chat-action-btn {
+  background: none; border: none; font-size: 12px; cursor: pointer;
+  padding: 2px 4px; border-radius: 4px; opacity: 0.5; transition: opacity 0.15s;
+}
+.chat-action-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+
+/* New chat button */
+.new-chat-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5);
+  font-size: 11px; cursor: pointer; transition: all 0.2s;
+}
+.new-chat-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+/* Tool button press animation */
+.sb-tool-btn:active { transform: scale(0.95); }
+
+/* Retry button */
+.chat-retry-btn {
+  display: flex; align-items: center; gap: 6px; margin: 8px auto;
+  padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6);
+  font-size: 13px; cursor: pointer;
+}
+.chat-retry-btn:hover { background: rgba(255,255,255,0.08); }
+
+/* Friendly error message */
+.chat-error-msg {
+  text-align: center; padding: 8px 16px; font-size: 12px;
+  color: rgba(255,200,100,0.7); font-style: italic;
+}
