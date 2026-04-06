@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { sarvamTTS, SARVAM_VOICES } from '../services/sarvam';
 
 const PRESETS = [
   { name: 'Calm & Soft', rate: 0.8, pitch: 0.9, icon: '🌿' },
@@ -39,7 +40,7 @@ function isMaleVoice(name) {
     MALE_VOICES.has(name.split(' (')[0]); // Handle "Eddy (English (United States))"
 }
 
-export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode, clonedVoices }) {
+export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode, clonedVoices, settings, onSaveSettings }) {
   const [isOpen, setIsOpen] = useState(false);
   const [testing, setTesting] = useState(null);
   const [tab, setTab] = useState('voices');
@@ -47,6 +48,9 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
   const [showAllLangs, setShowAllLangs] = useState(false);
   const [saved, setSaved] = useState(false);
   const [deployed, setDeployed] = useState(false);
+  const [showSarvamVoices, setShowSarvamVoices] = useState(false);
+  const [testingAudio, setTestingAudio] = useState(null);
+  const sarvamAudioRef = useRef(null);
 
   const [rate, setRate] = useState(() => {
     try { return parseFloat(localStorage.getItem('eva-voice-rate')) || 0.9; } catch { return 0.9; }
@@ -248,6 +252,94 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                           </div>
                         );
                       })}
+                    </div>
+                  )}
+
+                  {/* Sarvam AI voices (Hindi/Indian - premium quality) */}
+                  {settings?.sarvamApiKey && (!search || 'sarvam hindi indian'.includes(searchLower)) && (
+                    <div className="voice-picker-group">
+                      <div className="voice-picker-lang">SARVAM AI — Hindi & Indian</div>
+                      {/* Default Sarvam voice */}
+                      <div className={`voice-picker-item vp-sarvam-voice ${settings?.sarvamVoice === 'anushka' || !settings?.sarvamVoice ? 'active' : ''}`}
+                        style={!settings?.sarvamVoice || settings?.sarvamVoice === 'anushka' ? { borderColor: mode.accentColor } : {}}>
+                        <button className="voice-picker-select" onClick={() => {
+                          onSaveSettings?.({ sarvamVoice: 'anushka', sarvamDefault: true });
+                          setDeployed(true); setTimeout(() => setDeployed(false), 2000);
+                        }}>
+                          <span className="voice-picker-name">🇮🇳 Anushka (Default)</span>
+                          {(!settings?.sarvamVoice || settings?.sarvamVoice === 'anushka') && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
+                        </button>
+                        <button className={`voice-picker-test ${testing === 'sarvam-anushka' ? 'playing' : ''}`}
+                          onClick={async () => {
+                            if (testing === 'sarvam-anushka') { sarvamAudioRef.current?.pause(); setTesting(null); return; }
+                            setTesting('sarvam-anushka');
+                            const url = await sarvamTTS(settings.sarvamApiKey, 'Namaste! Main Eva hoon, aapki personal voice companion.', 'anushka', 'hi-IN');
+                            if (url) { const a = new Audio(url); sarvamAudioRef.current = a; a.onended = () => setTesting(null); a.play(); }
+                            else setTesting(null);
+                          }}
+                          style={{ color: testing === 'sarvam-anushka' ? '#ff4444' : mode.accentColor, borderColor: testing === 'sarvam-anushka' ? '#ff4444' : mode.accentColor }}>
+                          {testing === 'sarvam-anushka' ? '■' : '▶'}
+                        </button>
+                      </div>
+
+                      {/* Toggle to show all Sarvam voices */}
+                      <button className="vp-show-more" onClick={() => setShowSarvamVoices(!showSarvamVoices)}
+                        style={{ color: mode.accentColor }}>
+                        {showSarvamVoices ? 'Hide Sarvam voices ▲' : `Show all 34 Sarvam voices ▼`}
+                      </button>
+
+                      {showSarvamVoices && (
+                        <>
+                          <div className="vp-gender-label">Female</div>
+                          {SARVAM_VOICES.female.map(v => (
+                            <div key={v.id} className={`voice-picker-item ${settings?.sarvamVoice === v.id ? 'active' : ''}`}
+                              style={settings?.sarvamVoice === v.id ? { borderColor: mode.accentColor } : {}}>
+                              <button className="voice-picker-select" onClick={() => {
+                                onSaveSettings?.({ sarvamVoice: v.id, sarvamDefault: true });
+                                setDeployed(true); setTimeout(() => setDeployed(false), 2000);
+                              }}>
+                                <span className="voice-picker-name">🇮🇳 {v.name}</span>
+                                {settings?.sarvamVoice === v.id && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
+                              </button>
+                              <button className={`voice-picker-test ${testing === `sarvam-${v.id}` ? 'playing' : ''}`}
+                                onClick={async () => {
+                                  if (testing === `sarvam-${v.id}`) { sarvamAudioRef.current?.pause(); setTesting(null); return; }
+                                  setTesting(`sarvam-${v.id}`);
+                                  const url = await sarvamTTS(settings.sarvamApiKey, 'Hello! Main Eva hoon. Kaise ho aap?', v.id, 'hi-IN');
+                                  if (url) { const a = new Audio(url); sarvamAudioRef.current = a; a.onended = () => setTesting(null); a.play(); }
+                                  else setTesting(null);
+                                }}
+                                style={{ color: testing === `sarvam-${v.id}` ? '#ff4444' : mode.accentColor, borderColor: testing === `sarvam-${v.id}` ? '#ff4444' : mode.accentColor }}>
+                                {testing === `sarvam-${v.id}` ? '■' : '▶'}
+                              </button>
+                            </div>
+                          ))}
+                          <div className="vp-gender-label">Male</div>
+                          {SARVAM_VOICES.male.map(v => (
+                            <div key={v.id} className={`voice-picker-item ${settings?.sarvamVoice === v.id ? 'active' : ''}`}
+                              style={settings?.sarvamVoice === v.id ? { borderColor: mode.accentColor } : {}}>
+                              <button className="voice-picker-select" onClick={() => {
+                                onSaveSettings?.({ sarvamVoice: v.id, sarvamDefault: true });
+                                setDeployed(true); setTimeout(() => setDeployed(false), 2000);
+                              }}>
+                                <span className="voice-picker-name">🇮🇳 {v.name}</span>
+                                {settings?.sarvamVoice === v.id && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
+                              </button>
+                              <button className={`voice-picker-test ${testing === `sarvam-${v.id}` ? 'playing' : ''}`}
+                                onClick={async () => {
+                                  if (testing === `sarvam-${v.id}`) { sarvamAudioRef.current?.pause(); setTesting(null); return; }
+                                  setTesting(`sarvam-${v.id}`);
+                                  const url = await sarvamTTS(settings.sarvamApiKey, 'Hello! Main Eva hoon. Kaise ho aap?', v.id, 'hi-IN');
+                                  if (url) { const a = new Audio(url); sarvamAudioRef.current = a; a.onended = () => setTesting(null); a.play(); }
+                                  else setTesting(null);
+                                }}
+                                style={{ color: testing === `sarvam-${v.id}` ? '#ff4444' : mode.accentColor, borderColor: testing === `sarvam-${v.id}` ? '#ff4444' : mode.accentColor }}>
+                                {testing === `sarvam-${v.id}` ? '■' : '▶'}
+                              </button>
+                            </div>
+                          ))}
+                        </>
+                      )}
                     </div>
                   )}
 

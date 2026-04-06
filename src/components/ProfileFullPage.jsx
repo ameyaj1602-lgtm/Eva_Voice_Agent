@@ -88,10 +88,10 @@ export default function ProfileFullPage({ profile, mode, settings, onBack, onSav
     // Always save locally first (for Nymbo XTTS fallback)
     await saveVoiceSample(voiceName, audioBlob);
 
-    // Try Fish Audio model creation (best quality)
+    // Try Fish Audio model creation (if available)
     const fishKey = settings?.fishAudioApiKey;
     if (fishKey) {
-      setCloneResult({ type: 'info', msg: 'Creating voice model on Fish Audio (best quality)...' });
+      setCloneResult({ type: 'info', msg: 'Creating voice model...' });
       const result = await createVoiceModel(fishKey, voiceName, audioBlob);
       if (result.success) {
         onSaveSettings?.({

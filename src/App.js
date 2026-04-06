@@ -210,13 +210,12 @@ function App() {
     const voices = settings.clonedVoices || {};
     const clonedData = voices[currentMode.name] || voices['default'] || Object.values(voices).find(v => v?.type === 'hf');
 
-    // 0. Sarvam AI (best for Hindi/Indian languages)
-    // Detect Hindi/Hinglish text
+    // 0. Sarvam AI (DEFAULT — best for Hindi/Indian + English-Indian)
     const hasHindi = /[\u0900-\u097F]/.test(text) || /\b(hai|hoon|kya|kaise|mein|toh|yeh|aur|nahi|haan|accha|theek|karo)\b/i.test(text);
-    if (sarvamKey && (hasHindi || settings.sarvamDefault)) {
+    if (sarvamKey) {
       setIsSpeakingState(true);
       try {
-        const lang = hasHindi ? 'hi-IN' : 'en-IN';
+        const lang = hasHindi ? 'hi-IN' : (settings.sarvamLanguage || 'en-IN');
         const audioUrl = await sarvamTTS(sarvamKey, text, settings.sarvamVoice || 'anushka', lang);
         if (audioUrl) {
           const audio = new Audio(audioUrl);
@@ -624,7 +623,7 @@ function App() {
             <span className={`credit-bar-dot ${creditStatus.unlocked ? 'green' : creditStatus.remaining.total > 10 ? 'green' : creditStatus.remaining.total > 3 ? 'yellow' : 'red'}`} />
             <span>{creditStatus.unlocked ? '\u221E' : creditStatus.remaining.total}</span>
           </div>
-          <VoicePicker voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice} mode={currentMode} clonedVoices={settings.clonedVoices} />
+          <VoicePicker voices={voices} selectedVoice={selectedVoice} onVoiceChange={setSelectedVoice} mode={currentMode} clonedVoices={settings.clonedVoices} settings={settings} onSaveSettings={handleSaveSettings} />
           <button className="toolbar-labeled" onClick={() => setShowSidebar(true)}>
             <span>{'✨'}</span><span className="toolbar-text">Discover</span>
           </button>
