@@ -85,7 +85,7 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
   }
 
   const handleSaveConfig = () => {
-    onSaveSettings?.({
+    const allSettings = {
       aiBrain: configBrain,
       defaultVoice: configVoice,
       geminiApiKey: configGeminiKey,
@@ -100,15 +100,23 @@ export default function AdminDashboard({ isOpen, onClose, settings, onSaveSettin
       useElevenLabs: configUseElevenLabs,
       useDeepgram: configUseDeepgram,
       sessionCreditLimit: configCreditLimit,
-    });
-    setConfigSaved(true);
-    setTimeout(() => setConfigSaved(false), 3000);
-    // Force save to localStorage immediately
+    };
+
+    // Method 1: React state update
+    onSaveSettings?.(allSettings);
+
+    // Method 2: Direct localStorage write (bulletproof)
     try {
       const current = JSON.parse(localStorage.getItem('eva-settings') || '{}');
-      const merged = { ...current, mayaUrl: configMayaUrl, sarvamApiKey: configSarvamKey, fishAudioApiKey: configFishAudioKey };
+      const merged = { ...current, ...allSettings };
       localStorage.setItem('eva-settings', JSON.stringify(merged));
-    } catch {};
+    } catch {}
+
+    setConfigSaved(true);
+    setTimeout(() => setConfigSaved(false), 3000);
+
+    // Visual confirmation
+    window.alert('Settings saved successfully!');
   };
 
   const handleAddMemory = () => {
