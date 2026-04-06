@@ -296,7 +296,8 @@ function App() {
       addMessage('assistant', response);
 
       // Show response time as a subtle toast
-      toast?.(`Eva responded in ${responseTime}s via ${source}`);
+      // Store response metadata on the message for inline display
+      setMessages(prev => prev.map((m, i) => i === prev.length - 1 && m.role === 'assistant' ? { ...m, meta: `${responseTime}s · ${source}` } : m));
 
       // Start speaking IMMEDIATELY
       if (settings.autoSpeak && !evaMuted) {
@@ -649,19 +650,9 @@ function App() {
             <span className={`credit-bar-dot ${creditStatus.unlocked ? 'green' : creditStatus.remaining.total > 10 ? 'green' : creditStatus.remaining.total > 3 ? 'yellow' : 'red'}`} />
             <span>{creditStatus.unlocked ? '\u221E' : creditStatus.remaining.total}</span>
           </div>
-          <div className="volume-control">
-            <button className={`mute-btn ${evaMuted ? 'muted' : ''}`} onClick={() => setEvaMuted(!evaMuted)} title={evaMuted ? 'Unmute' : 'Mute'}>
-              {evaMuted ? '🔇' : '🔈'}
-            </button>
-            <input type="range" className="volume-slider" min="0" max="100"
-              value={Math.round((parseFloat(localStorage.getItem('eva-voice-volume')) || 0.6) * 100)}
-              onChange={(e) => {
-                const vol = parseInt(e.target.value) / 100;
-                localStorage.setItem('eva-voice-volume', vol);
-                if (audioRef.current) audioRef.current.volume = vol;
-              }}
-              style={{ accentColor: currentMode.accentColor }} />
-          </div>
+          <button className={`mute-btn ${evaMuted ? 'muted' : ''}`} onClick={() => setEvaMuted(!evaMuted)} title={evaMuted ? 'Unmute' : 'Mute'}>
+            {evaMuted ? '🔇' : '🔊'}
+          </button>
           <button className="new-chat-btn" onClick={handleClearChat} title="New chat">
             + New
           </button>

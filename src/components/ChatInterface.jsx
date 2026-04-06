@@ -84,16 +84,16 @@ export default function ChatInterface({ messages, mode, isTyping, onReact, onSen
                 <p>{msg.content}</p>
               )}
               <div className="chat-meta">
-                <span className="chat-time">{relativeTime(msg.timestamp)}</span>
+                <span className="chat-time">{relativeTime(msg.timestamp)}{msg.meta ? ` · ${msg.meta}` : ''}</span>
                 {msg.role === 'assistant' && (
                   <div className="chat-actions">
                     <button className="chat-action-btn" title="Copy"
                       onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(msg.content); }}>
-                      📋
+                      Copy
                     </button>
                     <button className="chat-action-btn" title="Speak again"
                       onClick={(e) => { e.stopPropagation(); onSpeakAgain?.(msg.content); }}>
-                      🔊
+                      Replay
                     </button>
                   </div>
                 )}

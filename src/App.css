@@ -1893,10 +1893,11 @@
 .chat-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.2s; }
 .chat-bubble-wrapper:hover .chat-actions { opacity: 1; }
 .chat-action-btn {
-  background: none; border: none; font-size: 12px; cursor: pointer;
-  padding: 2px 4px; border-radius: 4px; opacity: 0.5; transition: opacity 0.15s;
+  background: none; border: none; font-size: 10px; cursor: pointer;
+  padding: 2px 6px; border-radius: 4px; color: rgba(255,255,255,0.3);
+  font-weight: 500; transition: all 0.15s;
 }
-.chat-action-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+.chat-action-btn:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.08); }
 
 /* New chat button */
 .new-chat-btn {
