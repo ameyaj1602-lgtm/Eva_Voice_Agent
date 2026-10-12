@@ -64,6 +64,8 @@ let buildTherapyPrompt, getTherapyContext, buildEvaPrompt;
 try { buildTherapyPrompt = require('../utils/therapyKnowledge').buildTherapyPrompt; } catch { buildTherapyPrompt = null; }
 try { getTherapyContext = require('../utils/therapyKnowledgeBase').getTherapyContext; } catch { getTherapyContext = null; }
 try { buildEvaPrompt = require('../utils/evaPersonality').buildEvaPrompt; } catch { buildEvaPrompt = null; }
+let languageDirective, sanitize;
+try { ({ languageDirective, sanitize } = require('../utils/language')); } catch { languageDirective = null; sanitize = null; }
 
 function buildSystemPrompt(mode, userName, memories) {
   const modePrompt = mode?.systemPrompt || 'You are Eva, a friendly companion.';
@@ -173,6 +175,8 @@ async function callOpenAI(messages, systemPrompt, apiKey, maxTokens = 220) {
   return data?.choices?.[0]?.message?.content || null;
 }
 
+const clean = (text) => (sanitize ? sanitize(text) : text);
+
 // Returns { text, source } where source is 'gemini'|'openai'|'offline'
 export async function getAIResponse(messages, mode, apiKey, { userName, memories } = {}) {
   if (!apiKey && !ENV_OPENAI_KEY && !ENV_GEMINI_BACKUP) {
@@ -182,12 +186,18 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   let systemPrompt = buildSystemPrompt(mode, userName, memories);
 
   // Inject relevant therapy techniques based on user's latest message
-  if (getTherapyContext && messages?.length > 0) {
-    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
-    if (lastUserMsg?.content) {
-      const therapyContext = getTherapyContext(lastUserMsg.content);
-      if (therapyContext) systemPrompt += therapyContext;
-    }
+  const lastUserMsg = [...(messages || [])].reverse().find(m => m.role === 'user');
+  if (getTherapyContext && lastUserMsg?.content) {
+    const therapyContext = getTherapyContext(lastUserMsg.content);
+    if (therapyContext) systemPrompt += therapyContext;
+  }
+
+  // Language lock goes LAST. The personality file says to match the user's
+  // Hinglish, but its own English examples outvoted that about half the time.
+  // Detecting in code and stating the answer outright is reliable, and it
+  // re-decides every message so mid-conversation switches are followed.
+  if (languageDirective && lastUserMsg?.content) {
+    systemPrompt += languageDirective(lastUserMsg.content);
   }
 
   // OpenAI primary (instant switch)
@@ -197,7 +207,7 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   if (ENV_OPENAI_KEY) {
     try {
       const result = await callOpenAI(messages, systemPrompt, ENV_OPENAI_KEY, maxTokens);
-      if (result) { trackAPICall?.('openai', true); return { text: result, source: 'openai' }; }
+      if (result) { trackAPICall?.('openai', true); return { text: clean(result), source: 'openai' }; }
     } catch (err) {
       trackAPICall?.('openai', false, err.message);
     }
@@ -207,7 +217,7 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   if (apiKey) {
     try {
       const result = await callGemini(messages, systemPrompt, apiKey);
-      if (result) { trackAPICall?.('gemini', true); return { text: result, source: 'gemini' }; }
+      if (result) { trackAPICall?.('gemini', true); return { text: clean(result), source: 'gemini' }; }
     } catch (err) {
       trackAPICall?.('gemini', false, err.message);
       // Silent failover - no lag, no notification to user
@@ -218,7 +228,7 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   if (ENV_GEMINI_BACKUP && ENV_GEMINI_BACKUP !== apiKey) {
     try {
       const result = await callGemini(messages, systemPrompt, ENV_GEMINI_BACKUP);
-      if (result) { trackAPICall?.('gemini-backup', true); return { text: result, source: 'gemini-backup' }; }
+      if (result) { trackAPICall?.('gemini-backup', true); return { text: clean(result), source: 'gemini-backup' }; }
     } catch (err) {
       trackAPICall?.('gemini-backup', false, err.message);
     }
