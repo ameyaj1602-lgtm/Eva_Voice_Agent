@@ -79,13 +79,6 @@ function buildSystemPrompt(mode, userName, memories) {
     prompt += therapyLayer;
   }
 
-  if (userName) prompt += `The user's name is ${userName}. Use their name naturally — don't overuse it.\n`;
-  if (memories?.length > 0) {
-    prompt += '\nThings you remember about this user (USE these to personalize responses):\n';
-    memories.forEach((m) => { if (m?.fact) prompt += `- ${m.fact}\n`; });
-    prompt += 'Reference these memories when relevant — it makes the user feel deeply understood.\n';
-  }
-
   // Response guidelines based on mode
   const isTherapeutic = ['calm', 'therapist', 'silence', 'crisis'].includes(mode?.id);
   const isCreative = ['storyteller', 'dream', 'lullaby'].includes(mode?.id);
@@ -101,6 +94,16 @@ function buildSystemPrompt(mode, userName, memories) {
     prompt += '\nKeep it conversational. 2-3 sentences usually. Be natural and real.';
   } else {
     prompt += '\nKeep responses focused. 2-4 sentences. Match the energy of the mode.';
+  }
+
+
+  // Dynamic tail LAST — keeps the static prefix above byte-identical so
+  // OpenAI's automatic prompt caching can reuse it (50% off cached input).
+  if (userName) prompt += `The user's name is ${userName}. Use their name naturally — don't overuse it.\n`;
+  if (memories?.length > 0) {
+    prompt += '\nThings you remember about this user (USE these to personalize responses):\n';
+    memories.forEach((m) => { if (m?.fact) prompt += `- ${m.fact}\n`; });
+    prompt += 'Reference these memories when relevant — it makes the user feel deeply understood.\n';
   }
 
   return prompt;
@@ -143,9 +146,9 @@ async function callGemini(messages, systemPrompt, apiKey) {
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
 }
 
-async function callOpenAI(messages, systemPrompt, apiKey) {
+async function callOpenAI(messages, systemPrompt, apiKey, maxTokens = 220) {
   const chatMessages = [{ role: 'system', content: systemPrompt }];
-  const recent = (messages || []).slice(-10);
+  const recent = (messages || []).slice(-6);
   for (const msg of recent) {
     if (!msg?.content) continue;
     chatMessages.push({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.content });
@@ -161,7 +164,7 @@ async function callOpenAI(messages, systemPrompt, apiKey) {
       model: 'gpt-4o-mini',
       messages: chatMessages,
       temperature: 0.9,
-      max_tokens: 500,
+      max_tokens: maxTokens,
     }),
   });
 
@@ -187,7 +190,20 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
     }
   }
 
-  // Try Gemini primary (seamless failover chain)
+  // OpenAI primary (instant switch)
+  // Creative modes genuinely need room; everything else is 2-4 sentences,
+  // and output tokens cost 4x input — so cap them tight.
+  const maxTokens = ['storyteller', 'dream', 'lullaby'].includes(mode?.id) ? 500 : 220;
+  if (ENV_OPENAI_KEY) {
+    try {
+      const result = await callOpenAI(messages, systemPrompt, ENV_OPENAI_KEY, maxTokens);
+      if (result) { trackAPICall?.('openai', true); return { text: result, source: 'openai' }; }
+    } catch (err) {
+      trackAPICall?.('openai', false, err.message);
+    }
+  }
+
+  // Gemini fallback (seamless failover chain)
   if (apiKey) {
     try {
       const result = await callGemini(messages, systemPrompt, apiKey);
@@ -208,15 +224,6 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
     }
   }
 
-  // OpenAI fallback (instant switch)
-  if (ENV_OPENAI_KEY) {
-    try {
-      const result = await callOpenAI(messages, systemPrompt, ENV_OPENAI_KEY);
-      if (result) { trackAPICall?.('openai', true); return { text: result, source: 'openai' }; }
-    } catch (err) {
-      trackAPICall?.('openai', false, err.message);
-    }
-  }
 
   trackAPICall?.('offline', true);
   return { text: getFallbackResponse(mode?.id), source: 'offline' };
