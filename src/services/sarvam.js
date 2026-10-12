@@ -80,7 +80,7 @@ export function cleanForTTS(text) {
 const _ttsCache = new Map();
 const _TTS_CACHE_MAX = 30;
 
-export async function sarvamTTS(apiKey, text, speaker = 'anushka', language = 'hi-IN') {
+export async function sarvamTTS(apiKey, text, speaker = 'ritu', language = 'hi-IN') {
   try {
     const clean = cleanForTTS(text);
     if (!clean) return null;

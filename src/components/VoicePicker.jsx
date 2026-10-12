@@ -310,28 +310,28 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                           setDeployed(true); setTimeout(() => setDeployed(false), 2000);
                         }}>
                           <div>
-                            <span className="voice-picker-name" style={{ fontWeight: 600 }}>🇮🇳 Anushka</span>
-                            <span className="voice-picker-desc">Warm, calm, soothing — ideal for therapy</span>
+                            <span className="voice-picker-name" style={{ fontWeight: 600 }}>🇮🇳 Ritu</span>
+                            <span className="voice-picker-desc">Warm, friendly, conversational</span>
                           </div>
                           {activeEngine === 'sarvam' && (!settings?.sarvamVoice || settings?.sarvamVoice === 'ritu') && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
                         </button>
-                        <button className={`voice-picker-test ${testing === 'sarvam-anushka' ? 'playing' : ''}`}
+                        <button className={`voice-picker-test ${testing === 'sarvam-ritu' ? 'playing' : ''}`}
                           onClick={async () => {
-                            if (testing === 'sarvam-anushka') { sarvamAudioRef.current?.pause(); setTesting(null); return; }
-                            setTesting('sarvam-anushka');
+                            if (testing === 'sarvam-ritu') { sarvamAudioRef.current?.pause(); setTesting(null); return; }
+                            setTesting('sarvam-ritu');
                             const url = await sarvamTTS(settings.sarvamApiKey, 'Namaste! Main Eva hoon, aapki personal voice companion. Aap kaise feel kar rahe ho aaj? Mujhe batao, main sun rahi hoon.', 'ritu', 'hi-IN');
                             if (url) { const a = new Audio(url); sarvamAudioRef.current = a; a.onended = () => setTesting(null); a.play(); }
                             else setTesting(null);
                           }}
-                          style={{ color: testing === 'sarvam-anushka' ? '#ff4444' : mode.accentColor, borderColor: testing === 'sarvam-anushka' ? '#ff4444' : mode.accentColor }}>
-                          {testing === 'sarvam-anushka' ? '■' : '▶'}
+                          style={{ color: testing === 'sarvam-ritu' ? '#ff4444' : mode.accentColor, borderColor: testing === 'sarvam-ritu' ? '#ff4444' : mode.accentColor }}>
+                          {testing === 'sarvam-ritu' ? '■' : '▶'}
                         </button>
                       </div>
 
                       {/* Toggle to show all Sarvam voices */}
                       <button className="vp-show-more" onClick={() => setShowSarvamVoices(!showSarvamVoices)}
                         style={{ color: mode.accentColor }}>
-                        {showSarvamVoices ? 'Hide Sarvam voices ▲' : `Show all 34 Sarvam voices ▼`}
+                        {showSarvamVoices ? 'Hide Sarvam voices ▲' : `Show all ${SARVAM_VOICES.female.length + SARVAM_VOICES.male.length} Sarvam voices ▼`}
                       </button>
 
                       {showSarvamVoices && (
@@ -428,7 +428,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                 </p>
 
                 {[
-                  { id: 'sarvam', name: 'Sarvam AI', desc: 'Hindi/Indian neural voices (34 voices)', emoji: '🇮🇳', active: !!settings?.sarvamApiKey },
+                  { id: 'sarvam', name: 'Sarvam AI', desc: `Hindi/Indian neural voices (${SARVAM_VOICES.female.length + SARVAM_VOICES.male.length} voices)`, emoji: '🇮🇳', active: !!settings?.sarvamApiKey },
                   { id: 'maya1', name: 'Maya1 (Kaggle)', desc: '20+ emotions, voice design, best quality', emoji: '🎭', active: !!settings?.mayaUrl },
                   { id: 'browser', name: 'Browser TTS', desc: 'Free, instant, 160+ voices', emoji: '🔊', active: true },
                   { id: 'elevenlabs', name: 'ElevenLabs', desc: 'Premium quality ($5/mo)', emoji: '💎', active: !!settings?.elevenLabsApiKey && settings?.useElevenLabs },
