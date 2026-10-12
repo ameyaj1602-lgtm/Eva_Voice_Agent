@@ -57,8 +57,37 @@ export const SARVAM_LANGUAGES = {
 };
 
 // Text to Speech
+
+// Sarvam bills per character, so strip anything that costs money but adds
+// nothing to the audio — emoji, markdown symbols, repeated whitespace.
+// Bonus: stops the voice reading "asterisk asterisk" out loud.
+export function cleanForTTS(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{2190}-\u{21FF}]/gu, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{2,}/g, '\n')
+    .trim();
+}
+
+// Same reply spoken twice (Replay button, repeated greetings) should not be
+// billed twice. Small LRU so blob URLs don't pile up forever.
+const _ttsCache = new Map();
+const _TTS_CACHE_MAX = 30;
+
 export async function sarvamTTS(apiKey, text, speaker = 'anushka', language = 'hi-IN') {
   try {
+    const clean = cleanForTTS(text);
+    if (!clean) return null;
+
+    const cacheKey = `${speaker}|${language}|${clean}`;
+    if (_ttsCache.has(cacheKey)) return _ttsCache.get(cacheKey);
+
     // Read user's tuning settings
     const savedRate = parseFloat(localStorage.getItem('eva-voice-rate')) || 0.9;
     const savedVolume = parseFloat(localStorage.getItem('eva-voice-volume')) || 0.85;
@@ -75,7 +104,7 @@ export async function sarvamTTS(apiKey, text, speaker = 'anushka', language = 'h
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs: [text],
+        inputs: [clean],
         target_language_code: language,
         speaker: speaker,
         model: 'bulbul:v3',
@@ -94,7 +123,14 @@ export async function sarvamTTS(apiKey, text, speaker = 'anushka', language = 'h
       // Convert base64 to audio URL
       const audioData = data.audios[0];
       const blob = base64ToBlob(audioData, 'audio/wav');
-      return URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+      if (_ttsCache.size >= _TTS_CACHE_MAX) {
+        const oldest = _ttsCache.keys().next().value;
+        URL.revokeObjectURL(_ttsCache.get(oldest));
+        _ttsCache.delete(oldest);
+      }
+      _ttsCache.set(cacheKey, url);
+      return url;
     }
     return null;
   } catch (err) {
