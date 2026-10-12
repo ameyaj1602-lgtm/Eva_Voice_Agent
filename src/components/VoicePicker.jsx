@@ -135,7 +135,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
   const visibleSecondary = search ? secondaryLangs : (showAllLangs ? secondaryLangs : []);
 
   // Active engine: if sarvam voice is set, that's active. Otherwise browser voice.
-  const activeSarvamVoice = settings?.sarvamVoice || (settings?.sarvamApiKey ? 'anushka' : null);
+  const activeSarvamVoice = settings?.sarvamVoice || (settings?.sarvamApiKey ? 'ritu' : null);
   const activeEngine = activeSarvamVoice ? 'sarvam' : 'browser';
   const [showBrowserVoices, setShowBrowserVoices] = useState(false);
 
@@ -303,23 +303,23 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                     <div className="voice-picker-group">
                       <div className="voice-picker-lang">SARVAM AI — Hindi & Indian</div>
                       {/* Default Sarvam voice */}
-                      <div className={`voice-picker-item vp-sarvam-voice ${settings?.sarvamVoice === 'anushka' || !settings?.sarvamVoice ? 'active' : ''}`}
-                        style={!settings?.sarvamVoice || settings?.sarvamVoice === 'anushka' ? { borderColor: mode.accentColor } : {}}>
+                      <div className={`voice-picker-item vp-sarvam-voice ${settings?.sarvamVoice === 'ritu' || !settings?.sarvamVoice ? 'active' : ''}`}
+                        style={!settings?.sarvamVoice || settings?.sarvamVoice === 'ritu' ? { borderColor: mode.accentColor } : {}}>
                         <button className="voice-picker-select" onClick={() => {
-                          onSaveSettings?.({ sarvamVoice: 'anushka', sarvamDefault: true });
+                          onSaveSettings?.({ sarvamVoice: 'ritu', sarvamDefault: true });
                           setDeployed(true); setTimeout(() => setDeployed(false), 2000);
                         }}>
                           <div>
                             <span className="voice-picker-name" style={{ fontWeight: 600 }}>🇮🇳 Anushka</span>
                             <span className="voice-picker-desc">Warm, calm, soothing — ideal for therapy</span>
                           </div>
-                          {activeEngine === 'sarvam' && (!settings?.sarvamVoice || settings?.sarvamVoice === 'anushka') && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
+                          {activeEngine === 'sarvam' && (!settings?.sarvamVoice || settings?.sarvamVoice === 'ritu') && <span className="voice-picker-check" style={{ color: mode.accentColor }}>✓</span>}
                         </button>
                         <button className={`voice-picker-test ${testing === 'sarvam-anushka' ? 'playing' : ''}`}
                           onClick={async () => {
                             if (testing === 'sarvam-anushka') { sarvamAudioRef.current?.pause(); setTesting(null); return; }
                             setTesting('sarvam-anushka');
-                            const url = await sarvamTTS(settings.sarvamApiKey, 'Namaste! Main Eva hoon, aapki personal voice companion. Aap kaise feel kar rahe ho aaj? Mujhe batao, main sun rahi hoon.', 'anushka', 'hi-IN');
+                            const url = await sarvamTTS(settings.sarvamApiKey, 'Namaste! Main Eva hoon, aapki personal voice companion. Aap kaise feel kar rahe ho aaj? Mujhe batao, main sun rahi hoon.', 'ritu', 'hi-IN');
                             if (url) { const a = new Audio(url); sarvamAudioRef.current = a; a.onended = () => setTesting(null); a.play(); }
                             else setTesting(null);
                           }}
@@ -470,7 +470,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                   <div style={{ marginTop: 12 }}>
                     <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Sarvam Default Voice</label>
                     <select className="settings-select"
-                      value={settings?.sarvamVoice || 'anushka'}
+                      value={settings?.sarvamVoice || 'ritu'}
                       onChange={(e) => onSaveSettings?.({ sarvamVoice: e.target.value })}
                       style={{ fontSize: 12 }}>
                       <optgroup label="Female">

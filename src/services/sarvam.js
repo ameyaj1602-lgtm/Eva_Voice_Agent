@@ -4,12 +4,11 @@
 const SARVAM_API = 'https://api.sarvam.ai';
 
 // Available voices
+// bulbul:v2 was deprecated by Sarvam; v3 is the current model and ships a
+// different speaker roster. The voices below are the v3-compatible set —
+// anushka, manisha, vidya, arya, abhilash, karun and hitesh no longer exist.
 export const SARVAM_VOICES = {
   female: [
-    { id: 'anushka', name: 'Anushka', desc: 'Warm, calm, soothing — ideal for therapy', gender: 'female' },
-    { id: 'manisha', name: 'Manisha', desc: 'Gentle, soft-spoken, nurturing', gender: 'female' },
-    { id: 'vidya', name: 'Vidya', desc: 'Clear, professional, composed', gender: 'female' },
-    { id: 'arya', name: 'Arya', desc: 'Confident, bold, energetic', gender: 'female' },
     { id: 'ritu', name: 'Ritu', desc: 'Warm, friendly, conversational', gender: 'female' },
     { id: 'priya', name: 'Priya', desc: 'Sweet, light, uplifting', gender: 'female' },
     { id: 'neha', name: 'Neha', desc: 'Calm, measured, thoughtful', gender: 'female' },
@@ -26,9 +25,6 @@ export const SARVAM_VOICES = {
     { id: 'roopa', name: 'Roopa', desc: 'Lively, animated, fun', gender: 'female' },
   ],
   male: [
-    { id: 'abhilash', name: 'Abhilash', desc: 'Deep, calm, authoritative', gender: 'male' },
-    { id: 'karun', name: 'Karun', desc: 'Warm, compassionate, gentle', gender: 'male' },
-    { id: 'hitesh', name: 'Hitesh', desc: 'Friendly, conversational, easy', gender: 'male' },
     { id: 'aditya', name: 'Aditya', desc: 'Confident, clear, professional', gender: 'male' },
     { id: 'rahul', name: 'Rahul', desc: 'Casual, relatable, everyday', gender: 'male' },
     { id: 'rohan', name: 'Rohan', desc: 'Energetic, upbeat, motivating', gender: 'male' },
@@ -82,7 +78,7 @@ export async function sarvamTTS(apiKey, text, speaker = 'anushka', language = 'h
         inputs: [text],
         target_language_code: language,
         speaker: speaker,
-        model: 'bulbul:v2',
+        model: 'bulbul:v3',
         pace: pace,
         loudness: loudness,
       }),

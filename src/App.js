@@ -232,7 +232,7 @@ function App() {
       try {
         const hasHindi = /[\u0900-\u097F]/.test(text) || /\b(hai|hoon|kya|kaise|mein|toh|yeh|aur|nahi|haan|accha|theek|karo)\b/i.test(text);
         const lang = hasHindi ? 'hi-IN' : (settings.sarvamLanguage || 'en-IN');
-        const audioUrl = await sarvamTTS(settings.sarvamApiKey, text, settings.sarvamVoice || 'anushka', lang);
+        const audioUrl = await sarvamTTS(settings.sarvamApiKey, text, settings.sarvamVoice || 'ritu', lang);
         if (audioUrl) {
           const audio = new Audio(audioUrl);
           audio.volume = parseFloat(localStorage.getItem('eva-voice-volume')) || 0.6;
