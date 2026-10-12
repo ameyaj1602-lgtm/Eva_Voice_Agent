@@ -178,8 +178,13 @@ async function callOpenAI(messages, systemPrompt, apiKey, maxTokens = 220) {
 const clean = (text) => (sanitize ? sanitize(text) : text);
 
 // Returns { text, source } where source is 'gemini'|'openai'|'offline'
-export async function getAIResponse(messages, mode, apiKey, { userName, memories } = {}) {
-  if (!apiKey && !ENV_OPENAI_KEY && !ENV_GEMINI_BACKUP) {
+export async function getAIResponse(messages, mode, apiKey, { userName, memories, openaiKey } = {}) {
+  // A key typed into the admin panel used to be saved and then ignored —
+  // only the .env value was ever read. The caller's key wins now, with .env
+  // as the fallback.
+  const openai = openaiKey || ENV_OPENAI_KEY;
+
+  if (!apiKey && !openai && !ENV_GEMINI_BACKUP) {
     return { text: getFallbackResponse(mode?.id), source: 'offline' };
   }
 
@@ -204,9 +209,9 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   // Creative modes genuinely need room; everything else is 2-4 sentences,
   // and output tokens cost 4x input — so cap them tight.
   const maxTokens = ['storyteller', 'dream', 'lullaby'].includes(mode?.id) ? 500 : 220;
-  if (ENV_OPENAI_KEY) {
+  if (openai) {
     try {
-      const result = await callOpenAI(messages, systemPrompt, ENV_OPENAI_KEY, maxTokens);
+      const result = await callOpenAI(messages, systemPrompt, openai, maxTokens);
       if (result) { trackAPICall?.('openai', true); return { text: clean(result), source: 'openai' }; }
     } catch (err) {
       trackAPICall?.('openai', false, err.message);

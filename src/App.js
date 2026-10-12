@@ -63,6 +63,8 @@ const ENV_DEEPGRAM_KEY = process.env.REACT_APP_DEEPGRAM_API_KEY || '';
 const ENV_GEMINI_KEY = process.env.REACT_APP_GEMINI_API_KEY || '';
 const ENV_FISH_AUDIO_KEY = process.env.REACT_APP_FISH_AUDIO_API_KEY || '';
 const ENV_SARVAM_KEY = process.env.REACT_APP_SARVAM_API_KEY || '';
+const ENV_OPENAI_KEY = process.env.REACT_APP_OPENAI_API_KEY || '';
+const ENV_GEMINI_BACKUP = process.env.REACT_APP_GEMINI_API_KEY_BACKUP || '';
 
 let messageId = Date.now(); // unique seed to avoid collisions
 
@@ -118,7 +120,12 @@ function App() {
     try {
       const saved = JSON.parse(localStorage.getItem('eva-settings')) || {};
       return {
+        ...saved,
+        // These come last on purpose. With `...saved` last, a key the user
+        // cleared in the admin panel (saved as '') overrode the .env value
+        // and silently disabled the service.
         geminiApiKey: saved.geminiApiKey || ENV_GEMINI_KEY,
+        openaiApiKey: saved.openaiApiKey || ENV_OPENAI_KEY,
         elevenLabsApiKey: saved.elevenLabsApiKey || ENV_ELEVENLABS_KEY,
         deepgramApiKey: saved.deepgramApiKey || ENV_DEEPGRAM_KEY,
         useElevenLabs: saved.useElevenLabs ?? !!ENV_ELEVENLABS_KEY,
@@ -126,7 +133,6 @@ function App() {
         fishAudioApiKey: saved.fishAudioApiKey || ENV_FISH_AUDIO_KEY,
         sarvamApiKey: saved.sarvamApiKey || ENV_SARVAM_KEY,
         autoSpeak: saved.autoSpeak ?? true,
-        ...saved,
       };
     } catch { return { autoSpeak: true }; }
   });
@@ -287,7 +293,7 @@ function App() {
 
       const { text: response, source } = await getAIResponse(
         currentMessages, currentMode, settings.geminiApiKey,
-        { userName: activeProfile?.name, memories }
+        { userName: activeProfile?.name, memories, openaiKey: settings.openaiApiKey }
       );
 
       const responseTime = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -664,7 +670,7 @@ function App() {
         </div>
       </header>
 
-      {!settings.geminiApiKey && (
+      {!settings.geminiApiKey && !settings.openaiApiKey && !ENV_GEMINI_BACKUP && (
         <div className="status-bar warning">
           <span>{'⚠️'} Offline mode - </span>
           <button className="status-link" onClick={() => setShowSettings(true)} style={{ color: currentMode.accentColor }}>Add API key for real AI</button>
