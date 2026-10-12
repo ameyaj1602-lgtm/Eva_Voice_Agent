@@ -1,0 +1,10 @@
+{
+  "name": "eva-telegram-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Eva on Telegram — same brain as the web app, running server-side",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
