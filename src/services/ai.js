@@ -148,6 +148,29 @@ async function callGemini(messages, systemPrompt, apiKey) {
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
 }
 
+// Ask our own server, which holds the key. Returns null when no proxy is
+// deployed (plain `npm start` serves no /api), so the caller can fall back to a
+// browser-side key during local development.
+async function callProxy(messages, systemPrompt, maxTokens) {
+  const chatMessages = [{ role: 'system', content: systemPrompt }];
+  for (const msg of (messages || []).slice(-6)) {
+    if (!msg?.content) continue;
+    chatMessages.push({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.content });
+  }
+
+  const res = await fetchWithTimeout('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: chatMessages, maxTokens }),
+  });
+
+  // 404 means there is no serverless function here — dev server, not a bug.
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Proxy ${res.status}`);
+  const data = await res.json();
+  return data?.text || null;
+}
+
 async function callOpenAI(messages, systemPrompt, apiKey, maxTokens = 220) {
   const chatMessages = [{ role: 'system', content: systemPrompt }];
   const recent = (messages || []).slice(-6);
@@ -184,7 +207,10 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   // as the fallback.
   const openai = openaiKey || ENV_OPENAI_KEY;
 
-  if (!apiKey && !openai && !ENV_GEMINI_BACKUP) {
+  // No client key is NOT the same as no brain any more — the server proxy may
+  // well be there. Only bail out early if there is no plausible route at all.
+  const maybeProxy = typeof window !== 'undefined';
+  if (!apiKey && !openai && !ENV_GEMINI_BACKUP && !maybeProxy) {
     return { text: getFallbackResponse(mode?.id), source: 'offline' };
   }
 
@@ -209,6 +235,15 @@ export async function getAIResponse(messages, mode, apiKey, { userName, memories
   // Creative modes genuinely need room; everything else is 2-4 sentences,
   // and output tokens cost 4x input — so cap them tight.
   const maxTokens = ['storyteller', 'dream', 'lullaby'].includes(mode?.id) ? 500 : 220;
+  // Proxy first: in production this is the only path, because no key is
+  // compiled into the bundle for the branches below to use.
+  try {
+    const result = await callProxy(messages, systemPrompt, maxTokens);
+    if (result) { trackAPICall?.('openai', true); return { text: clean(result), source: 'openai' }; }
+  } catch (err) {
+    trackAPICall?.('openai', false, `proxy: ${err.message}`);
+  }
+
   if (openai) {
     try {
       const result = await callOpenAI(messages, systemPrompt, openai, maxTokens);

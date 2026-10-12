@@ -26,3 +26,5 @@ yarn-error.log*
 # telegram bot
 telegram-bot/.env
 telegram-bot/data/
+.vercel
+.env*

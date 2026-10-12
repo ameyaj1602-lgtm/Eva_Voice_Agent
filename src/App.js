@@ -102,6 +102,8 @@ function App() {
   const [creditLimitType, setCreditLimitType] = useState('ai');
   const [creditStatus, setCreditStatus] = useState(creditManager.getStatus());
   const [showAdmin, setShowAdmin] = useState(false);
+  // Set only when a reply genuinely came back as canned offline text.
+  const [isOffline, setIsOffline] = useState(false);
   const [onboardingEmail, setOnboardingEmail] = useState('');
   const [onboardingCompany, setOnboardingCompany] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -233,7 +235,10 @@ function App() {
 
     const voiceMode = localStorage.getItem('eva-voice-mode') || 'instant';
 
-    if (voiceMode === 'premium' && settings.sarvamApiKey) {
+    // No key check: in production the key lives on the server and the browser
+    // has none. sarvamTTS tries /api/tts first and returns null if voice is
+    // genuinely unavailable, in which case we fall through to browser speech.
+    if (voiceMode === 'premium') {
       // Premium: Sarvam (3-5s delay, better quality)
       try {
         const hasHindi = /[\u0900-\u097F]/.test(text) || /\b(hai|hoon|kya|kaise|mein|toh|yeh|aur|nahi|haan|accha|theek|karo)\b/i.test(text);
@@ -323,11 +328,12 @@ function App() {
       // Log conversation for admin dashboard
       logConversation(activeProfile?.id, activeProfile?.name, currentMode.id, userText, response, source);
 
+      setIsOffline(source === 'offline');
       if (source === 'offline') {
         toast.warning?.('Using offline responses - add API key in Settings');
       }
 
-      if (activeProfile && settings.geminiApiKey) {
+      if (activeProfile && source !== 'offline') {
         extractMemories(userText, activeProfile.id);
       }
 
@@ -670,7 +676,7 @@ function App() {
         </div>
       </header>
 
-      {!settings.geminiApiKey && !settings.openaiApiKey && !ENV_GEMINI_BACKUP && (
+      {isOffline && (
         <div className="status-bar warning">
           <span>{'⚠️'} Offline mode - </span>
           <button className="status-link" onClick={() => setShowSettings(true)} style={{ color: currentMode.accentColor }}>Add API key for real AI</button>

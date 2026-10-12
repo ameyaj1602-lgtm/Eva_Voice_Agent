@@ -80,6 +80,39 @@ export function cleanForTTS(text) {
 const _ttsCache = new Map();
 const _TTS_CACHE_MAX = 30;
 
+
+function base64ToAudioUrl(b64) {
+  return URL.createObjectURL(base64ToBlob(b64, 'audio/wav'));
+}
+
+function cacheAudio(key, url) {
+  if (!url) return null;
+  if (_ttsCache.size >= _TTS_CACHE_MAX) {
+    const oldest = _ttsCache.keys().next().value;
+    URL.revokeObjectURL(_ttsCache.get(oldest));
+    _ttsCache.delete(oldest);
+  }
+  _ttsCache.set(key, url);
+  return url;
+}
+
+// Returns an object URL, or null when no proxy is deployed (plain `npm start`
+// serves no /api) so the caller can fall back to a browser-side key.
+async function ttsViaProxy({ text, speaker, language, pace, loudness }) {
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, speaker, language, pace, loudness }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.audio ? base64ToAudioUrl(data.audio) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function sarvamTTS(apiKey, text, speaker = 'ritu', language = 'hi-IN') {
   try {
     const clean = cleanForTTS(text);
@@ -96,6 +129,14 @@ export async function sarvamTTS(apiKey, text, speaker = 'ritu', language = 'hi-I
     const pace = Math.max(0.5, Math.min(2.0, savedRate * 1.1));
     // Map volume (0.2-1.0) to loudness (0.3-3.0)
     const loudness = Math.max(0.3, Math.min(3.0, savedVolume * 3));
+
+    // Our own server first — it holds the key. In production this is the only
+    // path that works, because no Sarvam key is compiled into the bundle.
+    const viaProxy = await ttsViaProxy({ text: clean, speaker, language, pace, loudness });
+    if (viaProxy) return cacheAudio(cacheKey, viaProxy);
+
+    // Falls through to a browser-side key, which only exists in local dev.
+    if (!apiKey) return null;
 
     const res = await fetch(`${SARVAM_API}/text-to-speech`, {
       method: 'POST',
@@ -122,15 +163,7 @@ export async function sarvamTTS(apiKey, text, speaker = 'ritu', language = 'hi-I
     if (data?.audios?.[0]) {
       // Convert base64 to audio URL
       const audioData = data.audios[0];
-      const blob = base64ToBlob(audioData, 'audio/wav');
-      const url = URL.createObjectURL(blob);
-      if (_ttsCache.size >= _TTS_CACHE_MAX) {
-        const oldest = _ttsCache.keys().next().value;
-        URL.revokeObjectURL(_ttsCache.get(oldest));
-        _ttsCache.delete(oldest);
-      }
-      _ttsCache.set(cacheKey, url);
-      return url;
+      return cacheAudio(cacheKey, base64ToAudioUrl(audioData));
     }
     return null;
   } catch (err) {

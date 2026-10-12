@@ -1,0 +1,16 @@
+# Keys must never reach the build. Create React App inlines any REACT_APP_*
+# variable it finds at build time, so an uploaded .env.local would put the
+# keys straight back into the browser bundle — the exact thing the /api
+# proxies exist to prevent. The server reads OPENAI_API_KEY / SARVAM_API_KEY
+# from Vercel's own environment settings instead.
+.env
+.env.*
+!.env.example
+
+node_modules
+.git
+telegram-bot/data
+livekit-agent
+maya1-colab
+singing-server
+voice-clone-server

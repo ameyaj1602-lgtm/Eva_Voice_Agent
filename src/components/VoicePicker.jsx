@@ -135,7 +135,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
   const visibleSecondary = search ? secondaryLangs : (showAllLangs ? secondaryLangs : []);
 
   // Active engine: if sarvam voice is set, that's active. Otherwise browser voice.
-  const activeSarvamVoice = settings?.sarvamVoice || (settings?.sarvamApiKey ? 'ritu' : null);
+  const activeSarvamVoice = settings?.sarvamVoice || 'ritu';
   const activeEngine = activeSarvamVoice ? 'sarvam' : 'browser';
   const [showBrowserVoices, setShowBrowserVoices] = useState(false);
 
@@ -299,7 +299,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                   )}
 
                   {/* Sarvam AI voices (Hindi/Indian - premium quality) */}
-                  {settings?.sarvamApiKey && (!search || 'sarvam hindi indian'.includes(searchLower)) && (
+                  {(!search || 'sarvam hindi indian'.includes(searchLower)) && (
                     <div className="voice-picker-group">
                       <div className="voice-picker-lang">SARVAM AI — Hindi & Indian</div>
                       {/* Default Sarvam voice */}
@@ -428,7 +428,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                 </p>
 
                 {[
-                  { id: 'sarvam', name: 'Sarvam AI', desc: `Hindi/Indian neural voices (${SARVAM_VOICES.female.length + SARVAM_VOICES.male.length} voices)`, emoji: '🇮🇳', active: !!settings?.sarvamApiKey },
+                  { id: 'sarvam', name: 'Sarvam AI', desc: `Hindi/Indian neural voices (${SARVAM_VOICES.female.length + SARVAM_VOICES.male.length} voices)`, emoji: '🇮🇳', active: true },
                   { id: 'maya1', name: 'Maya1 (Kaggle)', desc: '20+ emotions, voice design, best quality', emoji: '🎭', active: !!settings?.mayaUrl },
                   { id: 'browser', name: 'Browser TTS', desc: 'Free, instant, 160+ voices', emoji: '🔊', active: true },
                   { id: 'elevenlabs', name: 'ElevenLabs', desc: 'Premium quality ($5/mo)', emoji: '💎', active: !!settings?.elevenLabsApiKey && settings?.useElevenLabs },
@@ -466,7 +466,7 @@ export default function VoicePicker({ voices, selectedVoice, onVoiceChange, mode
                 </div>
 
                 {/* Sarvam voice selector */}
-                {settings?.sarvamApiKey && (
+                {(
                   <div style={{ marginTop: 12 }}>
                     <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Sarvam Default Voice</label>
                     <select className="settings-select"
